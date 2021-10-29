@@ -1,0 +1,21 @@
+package tree
+
+import tree.data.Identifier
+
+abstract class DataStruct() {
+}
+enum class DataStructVisibility{
+    PRIVATE,
+    PROTECTED,
+    PUBLIC
+}
+
+class DataStructModifier{
+    var visibility: DataStructVisibility = DataStructVisibility.PROTECTED
+    var static: Boolean = false
+    var abstract: Boolean = false
+}
+class Variable(val modifier: DataStructModifier, val name: Identifier): DataStruct()
+class Function(val modifier: DataStructModifier, val name: Identifier, val input: List<Variable>, val output: Variable): DataStruct()
+class Struct  (val modifier: DataStructModifier, val name: Identifier, val parent: Identifier): DataStruct()
+class Class   (val modifier: DataStructModifier, val name: Identifier, val parent: Identifier): DataStruct()
