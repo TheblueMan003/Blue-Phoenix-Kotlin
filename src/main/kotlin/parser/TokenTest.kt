@@ -1,4 +1,4 @@
-package tree
+package parser
 
 import lexer.MyTokenTypes.*
 
@@ -93,6 +93,15 @@ fun getStringLit(tokens: TokenStream):String{
     val r = tokens.peek().string
     tokens.next()
     return r
+}
+fun isType(tokens: TokenStream):Boolean{
+    return try{
+        parseType(tokens, Context(""))
+        true
+    }
+    catch (e: Exception){
+        false
+    }
 }
 
 data class UnexpectedToken(val token: String, val pos: Int): Exception()

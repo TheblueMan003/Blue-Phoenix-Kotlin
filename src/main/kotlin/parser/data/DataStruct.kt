@@ -1,6 +1,6 @@
-package tree
+package parser
 
-import tree.data.Identifier
+import parser.data.Identifier
 
 abstract class DataStruct() {
 }

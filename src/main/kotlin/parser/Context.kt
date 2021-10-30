@@ -1,6 +1,6 @@
-package tree
+package parser
 
-import tree.data.Identifier
+import parser.data.Identifier
 
 class Context(val path: String){
     var currentPath: Identifier = Identifier(listOf(path))

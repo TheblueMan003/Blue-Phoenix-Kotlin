@@ -1,4 +1,4 @@
-package tree
+package parser
 
 import guru.zoroark.lixy.LixyToken
 
@@ -23,5 +23,8 @@ class TokenStream(tokens_lst: List<LixyToken>, start: Int) {
     }
     fun isEmpty(): Boolean {
         return index < tokens.size
+    }
+    fun copy():TokenStream{
+        return TokenStream(tokens, index)
     }
 }
