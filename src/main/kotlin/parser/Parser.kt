@@ -19,6 +19,7 @@ fun parse(path: String, tokens: TokenStream):Pair<Statement, Context>{
     return if (statements.size > 0) { Pair(Block(statements), context)} else { Pair(Empty(), context)}
 }
 
+
 /**
  * Parse Statement
  */
@@ -27,6 +28,7 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
         return Empty()
     }
     val modifier = DataStructModifier()
+
 
     // If
     if (isKeyword(tokens, "if")){
@@ -41,9 +43,11 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
             If(cond, blockIf)
         }
     }
+
+
     // Blocks
     if (isDelimiter(tokens,"{")){
-        val statements = ArrayList<Statement>();
+        val statements = ArrayList<Statement>()
         while(!isDelimiter(tokens,"}")){
             assert(!tokens.isEmpty())
             statements.add(parseBlock(tokens, context))
@@ -51,32 +55,38 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
         return Block(statements)
     }
 
+    // Variable Assignment / Function Call
     if (isIdentifier(tokens)){
         val identifier = parseIdentifier(tokens, context)
 
-        if (isDelimiter(tokens, "(")){
-            val args = parseExpressionList(tokens, context)
-            expectDelimiter(tokens, ")")
+        if (isDelimiterNoConsume(tokens, "(")){
+            parseFunctionCall(tokens, context, identifier)
         }
         else{
             val vars = parseIdentifierList(tokens, context, identifier)
             if (isOperationToken(tokens, "=")){
-
+                val expr = parseExpressionList(tokens, context)
+                if (expr.size == 1){
+                    Block(vars.map { VariableAssignment(it, expr[0]) })
+                }else{
+                    Block(vars.zip(expr).map { (v, e) -> VariableAssignment(v, e) })
+                }
             }
             else{
-
+                val op = getOperationToken(tokens)
+                val expr = parseExpressionList(tokens, context)
+                if (expr.size == 1){
+                    Block(vars.map { VariableAssignment(it, BinaryExpr(op, VarExpr(it), expr[0])) })
+                }else{
+                    Block(vars.zip(expr).map { (v, e) -> VariableAssignment(v, BinaryExpr(op, VarExpr(v), e)) })
+                }
             }
         }
     }
 
 
-    // Data Struct
-    if (isKeyword(tokens, "public")){ modifier.visibility = PUBLIC }
-    else if (isKeyword(tokens, "protected")){ modifier.visibility = PROTECTED }
-    else if (isKeyword(tokens, "private")){ modifier.visibility = PRIVATE }
+    parseModifier(tokens, context, modifier)
 
-    if (isKeyword(tokens, "abstract")){ modifier.abstract = true }
-    if (isKeyword(tokens, "static")){ modifier.static = true }
 
     if (isKeyword(tokens, "struct")) {
         return Empty()
@@ -87,12 +97,10 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
     else if (isType(tokens)){
         val type = parseType(tokens, context)
         val identifier = parseIdentifier(tokens, context)
+
         // Function
         if (isDelimiter(tokens, "(")){
-            val args = ArrayList<FunctionArgument>()
-            while(!isDelimiter(tokens, ")") || isDelimiter(tokens, ",")){
-                args.add(parseFunctionArguments(tokens, context))
-            }
+            val args = parseFunctionArgumentsList(tokens, context)
             val body = parseBlock(tokens, context)
             return FunctionDeclaration(modifier, identifier, args, type, body)
         }
@@ -100,7 +108,7 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
             // Variable Declaration
             val vars = parseIdentifierList(tokens, context, identifier)
 
-            val declarations = vars.map { it -> VariableDeclaration(modifier, it, type) }
+            val declarations = vars.map { VariableDeclaration(modifier, it, type) }
             if (isOperationToken(tokens, "=")){
                 // Get Expression
                 val expr = parseExpressionList(tokens, context)
@@ -115,7 +123,7 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
                 return Block(declarations + assignments)
             }
             else{
-                return Block(declarations);
+                return Block(declarations)
             }
         }
     }
@@ -128,13 +136,15 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
 }
 
 
+
 private fun parseExpressionList(tokens: TokenStream, context: Context): List<Expression>{
     val expr = ArrayList<Expression>()
     do {
         expr.add(parseExpression(tokens, context))
     }while(isDelimiter(tokens, ","))
-    return expr;
+    return expr
 }
+
 
 
 private fun parseIdentifierList(tokens: TokenStream, context: Context, identifier:Identifier): List<Identifier> {
@@ -147,17 +157,52 @@ private fun parseIdentifierList(tokens: TokenStream, context: Context, identifie
 }
 
 
+
+private fun parseFunctionCall(tokens: TokenStream, context: Context, identifier:Identifier): Expression{
+    var called: Expression = FuncExpr(identifier)
+    while(isDelimiter(tokens, "(")) {
+        val args = parseExpressionList(tokens, context)
+        expectDelimiter(tokens, ")")
+        called = CallExpr(called, args)
+    }
+    return called
+}
+
+
+
+private fun parseFunctionArgumentsList(tokens: TokenStream, context: Context): List<FunctionArgument>{
+    val args = ArrayList<FunctionArgument>()
+    while(!isDelimiter(tokens, ")") || isDelimiter(tokens, ",")){
+        args.add(parseFunctionArguments(tokens, context))
+    }
+    return args
+}
+
+
+
 private fun parseFunctionArguments(tokens: TokenStream, context: Context): FunctionArgument{
     val type = parseType(tokens, context)
     val identifier = parseIdentifier(tokens, context)
-    if (isOperationToken(tokens, "=")){
+    return if (isOperationToken(tokens, "=")){
         val value =  parseExpression(tokens, context)
-        return FunctionArgument(identifier, type, value)
+        FunctionArgument(identifier, type, value)
     }
     else{
-        return FunctionArgument(identifier, type, null)
+        FunctionArgument(identifier, type, null)
     }
 }
+
+
+private fun parseModifier(tokens: TokenStream, context: Context, modifier: DataStructModifier){
+    // Data Struct
+    if (isKeyword(tokens, "public")){ modifier.visibility = PUBLIC }
+    else if (isKeyword(tokens, "protected")){ modifier.visibility = PROTECTED }
+    else if (isKeyword(tokens, "private")){ modifier.visibility = PRIVATE }
+
+    if (isKeyword(tokens, "abstract")){ modifier.abstract = true }
+    if (isKeyword(tokens, "static")){ modifier.static = true }
+}
+
 
 /**
  * Parse expression
@@ -174,6 +219,8 @@ private fun parseExpression(tokens: TokenStream, context: Context, index: Int = 
     }
     return left
 }
+
+
 
 /**
  * Parse expression without operator on the outside
@@ -210,18 +257,16 @@ private fun parseSimpleExpression(tokens: TokenStream, context: Context):Express
     // Var or Fun
     if (isIdentifier(tokens)){
         val identifier = parseIdentifier(tokens, context)
-        return if (isDelimiter(tokens, "(")){
-            val args = ArrayList<Expression>()
-            while(!isDelimiter(tokens, ")")) {
-                args.add(parseExpression(tokens, context))
-            }
-            CallExpr(identifier, args)
+        return if (isDelimiterNoConsume(tokens, "(")){
+            parseFunctionCall(tokens, context, identifier)
         } else{
             VarExpr(identifier)
         }
     }
     throw UnexpectedException("Unknown token:"+tokens.peekString()+" at pos: "+tokens.peekPos())
 }
+
+
 
 /**
  * Parse Type
@@ -234,6 +279,7 @@ fun parseType(tokens: TokenStream, context: Context):DataType {
     }
     return type
 }
+
 
 
 /**

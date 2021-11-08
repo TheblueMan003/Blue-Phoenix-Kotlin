@@ -18,6 +18,9 @@ fun isDelimiter(tokens: TokenStream, value: String):Boolean{
         false
     }
 }
+fun isDelimiterNoConsume(tokens: TokenStream, value: String):Boolean{
+    return !tokens.isEmpty() && tokens.peek().tokenType == DelimiterTokenType && tokens.peek().string == value
+}
 fun expectDelimiter(tokens: TokenStream, value: String){
     return if (!tokens.isEmpty() && tokens.peek().tokenType == DelimiterTokenType && tokens.peek().string == value){
         tokens.next()
@@ -44,6 +47,20 @@ fun isOperationToken(tokens: TokenStream, value: String):Boolean{
         true
     } else{
         false
+    }
+}
+fun getOperationToken(tokens: TokenStream):String{
+    return if (!tokens.isEmpty() && tokens.peek().tokenType == OperationToken){
+        val value = tokens.peek().string
+        tokens.next()
+        value
+    } else{
+        if (!tokens.isEmpty()) {
+            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt);
+        }
+        else{
+            throw UnexpectedToken("EOF",0);
+        }
     }
 }
 fun isIdentifier(tokens: TokenStream):Boolean{
