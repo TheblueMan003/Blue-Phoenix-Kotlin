@@ -22,7 +22,7 @@ class TokenStream(tokens_lst: List<LixyToken>, start: Int) {
         return index+1 < tokens.size
     }
     fun isEmpty(): Boolean {
-        return index < tokens.size
+        return index >= tokens.size
     }
     fun copy():TokenStream{
         return TokenStream(tokens, index)

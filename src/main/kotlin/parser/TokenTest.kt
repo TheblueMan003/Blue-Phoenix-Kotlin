@@ -113,7 +113,7 @@ fun getStringLit(tokens: TokenStream):String{
 }
 fun isType(tokens: TokenStream):Boolean{
     return try{
-        parseType(tokens, Context(""))
+        parseType(tokens.copy(), Context(""))
         true
     }
     catch (e: Exception){

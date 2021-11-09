@@ -13,8 +13,9 @@ private val unaryOperationOrder = listOf("-", "!")
 fun parse(path: String, tokens: TokenStream):Pair<Statement, Context>{
     val statements = ArrayList<Statement>()
     val context = Context(path)
-    while (tokens.isEmpty()){
-        statements += parseBlock(tokens, context)
+    while (!tokens.isEmpty()){
+        statements.add(parseBlock(tokens, context))
+        println("1")
     }
     return if (statements.size > 0) { Pair(Block(statements), context)} else { Pair(Empty(), context)}
 }
