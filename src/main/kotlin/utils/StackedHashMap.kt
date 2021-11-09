@@ -4,7 +4,7 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
     private val map = HashMap<K, V>()
     private val parentStack: StackedHashMap<K, V>? = parent
 
-    fun set(key: K, value: V){
+    operator fun set(key: K, value: V){
         map[key] = value
     }
     fun get(key: K, top: Boolean = true):V?{

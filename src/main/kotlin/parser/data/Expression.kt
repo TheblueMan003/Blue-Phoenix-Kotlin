@@ -9,7 +9,7 @@ data class FloatLitExpr(val value: Float) : Expression()
 data class BoolLitExpr(val value: Boolean) : Expression()
 data class StringLitExpr(val value: String) : Expression()
 data class FuncExpr(val value: Identifier) : Expression()
-data class VarExpr(val value: Identifier) : Expression()
+data class VarExpr(var value: Identifier) : Expression()
 data class CallExpr(val value: Expression, val args: List<Expression>) : Expression()
 
 data class BinaryExpr(val op: String, val first: Expression, val second: Expression): Expression()
