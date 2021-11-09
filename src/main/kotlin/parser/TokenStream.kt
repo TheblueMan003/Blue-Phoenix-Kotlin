@@ -3,8 +3,8 @@ package parser
 import guru.zoroark.lixy.LixyToken
 
 class TokenStream(tokens_lst: List<LixyToken>, start: Int) {
-    val tokens: List<LixyToken> = tokens_lst
-    var index: Int = start
+    private val tokens: List<LixyToken> = tokens_lst
+    private var index: Int = start
 
     fun peek():LixyToken{
         return tokens[index]
