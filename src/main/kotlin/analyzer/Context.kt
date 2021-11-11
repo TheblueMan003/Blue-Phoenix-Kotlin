@@ -13,22 +13,23 @@ class Context(val path: String){
     private var functions: StackedHashMap<Identifier, Function> = StackedHashMap()
     private var structs  : StackedHashMap<Identifier, Struct> = StackedHashMap()
     private var classes  : StackedHashMap<Identifier, Class> = StackedHashMap()
+    private var generics  : StackedHashMap<Identifier, DataType> = StackedHashMap()
 
     private fun update(child: Context){
         child.variables.getTopLevel()
-            .filter { (k, v) -> v.modifier.visibility == DataStructVisibility.PUBLIC }
+            .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.functions.getTopLevel()
-            .filter { (k, v) -> v.modifier.visibility == DataStructVisibility.PUBLIC }
+            .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.structs.getTopLevel()
-            .filter { (k, v) -> v.modifier.visibility == DataStructVisibility.PUBLIC }
+            .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.classes.getTopLevel()
-            .filter { (k, v) -> v.modifier.visibility == DataStructVisibility.PUBLIC }
+            .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
     }
@@ -44,6 +45,9 @@ class Context(val path: String){
     fun update(id: Identifier, obj: Class){
         classes[id] = obj
     }
+    fun update(id: Identifier, obj: DataType){
+        generics[id] = obj
+    }
     fun hasVariable(id: Identifier): Boolean{
         return variables.get(id) != null
     }
@@ -55,6 +59,9 @@ class Context(val path: String){
     }
     fun hasClass(id: Identifier): Boolean{
         return variables.get(id) != null
+    }
+    fun hasGeneric(id: Identifier): Boolean{
+        return generics.get(id) != null
     }
     fun getVariable(id: Identifier): Variable {
         return variables.get(id) ?: throw IdentifierNotFound(id)
@@ -68,14 +75,18 @@ class Context(val path: String){
     fun getStruct(id: Identifier): Struct {
         return structs.get(id) ?: throw IdentifierNotFound(id)
     }
+    fun getGeneric(id: Identifier): DataType {
+        return generics.get(id) ?: throw IdentifierNotFound(id)
+    }
 
     fun sub(id: String):Context{
         val context = Context(id)
         context.currentPath = currentPath.sub(id)
-        context.variables = variables.sub()
-        context.functions = functions.sub()
-        context.structs   = structs.sub()
-        context.classes   = classes.sub()
+        context.variables   = variables.sub()
+        context.functions   = functions.sub()
+        context.structs     = structs.sub()
+        context.classes     = classes.sub()
+        context.generics    = generics.sub()
         children.add(context)
         return context
     }

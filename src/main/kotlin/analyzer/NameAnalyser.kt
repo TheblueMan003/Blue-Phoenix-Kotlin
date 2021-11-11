@@ -2,13 +2,13 @@ package analyzer
 
 import analyzer.data.*
 import parser.*
+import parser.data.Identifier
 
 fun analyse(stm: Statement, context: Context): Statement{
     fun passUpward(stm: Statement): Statement{
         context.resolve()
         return stm
     }
-
 
     return passUpward(when(stm){
         is Block -> {
@@ -35,16 +35,24 @@ fun analyse(stm: Statement, context: Context): Statement{
 
 
         is VariableDeclaration -> {
-            context.update(stm.identifier, Variable(stm.modifier, context.currentPath.append(stm.identifier), stm.type))
-            stm
+            val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), stm.type, stm.parent)
+            context.update(stm.identifier, variable)
+            Block(listOf(stm, variableInstantiation(variable, context)))
         }
         is StructDeclaration -> {
             context.update(stm.identifier, Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder))
             stm
         }
         is FunctionDeclaration -> {
-            throw NotImplementedError()
-            stm
+            val sub = context.sub(stm.identifier.toString())
+            val modifier = DataStructModifier()
+            modifier.visibility = DataStructVisibility.PRIVATE
+
+            stm.from.map { it -> sub.update(it.identifier,
+                Variable(modifier, sub.currentPath.append(stm.identifier), it.type)) }
+
+            FunctionDeclaration(stm.modifier, stm.identifier, stm.from, stm.to,
+                analyse(stm.body, sub), stm.parent)
         }
 
 
@@ -82,4 +90,72 @@ fun analyse(stm: Statement, context: Context): Statement{
             stm
         }
     })
+}
+
+private fun variableInstantiation(variable: Variable, context: Context): Statement{
+    val sub = context.sub(variable.name.toString())
+    var type = variable.type
+    if (type is GeneratedType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
+    if (type is GeneratedGenericType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
+
+    return if (type is GeneratedType){
+        if (context.hasStruct(type.name)) {
+            val struct = context.getStruct(type.name)
+            val stmList = ArrayList<Statement>()
+
+            // Add Fields
+            stmList.addAll(
+            struct.fields.map{ it ->
+                analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+            )
+
+            // Add Methods
+            stmList.addAll(
+            struct.methods.map{ it ->
+                analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
+            )
+            Block(stmList)
+        }else{
+            Empty()
+        }
+    }
+    else if (type is GeneratedGenericType) {
+        if (context.hasStruct(type.name)) {
+            val struct = context.getStruct(type.name)
+            val stmList = ArrayList<Statement>()
+            if (struct.generic == null) throw Exception("Struct doesn't have generics")
+            struct.generic.zip(type.type).map { p -> sub.update((p.first as GeneratedType).name, p.second) }
+
+            // Add Fields
+            stmList.addAll(
+                struct.fields.map{ it ->
+                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+            )
+
+            // Add Methods
+            stmList.addAll(
+                struct.methods.map{ it ->
+                    analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
+            )
+            Block(stmList)
+        }else{
+            Empty()
+        }
+    }
+    else if (type is ArrayType) {
+        Empty()
+    }
+    else if (type is TupleType) {
+        val modifier = DataStructModifier()
+        modifier.visibility = DataStructVisibility.PUBLIC
+        type.type.mapIndexed{ index, it ->
+            analyse(VariableDeclaration(modifier, Identifier(listOf("$index")), it, variable ), sub)}
+        Empty()
+    }
+    else if (type is FuncType) {
+        Empty()
+    }
+    else{
+        Empty()
+    }
 }
