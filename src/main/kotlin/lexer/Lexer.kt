@@ -19,6 +19,7 @@ fun parse(input: String, removeSpace: Boolean, removeComment: Boolean):List<Lixy
             matches("^\\s*/[^/].*") isToken RawCommandToken
             matches("[\\d]+") isToken IntLitTokenType
             matches("[\\d]*\\.[\\d]+") isToken FloatLitTokenType
+            anyOf("->") isToken DelimiterTokenType
             anyOf("+", "-", "*", "/", "%", "&", "|", "^", "?","=", "=>", "<=", "<", ">=", ">", "&&", "||") isToken OperationToken
             matches("\\{\\}\\[\\]\\(\\)\\.") isToken DelimiterTokenType
             matches("//[^\n]*") isToken CommentTokenType

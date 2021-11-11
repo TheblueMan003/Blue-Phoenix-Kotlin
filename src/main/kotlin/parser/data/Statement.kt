@@ -12,7 +12,7 @@ data class Case(val expr: Expression, val statement: Statement): Statement()
 data class Switch(val function: Expression, val cases: List<Case>): Expression()
 
 
-data class VariableAssignment(var identifier: Identifier, val expr: Expression): Expression()
+data class UnlinkedVariableAssignment(var identifier: Identifier, val expr: Expression): Expression()
 data class VariableDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType): Statement()
 data class FunctionArgument(val identifier: Identifier, val type: DataType, val defaultValue: Expression?)
 data class FunctionDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val from: List<FunctionArgument>,

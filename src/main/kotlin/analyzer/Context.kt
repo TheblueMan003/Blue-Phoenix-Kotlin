@@ -27,18 +27,29 @@ class Context(val path: String){
     fun update(id: Identifier, obj: Class){
         classes[id] = obj
     }
-
+    fun hasVariable(id: Identifier): Boolean{
+        return variables.get(id) != null
+    }
+    fun hasFunction(id: Identifier): Boolean{
+        return variables.get(id) != null
+    }
+    fun hasStruct(id: Identifier): Boolean{
+        return variables.get(id) != null
+    }
+    fun hasClass(id: Identifier): Boolean{
+        return variables.get(id) != null
+    }
     fun getVariable(id: Identifier): Variable {
-        return variables.get(id) ?: throw Exception()
+        return variables.get(id) ?: throw IdentifierNotFound(id)
     }
     fun getFunction(id: Identifier): Function {
-        return functions.get(id) ?: throw Exception()
+        return functions.get(id) ?: throw IdentifierNotFound(id)
     }
     fun getClass(id: Identifier): Class {
-        return classes.get(id) ?: throw Exception()
+        return classes.get(id) ?: throw IdentifierNotFound(id)
     }
     fun getStruct(id: Identifier): Struct {
-        return structs.get(id) ?: throw Exception()
+        return structs.get(id) ?: throw IdentifierNotFound(id)
     }
 
     fun sub(id: String):Context{
@@ -50,4 +61,6 @@ class Context(val path: String){
         context.classes   = classes.sub()
         return context
     }
+
+    data class IdentifierNotFound(val identifier: Identifier): Exception()
 }

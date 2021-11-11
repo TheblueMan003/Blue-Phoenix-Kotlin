@@ -45,6 +45,25 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
         }
     }
 
+    // Switch
+    if (isKeyword(tokens, "switch")){
+        expectDelimiter(tokens, "(")
+        val scrut = parseExpression(tokens, context)
+        expectDelimiter(tokens, ")")
+        expectDelimiter(tokens, "{")
+        val cases = ArrayList<Case>()
+
+        // Get Cases
+        while(!isDelimiter(tokens, "}")){
+            val expr = parseExpression(tokens, context)
+            expectDelimiter(tokens, "->")
+            val block = parseBlock(tokens, context)
+            cases.add(Case(expr, block))
+        }
+
+        return Switch(scrut, cases)
+    }
+
 
     // Blocks
     if (isDelimiter(tokens,"{")){
@@ -68,18 +87,18 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
             if (isOperationToken(tokens, "=")){
                 val expr = parseExpressionList(tokens, context)
                 if (expr.size == 1){
-                    Block(vars.map { VariableAssignment(it, expr[0]) })
+                    Block(vars.map { UnlinkedVariableAssignment(it, expr[0]) })
                 }else{
-                    Block(vars.zip(expr).map { (v, e) -> VariableAssignment(v, e) })
+                    Block(vars.zip(expr).map { (v, e) -> UnlinkedVariableAssignment(v, e) })
                 }
             }
             else{
                 val op = getOperationToken(tokens)
                 val expr = parseExpressionList(tokens, context)
                 if (expr.size == 1){
-                    Block(vars.map { VariableAssignment(it, BinaryExpr(op, VarExpr(it), expr[0])) })
+                    Block(vars.map { UnlinkedVariableAssignment(it, BinaryExpr(op, IdentifierExpr(it), expr[0])) })
                 }else{
-                    Block(vars.zip(expr).map { (v, e) -> VariableAssignment(v, BinaryExpr(op, VarExpr(v), e)) })
+                    Block(vars.zip(expr).map { (v, e) -> UnlinkedVariableAssignment(v, BinaryExpr(op, IdentifierExpr(v), e)) })
                 }
             }
         }
@@ -90,7 +109,8 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
 
 
     if (isKeyword(tokens, "struct")) {
-        return Empty()
+        val identifier = parseIdentifier(tokens, context)
+
     }
     else if (isKeyword(tokens, "class")) {
         return Empty()
@@ -116,9 +136,9 @@ private fun parseBlock(tokens: TokenStream, context: Context):Statement {
 
                 // Create assignments list
                 val assignments: List<Statement> = if (expr.size == 1){
-                    vars.map { VariableAssignment(it, expr[0]) }
+                    vars.map { UnlinkedVariableAssignment(it, expr[0]) }
                 }else{
-                    vars.zip(expr).map { (v, expr) -> VariableAssignment(v, expr) }
+                    vars.zip(expr).map { (v, expr) -> UnlinkedVariableAssignment(v, expr) }
                 }
 
                 return Block(declarations + assignments)
@@ -160,7 +180,7 @@ private fun parseIdentifierList(tokens: TokenStream, context: Context, identifie
 
 
 private fun parseFunctionCall(tokens: TokenStream, context: Context, identifier:Identifier): Expression{
-    var called: Expression = FuncExpr(identifier)
+    var called: Expression = IdentifierExpr(identifier)
     while(isDelimiter(tokens, "(")) {
         val args = parseExpressionList(tokens, context)
         expectDelimiter(tokens, ")")
@@ -261,7 +281,7 @@ private fun parseSimpleExpression(tokens: TokenStream, context: Context):Express
         return if (isDelimiterNoConsume(tokens, "(")){
             parseFunctionCall(tokens, context, identifier)
         } else{
-            VarExpr(identifier)
+            IdentifierExpr(identifier)
         }
     }
     throw UnexpectedException("Unknown token:"+tokens.peekString()+" at pos: "+tokens.peekPos())
