@@ -17,5 +17,10 @@ class DataStructModifier{
 }
 class Variable(val modifier: DataStructModifier, val name: Identifier, val type: DataType): DataStruct()
 class Function(val modifier: DataStructModifier, val name: Identifier, val input: List<Variable>, val output: Variable): DataStruct()
-class Struct  (val modifier: DataStructModifier, val name: Identifier, val fields: Statement): DataStruct()
-class Class   (val modifier: DataStructModifier, val name: Identifier, val parent: Class?): DataStruct()
+class Struct  (val modifier: DataStructModifier, val name: Identifier, val generic: List<DataType>?,
+               val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
+               val builder: Block): DataStruct()
+class Class   (val modifier: DataStructModifier, val name: Identifier, val parent: Class?,
+               val generic: List<DataType>?,
+               val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
+               val builder: Block): DataStruct()

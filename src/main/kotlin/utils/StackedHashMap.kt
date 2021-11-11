@@ -23,6 +23,9 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
     fun sub():StackedHashMap<K,V>{
         return StackedHashMap(this)
     }
+    fun getTopLevel():HashMap<K, V>{
+        return map;
+    }
 
     data class ElementNotFoundException(val key: String): Exception()
 }
