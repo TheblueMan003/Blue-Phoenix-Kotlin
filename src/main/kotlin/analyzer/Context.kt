@@ -5,15 +5,17 @@ import parser.Function
 import parser.data.Identifier
 import utils.StackedHashMap
 
-class Context(val path: String){
+class Context(private val path: String){
     var currentPath: Identifier = Identifier(listOf(path))
     var currentFolder: Identifier = Identifier(listOf(path))
     private var children = ArrayList<Context>()
     private var variables: StackedHashMap<Identifier, Variable> = StackedHashMap()
-    private var functions: StackedHashMap<Identifier, Function> = StackedHashMap()
+    private var functions: StackedHashMap<Identifier, ArrayList<Function>> = StackedHashMap()
     private var structs  : StackedHashMap<Identifier, Struct> = StackedHashMap()
     private var classes  : StackedHashMap<Identifier, Class> = StackedHashMap()
     private var generics  : StackedHashMap<Identifier, DataType> = StackedHashMap()
+
+    private var unfinishedAnalyse = ArrayList<Pair<Statement,Context>>()
 
     private fun update(child: Context){
         child.variables.getTopLevel()
@@ -21,9 +23,10 @@ class Context(val path: String){
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.functions.getTopLevel()
-            .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .map { (k, v) -> k to v.filter { it.isVisible(DataStructVisibility.PUBLIC, this) } }
+            .filter { (k, v) -> v.isNotEmpty() }
             .map { (k, v) -> child.currentFolder.append(k) to v }
-            .map { (k, v) -> update(k, v)}
+            .map { (k, v) -> v.forEach { update(k, it) }}
         child.structs.getTopLevel()
             .filter { (k, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
@@ -37,7 +40,8 @@ class Context(val path: String){
         variables[id] = obj
     }
     fun update(id: Identifier, obj: Function){
-        functions[id] = obj
+        if (!functions.hasKey(id)) { functions[id] = ArrayList<Function>()}
+        functions[id]!!.add(obj)
     }
     fun update(id: Identifier, obj: Struct){
         structs[id] = obj
@@ -49,16 +53,16 @@ class Context(val path: String){
         generics[id] = obj
     }
     fun hasVariable(id: Identifier): Boolean{
-        return variables.get(id) != null
+        return variables.get(id, false) != null
     }
     fun hasFunction(id: Identifier): Boolean{
-        return variables.get(id) != null
+        return functions.get(id, false) != null
     }
     fun hasStruct(id: Identifier): Boolean{
-        return variables.get(id) != null
+        return structs.get(id, false) != null
     }
     fun hasClass(id: Identifier): Boolean{
-        return variables.get(id) != null
+        return classes.get(id, false) != null
     }
     fun hasGeneric(id: Identifier): Boolean{
         return generics.get(id) != null
@@ -66,7 +70,7 @@ class Context(val path: String){
     fun getVariable(id: Identifier): Variable {
         return variables.get(id) ?: throw IdentifierNotFound(id)
     }
-    fun getFunction(id: Identifier): Function {
+    fun getFunction(id: Identifier): List<Function> {
         return functions.get(id) ?: throw IdentifierNotFound(id)
     }
     fun getClass(id: Identifier): Class {
@@ -87,6 +91,7 @@ class Context(val path: String){
         context.structs     = structs.sub()
         context.classes     = classes.sub()
         context.generics    = generics.sub()
+        context.unfinishedAnalyse = unfinishedAnalyse
         children.add(context)
         return context
     }
@@ -96,6 +101,15 @@ class Context(val path: String){
             update(children.last())
             children.removeLast()
         }
+    }
+
+    fun addUnfinished(statement: Statement, context: Context):Statement{
+        unfinishedAnalyse.add(Pair(statement, context))
+        return statement
+    }
+    fun runUnfinished(func: (Statement, Context)->Unit){
+        unfinishedAnalyse.map{ (stm, c) -> func(stm, c)}
+        unfinishedAnalyse.clear()
     }
 
     data class IdentifierNotFound(val identifier: Identifier): Exception()

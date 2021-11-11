@@ -1,6 +1,6 @@
 package analyzer
 
-import analyzer.data.FunctionExpr
+import analyzer.data.UnresolvedFunctionExpr
 import analyzer.data.UnresolvedExpr
 import analyzer.data.VariableExpr
 import parser.*
@@ -25,7 +25,7 @@ fun check(stm: Statement): Statement{
         is Switch->{
             stm
         }
-        else -> throw NotImplementedError()
+        else -> stm
     }
 }
 
@@ -46,8 +46,8 @@ fun checkExpression(stm: Expression): Pair<Expression, DataType>{
         is VariableExpr -> {
             Pair(stm, stm.variable.type)
         }
-        is FunctionExpr -> {
-            Pair(stm, (FuncType(stm.function.input.map { it.type }, stm.function.output.type)))
+        is UnresolvedFunctionExpr -> {
+            throw NotImplementedError()
         }
         is UnresolvedExpr -> {
             throw NotImplementedError()

@@ -7,7 +7,10 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
     operator fun set(key: K, value: V){
         map[key] = value
     }
-    fun get(key: K, top: Boolean = true):V?{
+    fun hasKey(key: K):Boolean{
+        return map.containsKey(key)
+    }
+    operator fun get(key: K, top: Boolean = true):V?{
         var value = map[key]
         if (value != null){
             return value
@@ -24,7 +27,7 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
         return StackedHashMap(this)
     }
     fun getTopLevel():HashMap<K, V>{
-        return map;
+        return map
     }
 
     data class ElementNotFoundException(val key: String): Exception()

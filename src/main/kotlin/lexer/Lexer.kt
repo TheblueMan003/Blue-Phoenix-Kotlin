@@ -8,7 +8,7 @@ import lexer.MyTokenTypes.*
 fun parse(input: String, removeSpace: Boolean, removeComment: Boolean):List<LixyToken>{
     val lexer = lixy {
         state {
-            matches("[ \t\n]+") isToken SpaceTokenType
+            matches("[ \t\n;]+") isToken SpaceTokenType
             anyOf("if\b","while\b","for\b","forgenerate\b",
                 "class\b","abstract\b","struct\b","define\b","var\b","val\b",
                 "return\b", "extends\b", "interface\b", "implements\b",

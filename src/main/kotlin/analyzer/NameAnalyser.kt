@@ -4,7 +4,13 @@ import analyzer.data.*
 import parser.*
 import parser.data.Identifier
 
-fun analyse(stm: Statement, context: Context): Statement{
+fun analyse(stm: Statement, context: Context):Statement{
+    val ret = analyseTop(stm, context)
+    context.runUnfinished{ s, c -> analyseTop(s, c)}
+    return ret
+}
+
+fun analyseTop(stm: Statement, context: Context): Statement{
     fun passUpward(stm: Statement): Statement{
         context.resolve()
         return stm
@@ -13,24 +19,27 @@ fun analyse(stm: Statement, context: Context): Statement{
     return passUpward(when(stm){
         is Block -> {
             val sub = context.sub("")
-            Block(stm.statements.map { s -> analyse(s, sub) })
+            Block(stm.statements.map { s -> analyseTop(s, sub) })
+        }
+        is Sequence -> {
+            Block(stm.statements.map { s -> analyseTop(s, context) })
         }
         is If -> {
-            If(analyse(stm.Condition, context) as Expression,
-                      analyse(stm.IfBlock, context))
+            If(analyseTop(stm.Condition, context) as Expression,
+                      analyseTop(stm.IfBlock, context))
         }
         is IfElse -> {
-            IfElse(analyse(stm.Condition, context) as Expression,
-                          analyse(stm.IfBlock, context),
-                          analyse(stm.ElseBlock, context))
+            IfElse(analyseTop(stm.Condition, context) as Expression,
+                          analyseTop(stm.IfBlock, context),
+                          analyseTop(stm.ElseBlock, context))
         }
         is Switch -> {
-            Switch(analyse(stm.function, context) as Expression,
-                stm.cases.map { s -> analyse(s, context) as Case })
+            Switch(analyseTop(stm.function, context) as Expression,
+                stm.cases.map { s -> analyseTop(s, context) as Case })
         }
         is Case -> {
-            Case(analyse(stm.expr, context) as Expression,
-                        analyse(stm.statement, context))
+            Case(analyseTop(stm.expr, context) as Expression,
+                        analyseTop(stm.statement, context))
         }
 
 
@@ -49,25 +58,30 @@ fun analyse(stm: Statement, context: Context): Statement{
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PRIVATE
 
-            stm.from.map { it -> sub.update(it.identifier,
-                Variable(modifier, sub.currentPath.append(stm.identifier), it.type)) }
+            val variables = stm.from.map { it -> Variable(modifier, sub.currentPath.append(it.identifier), it.type) }
+            variables.zip(stm.from).map { (v,t) -> sub.update(t.identifier, v) }
+
+            val output = Variable(modifier, sub.currentPath.sub("__ret_0__"), stm.to)
+            sub.update(Identifier(listOf("__ret_0__")), output)
+
+            context.update(stm.identifier, Function(stm.modifier, stm.identifier, variables, output, null))
 
             FunctionDeclaration(stm.modifier, stm.identifier, stm.from, stm.to,
-                analyse(stm.body, sub), stm.parent)
+                sub.addUnfinished(stm.body, sub), stm.parent)
         }
 
 
 
         is UnlinkedVariableAssignment -> {
             LinkedVariableAssignment(context.getVariable(stm.identifier),
-                analyse(stm.expr, context) as Expression)
+                analyseTop(stm.expr, context) as Expression, stm.op)
         }
 
 
         is IdentifierExpr -> {
             val choice = ArrayList<AbstractIdentifierExpr>()
             if (context.hasVariable(stm.value)){ choice.add(VariableExpr(context.getVariable(stm.value))) }
-            if (context.hasFunction(stm.value)){ choice.add(FunctionExpr(context.getFunction(stm.value))) }
+            if (context.hasFunction(stm.value)){ choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value))) }
             when (choice.size) {
                 0 -> { throw Context.IdentifierNotFound(stm.value) }
                 1 -> { choice[0] }
@@ -76,16 +90,16 @@ fun analyse(stm: Statement, context: Context): Statement{
         }
         is BinaryExpr -> {
             BinaryExpr(stm.op,
-                analyse(stm.first, context) as Expression,
-                analyse(stm.second, context) as Expression)
+                analyseTop(stm.first, context) as Expression,
+                analyseTop(stm.second, context) as Expression)
         }
         is UnaryExpr -> {
             UnaryExpr(stm.op,
-                analyse(stm.first, context) as Expression)
+                analyseTop(stm.first, context) as Expression)
         }
         is CallExpr -> {
             CallExpr(stm.value,
-                stm.args.map { s -> analyse(s, context) as Expression })
+                stm.args.map { s -> analyseTop(s, context) as Expression })
         }
         else -> {
             stm
@@ -107,13 +121,13 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
             // Add Fields
             stmList.addAll(
             struct.fields.map{ it ->
-                analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+                analyseTop(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
             )
 
             // Add Methods
             stmList.addAll(
             struct.methods.map{ it ->
-                analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
+                analyseTop(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
             )
             Block(stmList)
         }else{
@@ -130,13 +144,13 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
             // Add Fields
             stmList.addAll(
                 struct.fields.map{ it ->
-                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+                    analyseTop(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
             )
 
             // Add Methods
             stmList.addAll(
                 struct.methods.map{ it ->
-                    analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
+                    analyseTop(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
             )
             Block(stmList)
         }else{
@@ -150,7 +164,7 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
         val modifier = DataStructModifier()
         modifier.visibility = DataStructVisibility.PUBLIC
         type.type.mapIndexed{ index, it ->
-            analyse(VariableDeclaration(modifier, Identifier(listOf("$index")), it, variable ), sub)}
+            analyseTop(VariableDeclaration(modifier, Identifier(listOf("$index")), it, variable ), sub)}
         Empty()
     }
     else if (type is FuncType) {

@@ -4,33 +4,23 @@ import analyzer.data.LinkedVariableAssignment
 import parser.*
 import utils.OutputFile
 
-fun genCode(statement: Statement, name: String):OutputFile{
+fun genCode(statement: Statement, name: String):List<OutputFile>{
+    val sbi = ScoreboardInitializer()
     val output = OutputFile(name)
-    genCode(statement, output)
-    return output
+    return genCode(statement, output, sbi) + output
 }
 
-fun genCode(stm: Statement, outputFile: OutputFile){
+fun genCode(stm: Statement, outputFile: OutputFile, sbi: ScoreboardInitializer): List<OutputFile>{
     when(stm){
         is Block -> {
-            stm.statements.map { it -> genCode(it, outputFile) }
+            stm.statements.map { genCode(it, outputFile, sbi) }
         }
         is LinkedVariableAssignment -> {
-            genCodeVariableAssignment(stm.variable, stm.expr, outputFile)
+            outputFile.add(setVariableExpression(stm.variable, stm.expr, stm.op, sbi))
         }
         else ->{
 
         }
     }
-}
-
-fun genCodeVariableAssignment(variable: Variable, expr: Expression, outputFile: OutputFile){
-    when(expr){
-        is IntLitExpr -> {
-            setVariableValue(variable, expr.value)
-        }
-        is BinaryExpr -> {
-
-        }
-    }
+    return emptyList()
 }

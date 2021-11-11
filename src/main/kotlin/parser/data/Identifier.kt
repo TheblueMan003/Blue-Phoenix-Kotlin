@@ -5,7 +5,7 @@ class Identifier(val paths: List<String>) {
         when (other) {
             is Identifier -> {
                 if (paths.size != other.paths.size) return false
-                for(i in 0..paths.size){
+                for(i in paths.indices){
                     if (paths[i] != other.paths[i]) return false
                 }
                 return true

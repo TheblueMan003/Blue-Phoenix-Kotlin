@@ -1,5 +1,6 @@
 package parser
 
+import analyzer.Context
 import lexer.MyTokenTypes.*
 
 fun isKeyword(tokens: TokenStream, value: String):Boolean{
@@ -26,10 +27,10 @@ fun expectDelimiter(tokens: TokenStream, value: String){
         tokens.next()
     } else{
         if (!tokens.isEmpty()) {
-            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt);
+            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt)
         }
         else{
-            throw UnexpectedToken("EOF",0);
+            throw UnexpectedToken("EOF",0)
         }
     }
 }
@@ -56,10 +57,10 @@ fun getOperationToken(tokens: TokenStream):String{
         value
     } else{
         if (!tokens.isEmpty()) {
-            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt);
+            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt)
         }
         else{
-            throw UnexpectedToken("EOF",0);
+            throw UnexpectedToken("EOF",0)
         }
     }
 }
@@ -113,7 +114,7 @@ fun getStringLit(tokens: TokenStream):String{
 }
 fun isType(tokens: TokenStream):Boolean{
     return try{
-        parseType(tokens.copy(), Context(""))
+        parseType(tokens.copy(), ParserContext(Context("")))
         true
     }
     catch (e: Exception){
