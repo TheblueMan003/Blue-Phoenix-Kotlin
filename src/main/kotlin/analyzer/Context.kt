@@ -108,8 +108,11 @@ class Context(private val path: String){
         return statement
     }
     fun runUnfinished(func: (Statement, Context)->Unit){
-        unfinishedAnalyse.map{ (stm, c) -> func(stm, c)}
-        unfinishedAnalyse.clear()
+        while (unfinishedAnalyse.isNotEmpty()){
+            val unfinished = ArrayList(unfinishedAnalyse)
+            unfinishedAnalyse.clear()
+            unfinished.map { (stm, c) -> func(stm, c) }
+        }
     }
 
     data class IdentifierNotFound(val identifier: Identifier): Exception()
