@@ -15,7 +15,6 @@ fun parse(path: String, tokens: TokenStream):Pair<Statement, Context>{
     val context = Context(path)
     while (!tokens.isEmpty()){
         statements.add(parseBlock(tokens, context))
-        println("1")
     }
     return if (statements.size > 0) { Pair(Block(statements), context)} else { Pair(Empty(), context)}
 }
@@ -375,7 +374,7 @@ private fun parseSimpleType(tokens: TokenStream, context: Context):DataType{
             throw UnexpectedException("Unexpected Void Type in Tuple")
         }
         if (isOperationToken(tokens, "=>")){
-            return FuncType(TupleType(lst), parseType(tokens, context))
+            return FuncType(lst, parseType(tokens, context))
         }
         return TupleType(lst)
     }

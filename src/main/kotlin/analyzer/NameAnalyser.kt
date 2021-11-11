@@ -12,7 +12,8 @@ fun analyse(stm: Statement, context: Context): Statement{
 
     return passUpward(when(stm){
         is Block -> {
-            Block(stm.statements.map { s -> analyse(s, context.sub("")) })
+            val sub = context.sub("")
+            Block(stm.statements.map { s -> analyse(s, sub) })
         }
         is If -> {
             If(analyse(stm.Condition, context) as Expression,
