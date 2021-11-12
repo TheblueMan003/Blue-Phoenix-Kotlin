@@ -27,4 +27,10 @@ class TokenStream(tokens_lst: List<LixyToken>, start: Int) {
     fun copy():TokenStream{
         return TokenStream(tokens, index)
     }
+    fun getState(): Int{
+        return index
+    }
+    fun restoreState(state:Int){
+        index = state
+    }
 }

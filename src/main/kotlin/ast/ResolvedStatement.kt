@@ -1,9 +1,7 @@
 package analyzer.data
 
-import parser.AssignmentType
-import parser.Expression
+import parser.*
 import parser.Function
-import parser.Variable
 
 
 abstract class AbstractIdentifierExpr: Expression()
@@ -32,3 +30,5 @@ data class UnresolvedFunctionExpr(val function: List<Function>) : AbstractIdenti
  *  Expression with conflicting name between Variable and Function
  */
 data class UnresolvedExpr(val choice: List<AbstractIdentifierExpr>): Expression()
+
+data class RawFunctionCall(val function: Function): Statement()

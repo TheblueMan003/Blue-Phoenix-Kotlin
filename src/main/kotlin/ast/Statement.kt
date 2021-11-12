@@ -65,3 +65,5 @@ data class StructDeclaration(val modifier: DataStructModifier, val identifier: I
  * Lambda Declaration
  */
 data class LambdaDeclaration(val from: List<DataType>, val to: DataType, val body: Statement): Expression()
+
+data class StatementThanExpression(val statement: Statement, val expr: Expression):Expression()

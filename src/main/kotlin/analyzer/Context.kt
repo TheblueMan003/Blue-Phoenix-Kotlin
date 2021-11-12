@@ -17,6 +17,7 @@ class Context(private val path: String){
     private var functionsList = ArrayList<Function>()
     private var unfinishedAnalyse = ArrayList<Pair<Function,Context>>()
     private var currentFunction: Function? = null
+    var parentVariable: Variable? = null
     var top = true
 
     private fun update(child: Context){
@@ -43,10 +44,23 @@ class Context(private val path: String){
     // UPDATE
     //
     fun update(id: Identifier, obj: Variable){
+        if (variables.hasKeyTopLevel(id)) throw Exception("$id was already defined in scope")
         variables[id] = obj
+
+        // Add Variable to Parent
+        if (parentVariable != null) {
+            parentVariable!!.childrenVariable[id] = obj
+        }
     }
     fun update(id: Identifier, obj: Function){
-        if (!functions.hasKey(id)) { functions[id] = ArrayList<Function>()}
+        if (!functions.hasKeyTopLevel(id)) {
+            functions[id] = ArrayList<Function>()
+
+            // Add Function List to Parent
+            if (parentVariable != null) {
+                parentVariable!!.childrenFunction[id] = functions[id]!!
+            }
+        }
         functionsList.add(obj)
         functions[id]!!.add(obj)
     }

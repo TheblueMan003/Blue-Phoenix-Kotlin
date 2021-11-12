@@ -42,6 +42,9 @@ fun isPrimTypeToken(tokens: TokenStream, value: String):Boolean{
         false
     }
 }
+fun isOperationTokenNoConsume(tokens: TokenStream):Boolean{
+    return !tokens.isEmpty() && tokens.peek().tokenType == OperationToken
+}
 fun isOperationToken(tokens: TokenStream, value: String):Boolean{
     return if (!tokens.isEmpty() && tokens.peek().tokenType == OperationToken && tokens.peek().string == value){
         tokens.next()

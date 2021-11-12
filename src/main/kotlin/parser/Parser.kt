@@ -38,14 +38,19 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext):Statement {
     if (isKeyword(tokens, "switch")){ return parseSwitch(tokens, context) }
 
     // Blocks
-    if (isDelimiter(tokens,"{")){ parseBlockGroup(tokens, context.sub("")) }
+    if (isDelimiter(tokens,"{")){ return parseBlockGroup(tokens, context.sub("")) }
 
     // Variable Assignment / Function Call
     if (isIdentifier(tokens)){
+        val state = tokens.getState()
         val identifier = parseIdentifier(tokens, context)
-        return if (isDelimiterNoConsume(tokens, "(")){
-            parseFunctionCall(tokens, context, identifier)
-        } else { parseVariableAssignment(tokens, context, identifier) }
+        if (isDelimiterNoConsume(tokens, "(")){
+            return parseFunctionCall(tokens, context, identifier)
+        } else if (isOperationTokenNoConsume(tokens)) {
+            return parseVariableAssignment(tokens, context, identifier)
+        } else {
+            tokens.restoreState(state)
+        }
     }
 
 
@@ -86,11 +91,18 @@ private fun parseStructDeclaration(tokens: TokenStream, context: ParserContext, 
     val methods = ArrayList<FunctionDeclaration>()
     val builders = ArrayList<Statement>()
     expectDelimiter(tokens, "{")
-
-    // Parse Struct Body
-    while(!isDelimiter(tokens, "}")){
-        when(val stm = parseBlock(tokens, context)){
+    fun acceptStatement(stm: Statement){
+        when(stm){
             is Block -> {
+                for (s in stm.statements){
+                    when(s){
+                        is VariableDeclaration -> { fields.add(s) }
+                        is UnlinkedVariableAssignment -> { builders.add(s) }
+                        else -> throw Exception("Invalid Statement in Struct")
+                    }
+                }
+            }
+            is Sequence -> {
                 for (s in stm.statements){
                     when(s){
                         is VariableDeclaration -> { fields.add(s) }
@@ -102,8 +114,13 @@ private fun parseStructDeclaration(tokens: TokenStream, context: ParserContext, 
             is VariableDeclaration -> { fields.add(stm) }
             is FunctionDeclaration -> { methods.add(stm) }
             is Empty -> {}
-            else -> throw Exception("Invalid Statement in Struct")
+            else -> throw Exception("Invalid Statement in Struct $stm")
         }
+    }
+
+    // Parse Struct Body
+    while(!isDelimiter(tokens, "}")){
+        acceptStatement(parseBlock(tokens, context))
     }
     return StructDeclaration(modifier, identifier, generics, fields, methods, Block(builders))
 }
@@ -249,9 +266,14 @@ private fun parseIdentifierList(tokens: TokenStream, context: ParserContext, ide
 private fun parseFunctionCall(tokens: TokenStream, context: ParserContext, identifier:Identifier): Expression{
     var called: Expression = IdentifierExpr(identifier)
     while(isDelimiter(tokens, "(")) {
-        val args = parseExpressionList(tokens, context)
-        expectDelimiter(tokens, ")")
-        called = CallExpr(called, args)
+        called = if (isDelimiter(tokens, ")")){
+            val args = emptyList<Expression>()
+            CallExpr(called, args)
+        }else {
+            val args = parseExpressionList(tokens, context)
+            expectDelimiter(tokens, ")")
+            CallExpr(called, args)
+        }
     }
     return called
 }
@@ -290,6 +312,7 @@ private fun parseModifier(tokens: TokenStream, context: ParserContext, modifier:
 
     if (isKeyword(tokens, "abstract")){ modifier.abstract = true }
     if (isKeyword(tokens, "static")){ modifier.static = true }
+    if (isKeyword(tokens, "operator")){ modifier.operator = true }
 }
 
 
@@ -332,7 +355,12 @@ private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext):E
 
     // Parent
     if (isDelimiter(tokens, "(")){
-        val expr = parseExpression(tokens, context)
+        var expr = parseExpression(tokens, context)
+        if (isDelimiter(tokens, ",")){
+            val lst = listOf(expr, parseExpression(tokens, context)).toMutableList()
+            while((isDelimiter(tokens, ","))){lst.add(parseExpression(tokens, context))}
+            expr = TupleExpr(lst)
+        }
         expectDelimiter(tokens,")")
         return expr
     }

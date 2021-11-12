@@ -22,7 +22,7 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             Block(stm.statements.map { s -> analyseTop(s, sub) })
         }
         is Sequence -> {
-            Block(stm.statements.map { s -> analyseTop(s, context) })
+            Sequence(stm.statements.map { s -> analyseTop(s, context) })
         }
         is If -> {
             If(analyseTop(stm.Condition, context) as Expression,
@@ -48,11 +48,11 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             val type = analyseType(stm.type, context)
             val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), type, stm.parent)
             context.update(stm.identifier, variable)
-            Block(listOf(stm, variableInstantiation(variable, context)))
+            variableInstantiation(stm.identifier, variable, context)
         }
         is StructDeclaration -> {
             context.update(stm.identifier, Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder))
-            stm
+            Empty()
         }
         is FunctionDeclaration -> {
             val sub = context.sub(stm.identifier.toString())
@@ -75,7 +75,9 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
 
         is UnlinkedVariableAssignment -> {
-            LinkedVariableAssignment(context.getVariable(stm.identifier),
+            val variable = context.getVariable(stm.identifier)
+
+            LinkedVariableAssignment(variable,
                 analyseTop(stm.expr, context) as Expression, stm.op)
         }
 
@@ -100,8 +102,11 @@ fun analyseTop(stm: Statement, context: Context): Statement{
                 analyseTop(stm.first, context) as Expression)
         }
         is CallExpr -> {
-            CallExpr(stm.value,
+            CallExpr(analyseTop(stm.value, context) as Expression,
                 stm.args.map { s -> analyseTop(s, context) as Expression })
+        }
+        is TupleExpr -> {
+            TupleExpr(stm.value.map { analyseTop(it, context) as Expression })
         }
         else -> {
             stm
@@ -109,39 +114,17 @@ fun analyseTop(stm: Statement, context: Context): Statement{
     })
 }
 
-private fun variableInstantiation(variable: Variable, context: Context): Statement{
-    val sub = context.sub(variable.name.toString())
+private fun variableInstantiation(identifier: Identifier, variable: Variable, context: Context): Statement{
+    val sub = context.sub(identifier.toString())
+    sub.parentVariable = variable
     var type = variable.type
     if (type is UnresolvedGeneratedType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
     if (type is UnresolvedGeneratedGenericType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
 
-    return if (type is UnresolvedGeneratedType){
-        if (context.hasStruct(type.name)) {
-            val struct = context.getStruct(type.name)
+    val ret = when (type) {
+        is StructType -> {
+            val struct = type.name
             val stmList = ArrayList<Statement>()
-
-            // Add Fields
-            stmList.addAll(
-            struct.fields.map{ it ->
-                analyseTop(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
-            )
-
-            // Add Methods
-            stmList.addAll(
-            struct.methods.map{ it ->
-                analyseTop(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
-            )
-            Block(stmList)
-        }else{
-            Empty()
-        }
-    }
-    else if (type is UnresolvedGeneratedGenericType) {
-        if (context.hasStruct(type.name)) {
-            val struct = context.getStruct(type.name)
-            val stmList = ArrayList<Statement>()
-            if (struct.generic == null) throw Exception("Struct doesn't have generics")
-            struct.generic.zip(type.type).map { p -> sub.update((p.first as UnresolvedGeneratedType).name, p.second) }
 
             // Add Fields
             stmList.addAll(
@@ -154,27 +137,29 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
                 struct.methods.map{ it ->
                     analyseTop(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
             )
-            Block(stmList)
-        }else{
+
+            stmList.add(analyseTop(struct.builder, sub))
+
+            Sequence(stmList)
+        }
+        is ArrayType -> {
+            Empty()
+        }
+        is TupleType -> {
+            val modifier = DataStructModifier()
+            modifier.visibility = DataStructVisibility.PUBLIC
+            Sequence(type.type.mapIndexed{ index, it ->
+                analyseTop(VariableDeclaration(modifier, Identifier(listOf("_$index")), it, variable ), sub)})
+        }
+        is FuncType -> {
+            Empty()
+        }
+        else -> {
             Empty()
         }
     }
-    else if (type is ArrayType) {
-        Empty()
-    }
-    else if (type is TupleType) {
-        val modifier = DataStructModifier()
-        modifier.visibility = DataStructVisibility.PUBLIC
-        type.type.mapIndexed{ index, it ->
-            analyseTop(VariableDeclaration(modifier, Identifier(listOf("$index")), it, variable ), sub)}
-        Empty()
-    }
-    else if (type is FuncType) {
-        Empty()
-    }
-    else{
-        Empty()
-    }
+    context.resolve()
+    return ret
 }
 
 fun analyseType(stm: DataType, context: Context): DataType {

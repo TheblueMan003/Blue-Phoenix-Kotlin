@@ -1,6 +1,7 @@
 package codegen.minecraft
 
 import analyzer.data.LinkedVariableAssignment
+import analyzer.data.RawFunctionCall
 import parser.*
 import utils.OutputFile
 
@@ -15,8 +16,14 @@ fun genCode(stm: Statement, outputFile: OutputFile, sbi: ScoreboardInitializer):
         is Block -> {
             stm.statements.map { genCode(it, outputFile, sbi) }
         }
+        is Sequence -> {
+            stm.statements.map { genCode(it, outputFile, sbi) }
+        }
         is LinkedVariableAssignment -> {
-            outputFile.add(setVariableExpression(stm.variable, stm.expr, stm.op, sbi))
+            outputFile.add(setVariableExpression(stm.variable, stm.expr, stm.op, sbi){genCode(it, outputFile, sbi)})
+        }
+        is RawFunctionCall -> {
+            outputFile.add("function ${stm.function.name}")
         }
         else ->{
 

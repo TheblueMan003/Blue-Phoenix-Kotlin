@@ -43,3 +43,8 @@ data class BinaryExpr(val op: String, val first: Expression, val second: Express
  *  Unary Expression
  */
 data class UnaryExpr(val op: String, val first: Expression): Expression()
+
+/**
+ *  Tuple Value in Expression
+ */
+data class TupleExpr(val value: List<Expression>) : Expression()

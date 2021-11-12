@@ -27,9 +27,13 @@ class DataStructModifier{
     var visibility: DataStructVisibility = DataStructVisibility.PROTECTED
     var static: Boolean = false
     var abstract: Boolean = false
+    var operator: Boolean = false
 }
 class Variable(val modifier: DataStructModifier, val name: Identifier,
-               val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent)
+               val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent){
+    var childrenVariable = HashMap<Identifier, Variable>()
+    var childrenFunction = HashMap<Identifier, List<Function>>()
+}
 
 class Function(val modifier: DataStructModifier, val name: Identifier, val input: List<Variable>, val output: Variable,
                var body: Statement, val parent: Variable? = null): DataStruct(modifier, parent){

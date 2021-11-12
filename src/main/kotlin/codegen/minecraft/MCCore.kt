@@ -44,7 +44,8 @@ fun variableToScoreboard(variable: Variable): ScoreboardEntry{
     return ScoreboardEntry(variable.name.toString(), Scoreboard("bp.value", "dummy"))
 }
 
-fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentType, sbi: ScoreboardInitializer): List<String>{
+fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentType, sbi: ScoreboardInitializer,
+                        callBack: (Statement)->Unit): List<String>{
     val s = variableToScoreboard(variable)
     var counter = -1
 
@@ -71,11 +72,15 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
             is VariableExpr -> {
                 listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))
             }
+            is StatementThanExpression -> {
+                callBack(expr.statement)
+                internal(sbe, expr.expr, op)
+            }
             is BinaryExpr -> {
               when(op) {
                   AssignmentType.SET -> {
                       when (expr.op) {
-                          "+" -> {
+                          "+"  -> {
                               internal(sbe, expr.first, AssignmentType.SET) +
                                       internal(sbe, expr.second, AssignmentType.ADD)
                           }
@@ -249,7 +254,7 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                   else -> throw NotImplementedError()
               }
             }
-            else -> throw  NotImplementedError()
+            else -> throw  NotImplementedError(expr.toString())
         }
     }
     return if (checkForVarInExpression(variable, expr)){

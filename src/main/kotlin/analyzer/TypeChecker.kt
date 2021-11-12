@@ -1,6 +1,7 @@
 package analyzer
 
 import analyzer.data.*
+import ast.Identifier
 import parser.*
 import parser.Function
 
@@ -83,6 +84,10 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
         is UnresolvedExpr -> {
             throw NotImplementedError()
         }
+        is TupleExpr -> {
+            val lst = stm.value.map { checkExpression(it, context) }
+            Pair(TupleExpr(lst.map { it.first }), TupleType(lst.map { it.second }))
+        }
         is CallExpr -> {
             return when(stm.value){
                 is UnresolvedFunctionExpr -> {
@@ -95,7 +100,7 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
                     val args = stm.args.map{checkExpression(it, context)}
                     Pair(CallExpr(stm.value, args.map { it.first }), to.to)
                 }
-                else -> throw Exception("Invalid Function Call Expression!")
+                else -> throw Exception("Invalid Function Call Expression: $stm")
             }
         }
         is BinaryExpr ->{
@@ -108,6 +113,9 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
 }
 
 fun biggestType(t1: DataType, t2: DataType):DataType{
+    if (isNumerical(t1) && isNumerical(t2)){
+        return if (t1 is FloatType || t2 is FloatType) FloatType() else IntType()
+    }
     throw NotImplementedError()
 }
 
@@ -168,9 +176,21 @@ fun isNumerical(t: DataType):Boolean{
     }
 }
 
-fun findFunction(from: List<DataType>, lst: List<Function>): Function {
+fun getOperationFunctionName(op: String): Identifier{
+    return when(op){
+        "+" -> Identifier(listOf("add"))
+        "-" -> Identifier(listOf("sub"))
+        "*" -> Identifier(listOf("mul"))
+        "/" -> Identifier(listOf("div"))
+        "%" -> Identifier(listOf("mod"))
+        "^" -> Identifier(listOf("pow"))
+        else -> throw NotImplementedError()
+    }
+}
+fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean = false): Function {
     val fit =
-        lst.filter { fct -> fct.input
+        lst.filter { it.modifier.operator || !isOperator }
+           .filter { fct -> fct.input
                 .map {vr -> vr.type}
                 .zip(from)
                 .map { (x, y) -> checkOwnership(y, x)}

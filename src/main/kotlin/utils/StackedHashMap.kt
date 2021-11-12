@@ -7,7 +7,7 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
     operator fun set(key: K, value: V){
         map[key] = value
     }
-    fun hasKey(key: K):Boolean{
+    fun hasKeyTopLevel(key: K):Boolean{
         return map.containsKey(key)
     }
     operator fun get(key: K, top: Boolean = true):V?{
@@ -19,7 +19,7 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
             value = parentStack.get(key, false)
         }
         if (top && value == null){
-            throw ElementNotFoundException(key.toString())
+            throw ElementNotFoundException(key.toString()+" in "+map.keys.joinToString(", "))
         }
         return value
     }
