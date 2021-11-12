@@ -206,6 +206,7 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         if (op in listOf("&&", "||")){
             return Pair(BinaryExpr(op, s1, s2), BoolType())
         }
+        throw NotImplementedError()
     }
     else if (t1 is StructType){
         throw NotImplementedError()
