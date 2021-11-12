@@ -14,8 +14,10 @@ class Context(private val path: String){
     private var structs  : StackedHashMap<Identifier, Struct> = StackedHashMap()
     private var classes  : StackedHashMap<Identifier, Class> = StackedHashMap()
     private var generics  : StackedHashMap<Identifier, DataType> = StackedHashMap()
-
-    private var unfinishedAnalyse = ArrayList<Pair<Statement,Context>>()
+    private var functionsList = ArrayList<Function>()
+    private var unfinishedAnalyse = ArrayList<Pair<Function,Context>>()
+    private var currentFunction: Function? = null
+    var top = true
 
     private fun update(child: Context){
         child.variables.getTopLevel()
@@ -36,11 +38,16 @@ class Context(private val path: String){
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
     }
+
+    //
+    // UPDATE
+    //
     fun update(id: Identifier, obj: Variable){
         variables[id] = obj
     }
     fun update(id: Identifier, obj: Function){
         if (!functions.hasKey(id)) { functions[id] = ArrayList<Function>()}
+        functionsList.add(obj)
         functions[id]!!.add(obj)
     }
     fun update(id: Identifier, obj: Struct){
@@ -52,6 +59,10 @@ class Context(private val path: String){
     fun update(id: Identifier, obj: DataType){
         generics[id] = obj
     }
+
+    //
+    // CHECK
+    //
     fun hasVariable(id: Identifier): Boolean{
         return variables.get(id, false) != null
     }
@@ -67,6 +78,10 @@ class Context(private val path: String){
     fun hasGeneric(id: Identifier): Boolean{
         return generics.get(id) != null
     }
+
+    //
+    // GETTER
+    //
     fun getVariable(id: Identifier): Variable {
         return variables.get(id) ?: throw IdentifierNotFound(id)
     }
@@ -83,6 +98,8 @@ class Context(private val path: String){
         return generics.get(id) ?: throw IdentifierNotFound(id)
     }
 
+
+
     fun sub(id: String):Context{
         val context = Context(id)
         context.currentPath = currentPath.sub(id)
@@ -92,9 +109,12 @@ class Context(private val path: String){
         context.classes     = classes.sub()
         context.generics    = generics.sub()
         context.unfinishedAnalyse = unfinishedAnalyse
+        context.functionsList = functionsList
         children.add(context)
         return context
     }
+
+
 
     fun resolve(){
         while(children.size > 0){
@@ -103,15 +123,16 @@ class Context(private val path: String){
         }
     }
 
-    fun addUnfinished(statement: Statement, context: Context):Statement{
-        unfinishedAnalyse.add(Pair(statement, context))
-        return statement
+    fun addUnfinished(function: Function, context: Context):Function{
+        unfinishedAnalyse.add(Pair(function, context))
+        return function
     }
-    fun runUnfinished(func: (Statement, Context)->Unit){
+    fun runUnfinished(func: (Statement, Context)->Statement){
+        top = false
         while (unfinishedAnalyse.isNotEmpty()){
             val unfinished = ArrayList(unfinishedAnalyse)
             unfinishedAnalyse.clear()
-            unfinished.map { (stm, c) -> func(stm, c) }
+            unfinished.map { (fct, c) -> fct.body = func(fct.body, c) }
         }
     }
 

@@ -32,7 +32,17 @@ class Variable(val modifier: DataStructModifier, val name: Identifier,
                val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent)
 
 class Function(val modifier: DataStructModifier, val name: Identifier, val input: List<Variable>, val output: Variable,
-               val parent: Variable? = null): DataStruct(modifier, parent)
+               var body: Statement, val parent: Variable? = null): DataStruct(modifier, parent){
+    private var usedBy = ArrayList<Function>()
+    private var used = false
+
+    fun use(fct: Function){
+        usedBy.add(fct)
+    }
+    fun use(){
+        used = true
+    }
+}
 
 class Struct  (val modifier: DataStructModifier, val name: Identifier, val generic: List<DataType>?,
                val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,

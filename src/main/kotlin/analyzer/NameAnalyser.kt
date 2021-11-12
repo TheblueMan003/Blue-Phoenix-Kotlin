@@ -4,10 +4,10 @@ import analyzer.data.*
 import parser.*
 import parser.data.Identifier
 
-fun analyse(stm: Statement, context: Context):Statement{
+fun analyse(stm: Statement, context: Context): Pair<Statement, Context>{
     val ret = analyseTop(stm, context)
     context.runUnfinished{ s, c -> analyseTop(s, c)}
-    return ret
+    return Pair(ret, context)
 }
 
 fun analyseTop(stm: Statement, context: Context): Statement{
@@ -64,10 +64,10 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             val output = Variable(modifier, sub.currentPath.sub("__ret_0__"), stm.to)
             sub.update(Identifier(listOf("__ret_0__")), output)
 
-            context.update(stm.identifier, Function(stm.modifier, stm.identifier, variables, output, null))
+            context.update(stm.identifier,
+                sub.addUnfinished(Function(stm.modifier, stm.identifier, variables, output, stm.body,null), sub))
 
-            FunctionDeclaration(stm.modifier, stm.identifier, stm.from, stm.to,
-                sub.addUnfinished(stm.body, sub), stm.parent)
+            Empty()
         }
 
 
