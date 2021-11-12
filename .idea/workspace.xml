@@ -10,13 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/DataStruct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/DataStruct.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -358,7 +352,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636758855851</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Function Variable Instantiation">
+      <created>1636760399434</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1636760399434</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -376,7 +377,8 @@
     <MESSAGE value="Fix Rec Analyse" />
     <MESSAGE value="Function Resolution" />
     <MESSAGE value="Simplifier.kt&#10;Struct Base Instantiation&#10;Tuple Set" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simplifier.kt&#10;Struct Base Instantiation&#10;Tuple Set" />
+    <MESSAGE value="Function Variable Instantiation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Function Variable Instantiation" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

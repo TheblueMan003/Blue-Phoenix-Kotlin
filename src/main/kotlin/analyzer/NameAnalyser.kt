@@ -46,8 +46,7 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
         is VariableDeclaration -> {
             val type = analyseType(stm.type, context)
-            val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), type, stm.parent)
-            variableInstantiation(stm.identifier, variable, context)
+            variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent).first
         }
         is StructDeclaration -> {
             context.update(stm.identifier, Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder))
@@ -58,12 +57,10 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PRIVATE
 
-            val variables = stm.from.map { Variable(modifier,
-                sub.currentPath.append(it.identifier), analyseType(it.type, context)) }
-            variables.zip(stm.from).map { (v,t) -> variableInstantiation(t.identifier, v, sub) }
+            val variables = stm.from.map { variableInstantiation(modifier,
+                it.identifier, analyseType(it.type, context), context).second }
 
-            val output = Variable(modifier, sub.currentPath.sub("__ret_0__"), stm.to)
-            variableInstantiation(Identifier(listOf("__ret_0__")), output, sub)
+            val output = variableInstantiation(modifier, Identifier(listOf("__ret_0__")), stm.to, sub).second
 
             context.update(stm.identifier,
                 sub.addUnfinished(Function(stm.modifier, stm.identifier, variables, output, stm.body,null), sub))
@@ -113,7 +110,9 @@ fun analyseTop(stm: Statement, context: Context): Statement{
     })
 }
 
-private fun variableInstantiation(identifier: Identifier, variable: Variable, context: Context): Statement{
+private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, type: DataType,
+                                  context: Context, parent: Variable? = null): Pair<Statement, Variable>{
+    val variable = Variable(modifier, context.currentPath.sub(identifier.toString()), type, parent)
     context.update(identifier, variable)
     val sub = context.sub(identifier.toString())
     sub.parentVariable = variable
@@ -159,7 +158,7 @@ private fun variableInstantiation(identifier: Identifier, variable: Variable, co
         }
     }
     context.resolve()
-    return ret
+    return Pair(ret, variable)
 }
 
 fun analyseType(stm: DataType, context: Context): DataType {
