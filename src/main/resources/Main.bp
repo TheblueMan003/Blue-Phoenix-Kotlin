@@ -2,4 +2,9 @@ struct test{
     int v1 = 0
     int v2 = 50
 }
+
+(int,int,int) testFunc(){
+
+}
+(int,int,int) b = testFunc()
 test a

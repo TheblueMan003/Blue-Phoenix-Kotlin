@@ -50,9 +50,9 @@ class Function(val modifier: DataStructModifier, val name: Identifier, val input
 
 class Struct  (val modifier: DataStructModifier, val name: Identifier, val generic: List<DataType>?,
                val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
-               val builder: Block, val parent: Variable? = null): DataStruct(modifier, parent)
+               val builder: Sequence, val parent: Variable? = null): DataStruct(modifier, parent)
 
 class Class   (val modifier: DataStructModifier, val name: Identifier, val parent: Class?,
                val generic: List<DataType>?,
                val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
-               val builder: Block, val parentStruct: Variable? = null): DataStruct(modifier, parentStruct)
+               val builder: Sequence, val parentStruct: Variable? = null): DataStruct(modifier, parentStruct)

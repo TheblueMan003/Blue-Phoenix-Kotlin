@@ -59,7 +59,7 @@ data class FunctionDeclaration(val modifier: DataStructModifier, val identifier:
  */
 data class StructDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val generic: List<DataType>?,
                              val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
-                             val builder: Block): Statement()
+                             val builder: Sequence): Statement()
 
 /**
  * Lambda Declaration

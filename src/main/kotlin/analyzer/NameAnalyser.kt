@@ -47,7 +47,6 @@ fun analyseTop(stm: Statement, context: Context): Statement{
         is VariableDeclaration -> {
             val type = analyseType(stm.type, context)
             val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), type, stm.parent)
-            context.update(stm.identifier, variable)
             variableInstantiation(stm.identifier, variable, context)
         }
         is StructDeclaration -> {
@@ -61,10 +60,10 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
             val variables = stm.from.map { Variable(modifier,
                 sub.currentPath.append(it.identifier), analyseType(it.type, context)) }
-            variables.zip(stm.from).map { (v,t) -> sub.update(t.identifier, v) }
+            variables.zip(stm.from).map { (v,t) -> variableInstantiation(t.identifier, v, sub) }
 
             val output = Variable(modifier, sub.currentPath.sub("__ret_0__"), stm.to)
-            sub.update(Identifier(listOf("__ret_0__")), output)
+            variableInstantiation(Identifier(listOf("__ret_0__")), output, sub)
 
             context.update(stm.identifier,
                 sub.addUnfinished(Function(stm.modifier, stm.identifier, variables, output, stm.body,null), sub))
@@ -115,6 +114,7 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 }
 
 private fun variableInstantiation(identifier: Identifier, variable: Variable, context: Context): Statement{
+    context.update(identifier, variable)
     val sub = context.sub(identifier.toString())
     sub.parentVariable = variable
     var type = variable.type

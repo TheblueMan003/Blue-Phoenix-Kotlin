@@ -122,7 +122,7 @@ private fun parseStructDeclaration(tokens: TokenStream, context: ParserContext, 
     while(!isDelimiter(tokens, "}")){
         acceptStatement(parseBlock(tokens, context))
     }
-    return StructDeclaration(modifier, identifier, generics, fields, methods, Block(builders))
+    return StructDeclaration(modifier, identifier, generics, fields, methods, Sequence(builders))
 }
 
 

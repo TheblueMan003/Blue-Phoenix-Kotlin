@@ -8,11 +8,11 @@ import kotlin.math.pow
 fun simplify(stm: Statement, context: Context): Statement {
     return when(stm){
         is If -> {
-            If(simplifyExpression(stm.Condition, context) as Expression,
+            If(simplifyExpression(stm.Condition, context),
                 simplify(stm.IfBlock, context))
         }
         is IfElse -> {
-            IfElse(simplifyExpression(stm.Condition, context) as Expression,
+            IfElse(simplifyExpression(stm.Condition, context),
                 simplify(stm.IfBlock, context),
                 simplify(stm.ElseBlock, context))
         }
@@ -45,6 +45,11 @@ fun simplify(stm: Statement, context: Context): Statement {
                                 VariableExpr(expr.variable.childrenVariable[Identifier(listOf("_$id"))]!!), stm.op)
                         })
                     }
+                    is CallExpr -> {
+                        val fctCall = simplifyFunctionCall(expr.value, expr.args, context)
+                        Sequence(listOf(fctCall.first,
+                            simplify(LinkedVariableAssignment(stm.variable, fctCall.second, stm.op), context)))
+                    }
                     else -> throw NotImplementedError()
                 }
             }
@@ -53,7 +58,7 @@ fun simplify(stm: Statement, context: Context): Statement {
             }
         }
         is CallExpr -> {
-            simplifyFunctionCall(stm.value as FunctionExpr, stm.args, context).first
+            simplifyFunctionCall(stm.value, stm.args, context).first
         }
         else -> stm
     }
@@ -103,19 +108,24 @@ fun simplifyExpression(expr: Expression, context: Context):Expression{
             }
         }
         is CallExpr -> {
-            val fctCall = simplifyFunctionCall(expr.value as FunctionExpr, expr.args, context)
+            val fctCall = simplifyFunctionCall(expr.value, expr.args, context)
             StatementThanExpression(fctCall.first, fctCall.second)
         }
         else -> expr
     }
 }
 
-fun simplifyFunctionCall(stm: FunctionExpr, args: List<Expression>, context: Context): Pair<Statement, Expression>{
-    return Pair(
-        Sequence(stm.function.input.zip(args).map { (v,e)->simplify(LinkedVariableAssignment(v, e, AssignmentType.SET), context) }+
-            RawFunctionCall(stm.function)),
-        VariableExpr(stm.function.output)
-    )
+fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Context): Pair<Statement, Expression>{
+    if (stm is FunctionExpr) {
+        return Pair(
+            Sequence(
+                stm.function.input.zip(args)
+                    .map { (v, e) -> simplify(LinkedVariableAssignment(v, e, AssignmentType.SET), context) } +
+                        RawFunctionCall(stm.function)
+            ),
+            VariableExpr(stm.function.output)
+        )
+    }else throw NotImplementedError()
 }
 
 fun applyOperation(op: String, left: Boolean, right: Boolean): Boolean{
