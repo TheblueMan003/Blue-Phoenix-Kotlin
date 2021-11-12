@@ -2,7 +2,7 @@ package analyzer
 
 import parser.*
 import parser.Function
-import parser.data.Identifier
+import ast.Identifier
 import utils.StackedHashMap
 
 class Context(private val path: String){

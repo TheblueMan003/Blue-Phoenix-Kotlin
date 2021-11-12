@@ -1,4 +1,4 @@
-package parser.data
+package ast
 
 class Identifier(val paths: List<String>) {
     override fun equals(other: Any?): Boolean {

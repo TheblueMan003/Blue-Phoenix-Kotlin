@@ -2,7 +2,7 @@ package parser
 
 import analyzer.Context
 import parser.DataStructVisibility.*
-import parser.data.Identifier
+import ast.Identifier
 import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
@@ -394,9 +394,9 @@ private fun parseSimpleType(tokens: TokenStream, context: ParserContext):DataTyp
         val identifier = parseIdentifier(tokens, context)
         val generics = parseGenerics(tokens, context)
         return if (generics != null){
-            GeneratedGenericType(identifier, generics)
+            UnresolvedGeneratedGenericType(identifier, generics)
         }
-        else GeneratedType(identifier)
+        else UnresolvedGeneratedType(identifier)
     }
     if (isPrimTypeToken(tokens,"int")){ return IntType() }
     if (isPrimTypeToken(tokens,"float")){ return FloatType() }
