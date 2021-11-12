@@ -10,10 +10,14 @@ data class InvalidTypeException(val type: DataType): Exception()
 fun check(stm: Statement, context: Context): Statement{
     return when(stm){
         is If -> {
-            stm
+            val cond = checkExpression(stm.Condition, context)
+            expectBoolean(cond.second)
+            If(cond.first, check(stm.IfBlock, context))
         }
         is IfElse-> {
-            stm
+            val cond = checkExpression(stm.Condition, context)
+            expectBoolean(cond.second)
+            IfElse(cond.first, check(stm.IfBlock, context), check(stm.ElseBlock, context))
         }
         is Block->{
             Block(stm.statements.map { check(it, context) })
@@ -22,7 +26,12 @@ fun check(stm: Statement, context: Context): Statement{
             Sequence(stm.statements.map { check(it, context) })
         }
         is Switch->{
-            stm
+            val expr = checkExpression(stm, context)
+            Switch(expr.first, stm.cases.map {
+                val scrut = checkExpression(it.expr, context)
+                checkOwnership(scrut.second, expr.second)
+                Case(scrut.first, check(it.statement, context))
+            })
         }
         is LinkedVariableAssignment -> {
             if (stm.variable.type is FuncType){
@@ -146,6 +155,9 @@ fun checkOwnershipCost(t1: DataType, t2: DataType): Int {
 
 fun isBoolean(t: DataType):Boolean{
     return (t is BoolType)
+}
+fun expectBoolean(t: DataType){
+    if (t !is BoolType) throw Exception("Boolean Type Expected")
 }
 
 fun isNumerical(t: DataType):Boolean{
