@@ -1,7 +1,6 @@
 package parser
 
 import analyzer.Context
-import parser.data.Identifier
 
 class ParserContext(val context: Context){
     fun sub(id: String): ParserContext{

@@ -2,7 +2,7 @@ package analyzer
 
 import analyzer.data.*
 import parser.*
-import parser.data.Identifier
+import ast.Identifier
 
 fun analyse(stm: Statement, context: Context): Pair<Statement, Context>{
     val ret = analyseTop(stm, context)
@@ -45,7 +45,8 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
 
         is VariableDeclaration -> {
-            val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), stm.type, stm.parent)
+            val type = analyseType(stm.type, context)
+            val variable = Variable(stm.modifier, context.currentPath.append(stm.identifier), type, stm.parent)
             context.update(stm.identifier, variable)
             Block(listOf(stm, variableInstantiation(variable, context)))
         }
@@ -58,7 +59,8 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PRIVATE
 
-            val variables = stm.from.map { it -> Variable(modifier, sub.currentPath.append(it.identifier), it.type) }
+            val variables = stm.from.map { Variable(modifier,
+                sub.currentPath.append(it.identifier), analyseType(it.type, context)) }
             variables.zip(stm.from).map { (v,t) -> sub.update(t.identifier, v) }
 
             val output = Variable(modifier, sub.currentPath.sub("__ret_0__"), stm.to)
@@ -110,10 +112,10 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 private fun variableInstantiation(variable: Variable, context: Context): Statement{
     val sub = context.sub(variable.name.toString())
     var type = variable.type
-    if (type is GeneratedType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
-    if (type is GeneratedGenericType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
+    if (type is UnresolvedGeneratedType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
+    if (type is UnresolvedGeneratedGenericType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
 
-    return if (type is GeneratedType){
+    return if (type is UnresolvedGeneratedType){
         if (context.hasStruct(type.name)) {
             val struct = context.getStruct(type.name)
             val stmList = ArrayList<Statement>()
@@ -134,12 +136,12 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
             Empty()
         }
     }
-    else if (type is GeneratedGenericType) {
+    else if (type is UnresolvedGeneratedGenericType) {
         if (context.hasStruct(type.name)) {
             val struct = context.getStruct(type.name)
             val stmList = ArrayList<Statement>()
             if (struct.generic == null) throw Exception("Struct doesn't have generics")
-            struct.generic.zip(type.type).map { p -> sub.update((p.first as GeneratedType).name, p.second) }
+            struct.generic.zip(type.type).map { p -> sub.update((p.first as UnresolvedGeneratedType).name, p.second) }
 
             // Add Fields
             stmList.addAll(
@@ -172,5 +174,34 @@ private fun variableInstantiation(variable: Variable, context: Context): Stateme
     }
     else{
         Empty()
+    }
+}
+
+fun analyseType(stm: DataType, context: Context): DataType {
+    return when (stm) {
+        is UnresolvedGeneratedType -> {
+            if (context.hasStruct(stm.name)){
+                StructType(context.getStruct(stm.name), null)
+            } else if (context.hasClass(stm.name)){
+                ClassType(context.getClass(stm.name), null)
+            } else throw NotImplementedError()
+        }
+        is UnresolvedGeneratedGenericType -> {
+            if (context.hasStruct(stm.name)){
+                StructType(context.getStruct(stm.name), stm.type.map { analyseType(it,context) })
+            } else if (context.hasClass(stm.name)){
+                ClassType(context.getClass(stm.name), stm.type.map { analyseType(it,context) })
+            } else throw NotImplementedError()
+        }
+        is ArrayType -> {
+            ArrayType(analyseType(stm.subtype, context), stm.length)
+        }
+        is FuncType -> {
+            FuncType(stm.from.map { analyseType(it,context) }, analyseType(stm.to, context))
+        }
+        is TupleType -> {
+            TupleType(stm.type.map { analyseType(it,context) })
+        }
+        else -> return stm
     }
 }

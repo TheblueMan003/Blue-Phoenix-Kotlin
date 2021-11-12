@@ -1,7 +1,7 @@
 package parser
 
 import analyzer.Context
-import parser.data.Identifier
+import ast.Identifier
 
 abstract class DataStruct(private val d_modifier: DataStructModifier, private val d_parent: Variable? = null) {
     fun isVisible(visibility: DataStructVisibility, context: Context):Boolean{
