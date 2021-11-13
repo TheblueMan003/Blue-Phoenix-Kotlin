@@ -10,7 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -359,7 +360,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636760399434</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="refactor NameAnalyser.kt for Function">
+      <created>1636760926855</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1636760926855</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -378,7 +386,8 @@
     <MESSAGE value="Function Resolution" />
     <MESSAGE value="Simplifier.kt&#10;Struct Base Instantiation&#10;Tuple Set" />
     <MESSAGE value="Function Variable Instantiation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Function Variable Instantiation" />
+    <MESSAGE value="refactor NameAnalyser.kt for Function" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor NameAnalyser.kt for Function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

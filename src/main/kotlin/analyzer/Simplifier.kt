@@ -17,10 +17,16 @@ fun simplify(stm: Statement, context: Context): Statement {
                 simplify(stm.ElseBlock, context))
         }
         is Block ->{
-            Block(stm.statements.map { simplify(it, context) })
+            val nstm = stm.statements.map { simplify(it, context) }.filter{ it !is Empty}
+            when (nstm.size) {
+                0 -> { Empty() }
+                1 -> { nstm[0] }
+                else -> { Block(nstm) }
+            }
         }
         is Sequence ->{
-            Sequence(stm.statements.map { simplify(it, context) })
+            val nstm = stm.statements.map { simplify(it, context) }.filter{ it !is Empty }
+            simplifySequence(nstm)
         }
         is Switch ->{
             Switch(simplifyExpression(stm.function, context),
@@ -118,7 +124,7 @@ fun simplifyExpression(expr: Expression, context: Context):Expression{
 fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Context): Pair<Statement, Expression>{
     if (stm is FunctionExpr) {
         return Pair(
-            Sequence(
+            simplifySequence(
                 stm.function.input.zip(args)
                     .map { (v, e) -> simplify(LinkedVariableAssignment(v, e, AssignmentType.SET), context) } +
                         RawFunctionCall(stm.function)
@@ -126,6 +132,14 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
             VariableExpr(stm.function.output)
         )
     }else throw NotImplementedError()
+}
+
+fun simplifySequence(nstm: List<Statement>):Statement{
+    return when (nstm.size) {
+        0 -> { Empty() }
+        1 -> { nstm[0] }
+        else -> { Sequence(nstm) }
+    }
 }
 
 fun applyOperation(op: String, left: Boolean, right: Boolean): Boolean{
