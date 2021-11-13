@@ -119,6 +119,24 @@ fun simplify(stm: Statement, context: Context): Statement {
                     else -> throw NotImplementedError()
                 }
             }
+            else if (stm.variable.type is StructType){
+                val type = stm.variable.type as StructType
+                val expr = stm.expr
+                val variable = stm.variable
+                val funcId = Identifier(listOf("set"))
+                if (variable.childrenFunction[funcId] != null  &&
+                    variable.childrenFunction[funcId]!!.filter { it.modifier.operator }.isNotEmpty()){
+                    simplify(compile(CallExpr(
+                        UnresolvedFunctionExpr(variable.childrenFunction[funcId]!!.filter { it.modifier.operator }),
+                        listOf(stm.expr)), context), context)
+                } else {
+                    if (expr is VariableExpr) {
+                        Sequence(stm.variable.childrenVariable.map{
+                            LinkedVariableAssignment(it.value, VariableExpr(expr.variable.childrenVariable[it.key]!!), stm.op)
+                        })
+                    }else throw NotImplementedError()
+                }
+            }
             else{
                 LinkedVariableAssignment(stm.variable, simplifyExpression(stm.expr, context), stm.op)
             }
@@ -204,6 +222,9 @@ fun simplifyExpression(expr: Expression, context: Context): Expression {
             }
             else if (left is BoolLitExpr && right is BoolLitExpr){
                 applyOperation(expr.op, left.value, right.value)
+            }
+            else if (left is StringLitExpr && right is StringLitExpr){
+                applyOperation(expr.op, left.value, right.value)
             } else {
                 BinaryExpr(expr.op, left, right)
             }
@@ -263,6 +284,12 @@ fun applyOperation(op: String, left: Boolean, right: Boolean): Expression{
     return when(op){
         "&&" -> BoolLitExpr(left && right)
         "||" -> BoolLitExpr(left || right)
+        else -> throw NotImplementedError()
+    }
+}
+fun applyOperation(op: String, left: String, right: String): Expression{
+    return when(op){
+        "+" -> StringLitExpr(left + right)
         else -> throw NotImplementedError()
     }
 }

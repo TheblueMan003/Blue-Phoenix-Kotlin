@@ -13,29 +13,34 @@ class Context(private val path: String){
     private var structs  : StackedHashMap<Identifier, Struct> = StackedHashMap()
     private var classes  : StackedHashMap<Identifier, Class> = StackedHashMap()
     private var generics  : StackedHashMap<Identifier, DataType> = StackedHashMap()
+    private var typedef  : StackedHashMap<Identifier, TypeDef> = StackedHashMap()
     private var unfinishedAnalyse = ArrayList<Pair<Function,Context>>()
     private var tmpVarNb = 0
     var currentFunction: Function? = null
     var functionsList = ArrayList<Function>()
-    var parentVariable: ast.Variable? = null
+    var parentVariable: Variable? = null
     var top = true
 
     private fun update(child: Context){
         child.variables.getTopLevel()
-            .filter { (k, v) -> v.isVisible(ast.DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.functions.getTopLevel()
-            .map { (k, v) -> k to v.filter { it.isVisible(ast.DataStructVisibility.PUBLIC, this) } }
-            .filter { (k, v) -> v.isNotEmpty() }
+            .map { (k, v) -> k to v.filter { it.isVisible(DataStructVisibility.PUBLIC, this) } }
+            .filter { (_, v) -> v.isNotEmpty() }
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> v.forEach { update(k, it, true) }}
         child.structs.getTopLevel()
-            .filter { (k, v) -> v.isVisible(ast.DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.classes.getTopLevel()
-            .filter { (k, v) -> v.isVisible(ast.DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .map { (k, v) -> child.currentFolder.append(k) to v }
+            .map { (k, v) -> update(k, v)}
+        child.typedef.getTopLevel()
+            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
     }
@@ -43,18 +48,18 @@ class Context(private val path: String){
     //
     // UPDATE
     //
-    fun update(id: Identifier, obj: ast.Variable){
+    fun update(id: Identifier, obj: Variable){
         if (variables.hasKeyTopLevel(id)) throw Exception("$id was already defined in scope")
         variables[id] = obj
 
         // Add Variable to Parent
-        if (parentVariable != null) {
+        if (parentVariable != null && id.level() == 1) {
             parentVariable!!.childrenVariable[id] = obj
         }
     }
     fun update(id: Identifier, obj: Function, resolving: Boolean = false){
         if (!functions.hasKeyTopLevel(id)) {
-            functions[id] = ArrayList<Function>()
+            functions[id] = ArrayList()
 
             // Add Function List to Parent
             if (parentVariable != null) {
@@ -64,10 +69,13 @@ class Context(private val path: String){
         if (!resolving){functionsList.add(obj)}
         functions[id]!!.add(obj)
     }
-    fun update(id: Identifier, obj: ast.Struct){
+    fun update(id: Identifier, obj: TypeDef){
+        typedef[id] = obj
+    }
+    fun update(id: Identifier, obj: Struct){
         structs[id] = obj
     }
-    fun update(id: Identifier, obj: ast.Class){
+    fun update(id: Identifier, obj: Class){
         classes[id] = obj
     }
     fun update(id: Identifier, obj: DataType){
@@ -90,26 +98,32 @@ class Context(private val path: String){
         return classes.get(id, false) != null
     }
     fun hasGeneric(id: Identifier): Boolean{
-        return generics.get(id) != null
+        return generics.get(id, false) != null
+    }
+    fun hasTypeDef(id: Identifier): Boolean{
+        return typedef.get(id, false) != null
     }
 
     //
     // GETTER
     //
-    fun getVariable(id: Identifier): ast.Variable {
-        return variables.get(id) ?: throw IdentifierNotFound(id)
+    fun getVariable(id: Identifier): Variable {
+        return variables[id] ?: throw IdentifierNotFound(id)
     }
     fun getFunction(id: Identifier): List<Function> {
-        return functions.get(id) ?: throw IdentifierNotFound(id)
+        return functions[id] ?: throw IdentifierNotFound(id)
     }
-    fun getClass(id: Identifier): ast.Class {
-        return classes.get(id) ?: throw IdentifierNotFound(id)
+    fun getClass(id: Identifier): Class {
+        return classes[id] ?: throw IdentifierNotFound(id)
     }
-    fun getStruct(id: Identifier): ast.Struct {
-        return structs.get(id) ?: throw IdentifierNotFound(id)
+    fun getStruct(id: Identifier): Struct {
+        return structs[id] ?: throw IdentifierNotFound(id)
     }
     fun getGeneric(id: Identifier): DataType {
-        return generics.get(id) ?: throw IdentifierNotFound(id)
+        return generics[id] ?: throw IdentifierNotFound(id)
+    }
+    fun getTypeDef(id: Identifier): DataType {
+        return (typedef[id] ?: throw IdentifierNotFound(id)).type
     }
 
     private fun getOverloadNumber(id: Identifier): Int{
@@ -119,7 +133,7 @@ class Context(private val path: String){
             functions[id]!!.size
         }
     }
-    fun getUniqueFunctionIdenfier(id: Identifier):Identifier{
+    fun getUniqueFunctionIdentifier(id: Identifier):Identifier{
         val nb = getOverloadNumber(id)
         return if (nb == 0){
             id

@@ -1,14 +1,4 @@
-int a,b
+typedef (int, int) tuple
 
-void trueTest(){
-
-}
-void falseTest(){
-
-}
-
-if (a + 5 < 10){
-    trueTest()
-} else {
-    falseTest()
-}
+tuple test
+test = (0,0)

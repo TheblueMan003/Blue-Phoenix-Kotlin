@@ -167,6 +167,11 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
         is FuncType -> t1 is FuncType && t1.from.zip(t2.from).map { (x,y) -> checkOwnership(x,y) }.all { it }
                             && checkOwnership(t1.to, t2.to)
         is ArrayType -> t1 is ArrayType && checkOwnership(t1.subtype, t2.subtype) && t1.length == t2.length
+        is StructType ->
+            (t1 is StructType && t1.name == t2.name)||
+            (
+                t2.name.methods.filter { it.identifier == Identifier(listOf("set")) && it.modifier.operator}
+            ).isNotEmpty()
         else -> throw NotImplementedError()
     }
 }
@@ -193,6 +198,9 @@ fun checkOwnershipCost(t1: DataType, t2: DataType): Int {
         is ArrayType -> {
             val t = t1 as ArrayType
             checkOwnershipCost(t.subtype, t2.subtype)
+        }
+        is StructType -> {
+            if (t1 is StructType && t1.name == t2.name){0}else{1}
         }
         else -> throw NotImplementedError()
     }
@@ -252,7 +260,7 @@ fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean 
             fit[0].second
         }
         else{
-            throw Exception("Cannot resolve function with arguments: ${from.joinToString(", ")}")
+            throw Exception("Cannot resolve function with arguments: ${from.joinToString(", ")} in $lst")
         }
     }
 }
@@ -280,7 +288,10 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         throw NotImplementedError()
     }
     else if (t1 is StructType){
-        throw NotImplementedError()
+        throw NotImplementedError()/*
+        val funcName = getOperationFunctionName(op)
+        val variable = (s1 as VariableExpr).variable
+        checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)*/
     }
     else if (t2 is StructType){
         throw NotImplementedError()

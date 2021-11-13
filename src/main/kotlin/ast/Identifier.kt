@@ -16,6 +16,9 @@ class Identifier(val paths: List<String>) {
     override fun hashCode(): Int {
         return paths.toTypedArray().contentHashCode()
     }
+    fun level(): Int{
+        return paths.size
+    }
     fun sub(path: String): Identifier {
         return Identifier(paths.plus(path))
     }

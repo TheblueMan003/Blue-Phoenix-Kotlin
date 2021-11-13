@@ -64,6 +64,10 @@ class Function(val modifier: DataStructModifier, val name: Identifier, val from:
     fun compile(){
         compiled = true
     }
+
+    override fun toString(): String {
+        return "$name: ${from.map { it.type }} -> ${output.type}"
+    }
 }
 
 class Struct  (val modifier: DataStructModifier, val name: Identifier, val generic: List<DataType>?,
@@ -74,3 +78,6 @@ class Class   (val modifier: DataStructModifier, val name: Identifier, val paren
                val generic: List<DataType>?,
                val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
                val builder: Sequence, val parentStruct: Variable? = null): DataStruct(modifier, parentStruct)
+
+class TypeDef(val modifier: DataStructModifier, val name: Identifier,
+               val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent)

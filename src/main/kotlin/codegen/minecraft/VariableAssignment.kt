@@ -28,7 +28,18 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                 internal(sbe, IntLitExpr(litExprToInt(expr)), op)
             }
             is FloatLitExpr -> {
-                internal(sbe, IntLitExpr(litExprToInt(expr)), op)
+                when(op){
+                    AssignmentType.SET -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)
+                    AssignmentType.ADD -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)
+                    AssignmentType.SUB -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)
+                    AssignmentType.MUL -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)+
+                                          internal(sbe, IntLitExpr(floatScale), AssignmentType.DIV)
+                    AssignmentType.DIV -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)+
+                                          internal(sbe, IntLitExpr(floatScale), AssignmentType.MUL)
+                    AssignmentType.MOD -> internal(sbe, IntLitExpr(litExprToInt(expr)), op)+
+                                          internal(sbe, IntLitExpr(floatScale), AssignmentType.MUL)
+                    else -> throw NotImplementedError()
+                }
             }
             is VariableExpr -> {
                 listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))

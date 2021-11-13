@@ -105,6 +105,11 @@ data class StructDeclaration(val modifier: DataStructModifier, val identifier: I
 ): Statement()
 
 /**
+ *  Typedef Declaration
+ */
+data class TypeDefDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType, val parent: Variable? = null): Statement()
+
+/**
  * Lambda Declaration
  */
 data class LambdaDeclaration(val from: List<DataType>, val to: DataType, val body: Statement): Expression()

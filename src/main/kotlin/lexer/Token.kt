@@ -14,5 +14,6 @@ enum class MyTokenTypes : LixyTokenType {
     CommentTokenType,
     SpaceTokenType,
     OperationToken,
-    RawCommandToken
+    RawCommandToken,
+    DecoratorToken
 }

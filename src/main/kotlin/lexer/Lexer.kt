@@ -10,7 +10,8 @@ val keyword = HashSet(listOf("if","while","for","forgenerate", "else",
     "class","abstract","struct","define",
     "return", "extends", "interface", "implements",
     "initer", "import", "blocktags", "enum", "enitytags",
-    "itemtags", "static", "private", "public", "protected", "operator"))
+    "itemtags", "static", "private", "public", "protected", "operator",
+    "typedef"))
 
 val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
 val boolLit = HashSet(listOf("true","false"))
@@ -26,6 +27,7 @@ fun parse(input: String):List<LixyToken>{
             matches("[\\d]+\\.[\\d]+") isToken FloatLitTokenType
             matches("[\\d]+") isToken IntLitTokenType
             matches("[A-Za-z_][\\w]*") isToken IdentifierTokenType
+            matches("@[A-Za-z_][\\w]*") isToken DecoratorToken
             anyOf("(",")","{","}","[","]",".", ",", "->") isToken DelimiterTokenType
             anyOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "=>", "<=", "<", ">=", ">") isToken OperationToken
             matches("\"([^\"])*\"") isToken StringLitTokenType

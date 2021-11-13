@@ -1,0 +1,104 @@
+
+
+/*
+Give sign of argument
+-1 if value smaller than 0
+    1 otherwise
+*/
+int sign(float value){
+    if (value >= 0){
+        return(1)
+    }
+    if (value < 0){
+        return(-1)
+    }
+}
+
+/*
+Give sign of argument
+-1 if value smaller than 0
+    1 otherwise
+*/
+int sign(int value){
+    if (value >= 0){
+        return(1)
+    }
+    if (value < 0){
+        return(-1)
+    }
+}
+
+/*
+Give magnitude of argument
+v if v > 0
+    -v otherwise
+*/
+float abs(float value){
+    if (value >= 0){
+        return(value)
+    }
+    if (value < 0){
+        return(-value)
+    }
+}
+
+/*
+Give magnitude of argument
+v if v > 0
+    -v otherwise
+*/
+int abs(int value){
+    if (value >= 0){
+        return(value)
+    }
+    if (value < 0){
+        return(-value)
+    }
+}
+
+/*
+Give a mod b the correct way
+*/
+float mod(float a, float b){
+    float ret = a+b
+    ret %= b
+    return(ret)
+}
+
+/*
+Give a mod b the correct way
+*/
+int mod(int a, int b){
+    int ret = a+b
+    ret %= b
+    return(ret)
+}
+
+/*
+Round float to closest value
+*/
+float round(float value){
+    value += 0.5
+    value /= 1000
+    value *= 1000
+    return(value)
+}
+
+/*
+Round float to lowest value
+*/
+float floor(float value){
+    value /= 1000
+    value *= 1000
+    return(value)
+}
+
+/*
+Round float to upper value
+*/
+float ceil(float value){
+    value += 0.999
+    value /= 1000
+    value *= 1000
+    return(value)
+}

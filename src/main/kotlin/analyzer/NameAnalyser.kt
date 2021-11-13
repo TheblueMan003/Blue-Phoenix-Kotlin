@@ -1,6 +1,7 @@
 package analyzer
 
 import ast.*
+import ast.Function
 
 fun runAnalyse(stm: Statement, context: Context): Statement{
     val ret = analyse(stm, context)
@@ -50,19 +51,30 @@ fun analyse(stm: Statement, context: Context): Statement {
             context.update(stm.identifier, Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder))
             Empty()
         }
+        is TypeDefDeclaration -> {
+            context.update(stm.identifier, TypeDef(stm.modifier, stm.identifier, stm.type, stm.parent))
+            Empty()
+        }
         is FunctionDeclaration -> {
-            val uuid = context.getUniqueFunctionIdenfier(stm.identifier)
+            val uuid = context.getUniqueFunctionIdentifier(stm.identifier)
             val identifier = context.currentPath.sub(uuid)
             val sub = context.sub(uuid.toString())
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PRIVATE
 
-            val inputs = stm.from.map { variableInstantiation(modifier,
-                it.identifier, analyseType(it.type, context), sub).second }
+            val inputs = stm.from.map {
+                val type = analyseType(it.type, context)
+                variableInstantiation(modifier,
+                it.identifier, analyseType(it.type, context), sub, null,
+                if (context.parentVariable!=null){context.parentVariable!!.type == type}else{false}
+                ).second }
 
-            val output = variableInstantiation(modifier, Identifier(listOf("__ret__")), stm.to, sub).second
+            val output = variableInstantiation(modifier, Identifier(listOf("__ret__")),
+                analyseType(stm.to, context), sub, null, context.parentVariable?.type == stm.to).second
+
             val body = if (stm.body is Block){stm.body.toSequence()}else{stm}
-            val function = Function(stm.modifier, identifier, stm.from, inputs, output, body,null)
+            val from = stm.from.map { FunctionArgument(it.identifier, analyseType(it.type, context), it.defaultValue) }
+            val function = Function(stm.modifier, identifier, from, inputs, output, body,context.parentVariable)
             context.update(stm.identifier, sub.addUnfinished(function, sub))
 
             Empty()
@@ -115,7 +127,7 @@ fun analyse(stm: Statement, context: Context): Statement {
 }
 
 private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, type: DataType,
-                                  context: Context, parent: Variable? = null): Pair<Statement, Variable>{
+                                  context: Context, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
     val variable = Variable(modifier, context.currentPath.sub(identifier), type, parent)
     context.update(identifier, variable)
     val sub = context.sub(identifier.toString())
@@ -143,13 +155,14 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
                 struct.fields.map{ it ->
                     analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
             )
-
-            // Add Methods
-            stmList.addAll(
-                struct.methods.map{ it ->
-                    analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
-            )
-
+            if (!noFunc) {
+                // Add Methods
+                stmList.addAll(
+                    struct.methods.map { it ->
+                        analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), sub)
+                    }
+                )
+            }
             stmList.add(analyse(struct.builder, sub))
 
             Sequence(stmList)
@@ -186,6 +199,8 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 ClassType(context.getClass(stm.name), null)
             } else if (context.hasGeneric(stm.name)){
                 analyseType(context.getGeneric(stm.name), context)
+            } else if (context.hasTypeDef(stm.name)){
+                analyseType(context.getTypeDef(stm.name), context)
             } else throw Exception("${stm.name} Type Not Found")
         }
         is UnresolvedGeneratedGenericType -> {
@@ -195,6 +210,8 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 ClassType(context.getClass(stm.name), stm.type.map { analyseType(it,context) })
             } else if (context.hasGeneric(stm.name)){
                 analyseType(context.getGeneric(stm.name), context)
+            } else if (context.hasTypeDef(stm.name)){
+                analyseType(context.getTypeDef(stm.name), context)
             } else throw Exception("${stm.name} Type Not Found")
         }
         is ArrayType -> {

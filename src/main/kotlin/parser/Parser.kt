@@ -62,8 +62,10 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext): Statement {
 
     parseModifier(tokens, context, modifier)
 
-
-    if (isKeyword(tokens, "struct")) {
+    if (isKeyword(tokens, "typedef")){
+        return parseTypeDef(tokens, context, modifier)
+    }
+    else if (isKeyword(tokens, "struct")) {
         return parseStructDeclaration(tokens, context, modifier)
     }
     else if (isKeyword(tokens, "class")) {
@@ -88,6 +90,11 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext): Statement {
     throw UnexpectedException("Unknown token:"+tokens.peekString()+" at pos: "+tokens.peekPos())
 }
 
+fun parseTypeDef(tokens: TokenStream, context: ParserContext, modifier: DataStructModifier): Statement {
+    val type = parseType(tokens, context)
+    val id = parseIdentifier(tokens, context)
+    return TypeDefDeclaration(modifier, id, type)
+}
 
 
 private fun parseStructDeclaration(tokens: TokenStream, context: ParserContext, modifier: DataStructModifier): StructDeclaration {
@@ -407,7 +414,7 @@ private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext): 
             IdentifierExpr(identifier)
         }
     }
-    throw UnexpectedException("Unknown token: "+tokens.peekString()+" at pos: "+tokens.peekPos())
+    throw UnexpectedException("Unknown token: '"+tokens.peekString()+"' at pos: "+tokens.peekPos())
 }
 
 
