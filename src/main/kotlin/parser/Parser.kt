@@ -1,8 +1,8 @@
 package parser
 
 import analyzer.Context
-import parser.DataStructVisibility.*
-import ast.Identifier
+import ast.*
+import ast.DataStructVisibility.*
 import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
@@ -24,7 +24,7 @@ fun parse(path: String, tokens: TokenStream):Pair<Statement, ParserContext>{
 /**
  * Parse Statement
  */
-private fun parseBlock(tokens: TokenStream, context: ParserContext):Statement {
+private fun parseBlock(tokens: TokenStream, context: ParserContext): Statement {
     if (isKeyword(tokens, "import")){
         return Empty()
     }
@@ -37,6 +37,9 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext):Statement {
     // Switch
     if (isKeyword(tokens, "switch")){ return parseSwitch(tokens, context) }
 
+    // Return
+    if (isKeyword(tokens, "return")){ return UnlinkedReturnStatement(parseExpression(tokens, context)) }
+
     // Blocks
     if (isDelimiter(tokens,"{")){ return parseBlockGroup(tokens, context.sub("")) }
 
@@ -46,7 +49,7 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext):Statement {
         val identifier = parseIdentifier(tokens, context)
         if (isDelimiterNoConsume(tokens, "(")){
             return parseFunctionCall(tokens, context, identifier)
-        } else if (isOperationTokenNoConsume(tokens)) {
+        } else if (isOperationTokenNoConsume(tokens, listOf("+","*","-","/","%","=","^"))) {
             return parseVariableAssignment(tokens, context, identifier)
         } else {
             tokens.restoreState(state)
@@ -128,7 +131,8 @@ private fun parseStructDeclaration(tokens: TokenStream, context: ParserContext, 
 
 
 private fun parseFunctionDeclaration(tokens: TokenStream, context: ParserContext, identifier: Identifier,
-                                     type: DataType, modifier: DataStructModifier): FunctionDeclaration {
+                                     type: DataType, modifier: DataStructModifier
+): FunctionDeclaration {
     val args = parseFunctionArgumentsList(tokens, context)
     val body = parseBlock(tokens, context)
     return FunctionDeclaration(modifier, identifier, args, type, body)
@@ -137,7 +141,8 @@ private fun parseFunctionDeclaration(tokens: TokenStream, context: ParserContext
 
 
 private fun parseVariableDeclaration(tokens: TokenStream, context: ParserContext, identifier: Identifier,
-                                     type: DataType, modifier: DataStructModifier): Sequence {
+                                     type: DataType, modifier: DataStructModifier
+): Sequence {
     // Variable Declaration
     val vars = parseIdentifierList(tokens, context, identifier)
 
@@ -177,7 +182,9 @@ private fun parseSwitch(tokens: TokenStream, context: ParserContext): Switch {
         cases.add(Case(expr, block))
     }
 
-    return Switch(scrut, cases)
+    val ret = Switch(scrut, cases)
+    ret.hasReturn = cases.map { toReturnType(it.statement) }.reduce{ a, b -> mergeReturnType(a,b) }
+    return ret
 }
 
 
@@ -189,19 +196,33 @@ private fun parseIf(tokens: TokenStream, context: ParserContext): Statement {
     val blockIf = parseBlock(tokens, context)
     return if (isKeyword(tokens, "else")){
         val blockElse = parseBlock(tokens, context)
-        IfElse(cond, blockIf, blockElse)
+        val ret = IfElse(cond, blockIf, blockElse)
+        ret.hasReturn = mergeReturnType(ret.IfBlock, ret.ElseBlock)
+        ret
     } else{
-        If(cond, blockIf)
+        val ret = If(cond, blockIf)
+        ret.hasReturn = ReturnType.HALF
+        ret
     }
 }
 
 
-
 private fun parseBlockGroup(tokens: TokenStream, context: ParserContext): Block {
     val statements = ArrayList<Statement>()
+    val statementsAfterReturn = ArrayList<Statement>()
+    var returned = ReturnType.NONE
     while(!isDelimiter(tokens,"}")){
         assert(!tokens.isEmpty())
-        statements.add(parseBlock(tokens, context))
+        val stm = parseBlock(tokens, context)
+        if (returned != ReturnType.FULL) {
+            if (returned == ReturnType.NONE) {
+                statements.add(stm)
+            } else {
+                statementsAfterReturn.add(stm)
+            }
+            if (stm is UnlinkedReturnStatement) returned = ReturnType.FULL
+            if (stm is Splitter) returned = stm.hasReturn
+        }
     }
     context.resolve()
     return Block(statements)
@@ -263,7 +284,7 @@ private fun parseIdentifierList(tokens: TokenStream, context: ParserContext, ide
 
 
 
-private fun parseFunctionCall(tokens: TokenStream, context: ParserContext, identifier:Identifier): Expression{
+private fun parseFunctionCall(tokens: TokenStream, context: ParserContext, identifier:Identifier): Expression {
     var called: Expression = IdentifierExpr(identifier)
     while(isDelimiter(tokens, "(")) {
         called = if (isDelimiter(tokens, ")")){
@@ -290,7 +311,7 @@ private fun parseFunctionArgumentsList(tokens: TokenStream, context: ParserConte
 
 
 
-private fun parseFunctionArguments(tokens: TokenStream, context: ParserContext): FunctionArgument{
+private fun parseFunctionArguments(tokens: TokenStream, context: ParserContext): FunctionArgument {
     val type = parseType(tokens, context)
     val identifier = parseIdentifier(tokens, context)
     return if (isOperationToken(tokens, "=")){
@@ -320,7 +341,7 @@ private fun parseModifier(tokens: TokenStream, context: ParserContext, modifier:
 /**
  * Parse expression
  */
-private fun parseExpression(tokens: TokenStream, context: ParserContext, index: Int = 0):Expression{
+private fun parseExpression(tokens: TokenStream, context: ParserContext, index: Int = 0): Expression {
     fun under() = if (index+1 == binaryOperationOrder.size){
         parseSimpleExpression(tokens, context)
     } else{
@@ -338,7 +359,7 @@ private fun parseExpression(tokens: TokenStream, context: ParserContext, index: 
 /**
  * Parse expression without operator on the outside
  */
-private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext):Expression{
+private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext): Expression {
     // Literals
     if (isFloatLit(tokens)){
         return FloatLitExpr(getFloatLit(tokens))
@@ -389,7 +410,7 @@ private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext):E
 /**
  * Parse Type
  */
-fun parseType(tokens: TokenStream, context: ParserContext):DataType {
+fun parseType(tokens: TokenStream, context: ParserContext): DataType {
     var type = parseSimpleType(tokens, context)
     while(isDelimiter(tokens, "[")){
         expectDelimiter(tokens, "]")
@@ -403,7 +424,7 @@ fun parseType(tokens: TokenStream, context: ParserContext):DataType {
 /**
  * Parse Type Base
  */
-private fun parseSimpleType(tokens: TokenStream, context: ParserContext):DataType{
+private fun parseSimpleType(tokens: TokenStream, context: ParserContext): DataType {
     if(isDelimiter(tokens, "(")){
         val lst = ArrayList<DataType>()
         do{
@@ -440,8 +461,8 @@ private fun parseGenerics(tokens: TokenStream, context: ParserContext): ArrayLis
         val args = ArrayList<DataType>()
         do {
             args.add(parseType(tokens, context))
-        } while (!isDelimiter(tokens, ","))
-        expectDelimiter(tokens, ">")
+        } while (isDelimiter(tokens, ","))
+        expectOperationToken(tokens, ">")
         args
     } else {
         null

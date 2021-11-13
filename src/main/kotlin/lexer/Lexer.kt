@@ -20,14 +20,14 @@ fun parse(input: String, removeSpace: Boolean, removeComment: Boolean):List<Lixy
             matches("[\\s;]+") isToken SpaceTokenType
             matches("[A-Za-z_][\\w]*") isToken IdentifierTokenType
             matches("^\\s*/[^/].*") isToken RawCommandToken
+            matches("[\\d]+\\.[\\d]+") isToken FloatLitTokenType
             matches("[\\d]+") isToken IntLitTokenType
-            matches("[\\d]*\\.[\\d]+") isToken FloatLitTokenType
             anyOf("(",")","{","}","[","]",".", ",", "->") isToken DelimiterTokenType
             anyOf("+", "-", "*", "/", "%", "&", "|", "^", "?","=", "=>", "<=", "<", ">=", ">", "&&", "||") isToken OperationToken
             matches("//[^\n]*") isToken CommentTokenType
             matches("/\\*([^\\*/]|(\\*[^/])|(/))*\\*/") isToken CommentTokenType
             anyOf("true","false") isToken BoolLitTokenType
-            matches("\"([^\"]|(\"))*\"") isToken StringLitTokenType
+            matches("\"([^\"])*\"") isToken StringLitTokenType
         }
     }
     return lexer.tokenize(input).filterNot {

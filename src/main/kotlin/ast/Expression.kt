@@ -1,6 +1,4 @@
-package parser
-
-import ast.Identifier
+package ast
 
 abstract class Expression: Statement()
 

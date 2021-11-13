@@ -1,10 +1,17 @@
-struct test{
-    int v1 = 0
-    int v2 = 50
+struct test<T>{
+    public T v1
+    public T v2
+
+    public int test(int b = 0){
+        int a = b + 5
+        return a
+    }
+    public float test(float b = 0){
+        float a = b + 5
+        return a
+    }
 }
 
-(int,int,int) testFunc(){
-
-}
-(int,int,int) b = testFunc()
-test a
+test<test<int>> a
+int b = a.test(1)
+float c = a.test(10.0)

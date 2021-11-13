@@ -1,7 +1,4 @@
-package analyzer.data
-
-import parser.*
-import parser.Function
+package ast
 
 
 abstract class AbstractIdentifierExpr: Expression()
@@ -31,4 +28,14 @@ data class UnresolvedFunctionExpr(val function: List<Function>) : AbstractIdenti
  */
 data class UnresolvedExpr(val choice: List<AbstractIdentifierExpr>): Expression()
 
+/**
+ *  Function Call without any arg or return Type
+ */
 data class RawFunctionCall(val function: Function): Statement()
+
+/**
+ *  Function Call without any arg or return Type
+ */
+data class FunctionBody(val body: Statement, val function: Function): Statement()
+
+data class ReturnStatement(val expr: Expression, val function: Function): Statement()

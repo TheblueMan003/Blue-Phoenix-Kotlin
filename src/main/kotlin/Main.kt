@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     println("Parser: ${tree.first}")
 
     val context = Context("root")
-    val symTree = analyzer.analyseTop(tree.first, tree.second.context)
+    val symTree = analyzer.analyse(tree.first, tree.second.context).first
 
     println("Tree: $symTree")
 

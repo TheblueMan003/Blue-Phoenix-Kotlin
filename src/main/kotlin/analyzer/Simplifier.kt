@@ -1,27 +1,26 @@
 package analyzer
 
-import analyzer.data.*
-import ast.Identifier
-import parser.*
+import ast.*
+import utils.withDefault
 import kotlin.math.pow
 
 fun simplify(stm: Statement, context: Context): Statement {
     return when(stm){
         is If -> {
             If(simplifyExpression(stm.Condition, context),
-                simplify(stm.IfBlock, context))
+                simplify(stm.IfBlock, context)).withParent(stm)
         }
         is IfElse -> {
             IfElse(simplifyExpression(stm.Condition, context),
                 simplify(stm.IfBlock, context),
-                simplify(stm.ElseBlock, context))
+                simplify(stm.ElseBlock, context)).withParent(stm)
         }
         is Block ->{
-            val nstm = stm.statements.map { simplify(it, context) }.filter{ it !is Empty}
+            val nstm = stm.statements.map { simplify(it, context) }.filter{ it !is Empty }
             when (nstm.size) {
                 0 -> { Empty() }
                 1 -> { nstm[0] }
-                else -> { Block(nstm) }
+                else -> { Block(nstm).withParent(stm) }
             }
         }
         is Sequence ->{
@@ -32,7 +31,8 @@ fun simplify(stm: Statement, context: Context): Statement {
             Switch(simplifyExpression(stm.function, context),
                 stm.cases.map {
                     Case(simplifyExpression(it.expr,context),
-                        simplify(it.statement, context))})
+                        simplify(it.statement, context))
+                }).withParent(stm)
         }
         is LinkedVariableAssignment -> {
             if (stm.variable.type is TupleType){
@@ -63,14 +63,20 @@ fun simplify(stm: Statement, context: Context): Statement {
                 LinkedVariableAssignment(stm.variable, simplifyExpression(stm.expr, context), stm.op)
             }
         }
+        is ReturnStatement -> {
+            simplify(LinkedVariableAssignment(stm.function.output, stm.expr, AssignmentType.SET), context)
+        }
         is CallExpr -> {
             simplifyFunctionCall(stm.value, stm.args, context).first
+        }
+        is FunctionBody -> {
+            FunctionBody(simplify(stm.body, context), stm.function)
         }
         else -> stm
     }
 }
 
-fun simplifyExpression(expr: Expression, context: Context):Expression{
+fun simplifyExpression(expr: Expression, context: Context): Expression {
     return when(expr){
         is BinaryExpr -> {
             val left = simplifyExpression(expr.first, context)
@@ -125,7 +131,7 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
     if (stm is FunctionExpr) {
         return Pair(
             simplifySequence(
-                stm.function.input.zip(args)
+                stm.function.input.zip(withDefault(args, stm.function.from.map { it.defaultValue }))
                     .map { (v, e) -> simplify(LinkedVariableAssignment(v, e, AssignmentType.SET), context) } +
                         RawFunctionCall(stm.function)
             ),
@@ -134,7 +140,7 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
     }else throw NotImplementedError()
 }
 
-fun simplifySequence(nstm: List<Statement>):Statement{
+fun simplifySequence(nstm: List<Statement>): Statement {
     return when (nstm.size) {
         0 -> { Empty() }
         1 -> { nstm[0] }

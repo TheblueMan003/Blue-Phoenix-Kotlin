@@ -1,38 +1,37 @@
 package analyzer
 
-import analyzer.data.*
-import ast.Identifier
-import parser.*
-import parser.Function
+import ast.*
+import ast.Function
+import utils.withDefault
 
 
 data class InvalidTypeException(val type: DataType): Exception()
 
-fun check(stm: Statement, context: Context): Statement{
+fun check(stm: Statement, context: Context): Statement {
     return when(stm){
         is If -> {
             val cond = checkExpression(stm.Condition, context)
             expectBoolean(cond.second)
-            If(cond.first, check(stm.IfBlock, context))
+            If(cond.first, check(stm.IfBlock, context)).withParent(stm)
         }
-        is IfElse-> {
+        is IfElse -> {
             val cond = checkExpression(stm.Condition, context)
             expectBoolean(cond.second)
-            IfElse(cond.first, check(stm.IfBlock, context), check(stm.ElseBlock, context))
+            IfElse(cond.first, check(stm.IfBlock, context), check(stm.ElseBlock, context)).withParent(stm)
         }
-        is Block->{
-            Block(stm.statements.map { check(it, context) })
+        is Block ->{
+            Block(stm.statements.map { check(it, context) }).withParent(stm)
         }
-        is Sequence->{
+        is Sequence ->{
             Sequence(stm.statements.map { check(it, context) })
         }
-        is Switch->{
-            val expr = checkExpression(stm, context)
+        is Switch ->{
+            val expr = checkExpression(stm.function, context)
             Switch(expr.first, stm.cases.map {
                 val scrut = checkExpression(it.expr, context)
                 checkOwnership(scrut.second, expr.second)
                 Case(scrut.first, check(it.statement, context))
-            })
+            }).withParent(stm)
         }
         is LinkedVariableAssignment -> {
             if (stm.variable.type is FuncType){
@@ -50,12 +49,40 @@ fun check(stm: Statement, context: Context): Statement{
                         throw Exception("Cannot be assign to function")
                     }
                 }
-            }
-            else{
+            } else {
                 val v = checkExpression(stm.expr, context)
-                checkOwnership(v.second, stm.variable.type)
+                if (!checkOwnership(v.second, stm.variable.type))
+                    throw Exception("Invalid type error: ${v.second} not in ${stm.variable.type}")
                 LinkedVariableAssignment(stm.variable, v.first, stm.op)
             }
+        }
+        is CallExpr -> {
+            checkExpression(stm, context).first
+        }
+        is ReturnStatement -> {
+            val v = checkExpression(stm.expr, context)
+            if (!checkOwnership(v.second, stm.function.output.type))
+                throw Exception("Invalid type error: ${v.second} not in ${stm.function.output.type}")
+            ReturnStatement(v.first, context.currentFunction!!)
+        }
+        is FunctionBody -> {
+            val prev = context.currentFunction
+            context.currentFunction = stm.function
+            val ret = FunctionBody(check(stm.body, context), stm.function)
+
+            var startedDefault = false
+            for(v in stm.function.input.zip(stm.function.from)){
+                if (v.second.defaultValue != null) {
+                    check(LinkedVariableAssignment(v.first, v.second.defaultValue!!, AssignmentType.SET), context)
+                    startedDefault = true
+                }
+                else if (startedDefault){
+                    throw Exception("${v.first.name} must have a default value")
+                }
+            }
+
+            context.currentFunction = prev
+            ret
         }
         else -> stm
     }
@@ -93,6 +120,13 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
                 is UnresolvedFunctionExpr -> {
                     val args = stm.args.map{checkExpression(it, context)}
                     val fct = findFunction(args.map { it.second }, stm.value.function)
+
+                    if (context.currentFunction != null){
+                        context.currentFunction!!.addFuncCall(fct)
+                    }else{
+                        fct.use()
+                    }
+
                     Pair(CallExpr(FunctionExpr(fct), args.map { it.first }), fct.output.type)
                 }
                 is VariableExpr -> {
@@ -112,7 +146,7 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
     }
 }
 
-fun biggestType(t1: DataType, t2: DataType):DataType{
+fun biggestType(t1: DataType, t2: DataType): DataType {
     if (isNumerical(t1) && isNumerical(t2)){
         return if (t1 is FloatType || t2 is FloatType) FloatType() else IntType()
     }
@@ -189,18 +223,20 @@ fun getOperationFunctionName(op: String): Identifier{
 }
 fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean = false): Function {
     val fit =
-        lst.filter { it.modifier.operator || !isOperator }
-           .filter { fct -> fct.input
+        lst.asSequence()
+            .filter { it.modifier.operator || !isOperator }
+            .filter { fct -> fct.input
                 .map {vr -> vr.type}
                 .zip(from)
                 .map { (x, y) -> checkOwnership(y, x)}
                 .all { it } }
+            .filter { fct -> withDefault(from, fct.from.map { it.defaultValue }).size == fct.input.size }
             .map { fct -> Pair(fct.input
                 .map {vr -> vr.type}
-                .zip(from)
+                .zip(withDefault(from, fct.from.map { it.type }))
                 .sumOf { (x, y) -> checkOwnershipCost(y, x)},
                 fct) }
-            .sortedBy { (c, _) -> c }
+            .sortedBy { (c, _) -> c }.toList()
 
     return if (fit.isEmpty()){
         throw Exception("Function not found with arguments: ${from.joinToString(", ")}")

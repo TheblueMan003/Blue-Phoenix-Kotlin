@@ -42,8 +42,8 @@ fun isPrimTypeToken(tokens: TokenStream, value: String):Boolean{
         false
     }
 }
-fun isOperationTokenNoConsume(tokens: TokenStream):Boolean{
-    return !tokens.isEmpty() && tokens.peek().tokenType == OperationToken
+fun isOperationTokenNoConsume(tokens: TokenStream, valid: List<String>):Boolean{
+    return !tokens.isEmpty() && tokens.peek().tokenType == OperationToken && valid.contains(tokens.peek().string)
 }
 fun isOperationToken(tokens: TokenStream, value: String):Boolean{
     return if (!tokens.isEmpty() && tokens.peek().tokenType == OperationToken && tokens.peek().string == value){
@@ -51,6 +51,18 @@ fun isOperationToken(tokens: TokenStream, value: String):Boolean{
         true
     } else{
         false
+    }
+}
+fun expectOperationToken(tokens: TokenStream, value: String){
+    return if (!tokens.isEmpty() && tokens.peek().tokenType == OperationToken && tokens.peek().string == value){
+        tokens.next()
+    } else{
+        if (!tokens.isEmpty()) {
+            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt)
+        }
+        else{
+            throw UnexpectedToken("EOF",0)
+        }
     }
 }
 fun getOperationToken(tokens: TokenStream):String{

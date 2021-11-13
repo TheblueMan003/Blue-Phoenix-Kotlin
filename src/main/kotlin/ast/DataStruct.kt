@@ -1,7 +1,7 @@
-package parser
+package ast
 
 import analyzer.Context
-import ast.Identifier
+import javax.xml.crypto.Data
 
 abstract class DataStruct(private val d_modifier: DataStructModifier, private val d_parent: Variable? = null) {
     fun isVisible(visibility: DataStructVisibility, context: Context):Boolean{
@@ -35,16 +35,30 @@ class Variable(val modifier: DataStructModifier, val name: Identifier,
     var childrenFunction = HashMap<Identifier, List<Function>>()
 }
 
-class Function(val modifier: DataStructModifier, val name: Identifier, val input: List<Variable>, val output: Variable,
+class Function(val modifier: DataStructModifier, val name: Identifier, val from: List<FunctionArgument>,
+               val input: List<Variable>, val output: Variable,
                var body: Statement, val parent: Variable? = null): DataStruct(modifier, parent){
-    private var usedBy = ArrayList<Function>()
     private var used = false
+    val called = ArrayList<Function>()
+    private var compiled = false
 
-    fun use(fct: Function){
-        usedBy.add(fct)
-    }
     fun use(){
         used = true
+        called.map { if (!it.isUsed()){it.use()} }
+    }
+    fun addFuncCall(function: Function){
+        if (isUsed()){
+            if (!function.used){ function.use() }
+        }else{
+            called.add(function)
+        }
+    }
+
+    fun isUsed(): Boolean{
+        return used
+    }
+    fun compile(){
+        compiled = true
     }
 }
 

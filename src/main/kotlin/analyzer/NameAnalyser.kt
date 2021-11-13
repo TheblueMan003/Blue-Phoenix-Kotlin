@@ -1,17 +1,15 @@
 package analyzer
 
-import analyzer.data.*
-import parser.*
-import ast.Identifier
+import ast.*
 
 fun analyse(stm: Statement, context: Context): Pair<Statement, Context>{
     val ret = analyseTop(stm, context)
-    context.runUnfinished{ s, c -> analyseTop(s, c)}
-    return Pair(ret, context)
+    context.runUnfinished{ s, c -> analyseTop(s, c) }
+    return Pair(Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret), context)
 }
 
-fun analyseTop(stm: Statement, context: Context): Statement{
-    fun passUpward(stm: Statement): Statement{
+fun analyseTop(stm: Statement, context: Context): Statement {
+    fun passUpward(stm: Statement): Statement {
         context.resolve()
         return stm
     }
@@ -19,23 +17,23 @@ fun analyseTop(stm: Statement, context: Context): Statement{
     return passUpward(when(stm){
         is Block -> {
             val sub = context.sub("")
-            Block(stm.statements.map { s -> analyseTop(s, sub) })
+            Block(stm.statements.map { s -> analyseTop(s, sub) }).withParent(stm)
         }
         is Sequence -> {
             Sequence(stm.statements.map { s -> analyseTop(s, context) })
         }
         is If -> {
             If(analyseTop(stm.Condition, context) as Expression,
-                      analyseTop(stm.IfBlock, context))
+                      analyseTop(stm.IfBlock, context)).withParent(stm)
         }
         is IfElse -> {
             IfElse(analyseTop(stm.Condition, context) as Expression,
                           analyseTop(stm.IfBlock, context),
-                          analyseTop(stm.ElseBlock, context))
+                          analyseTop(stm.ElseBlock, context)).withParent(stm)
         }
         is Switch -> {
             Switch(analyseTop(stm.function, context) as Expression,
-                stm.cases.map { s -> analyseTop(s, context) as Case })
+                stm.cases.map { s -> analyseTop(s, context) as Case }).withParent(stm)
         }
         is Case -> {
             Case(analyseTop(stm.expr, context) as Expression,
@@ -53,17 +51,19 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             Empty()
         }
         is FunctionDeclaration -> {
-            val sub = context.sub(stm.identifier.toString())
+            val uuid = context.getUniqueFunctionIdenfier(stm.identifier)
+            val identifier = context.currentPath.sub(uuid)
+            val sub = context.sub(uuid.toString())
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PRIVATE
 
-            val variables = stm.from.map { variableInstantiation(modifier,
-                it.identifier, analyseType(it.type, context), context).second }
+            val inputs = stm.from.map { variableInstantiation(modifier,
+                it.identifier, analyseType(it.type, context), sub).second }
 
-            val output = variableInstantiation(modifier, Identifier(listOf("__ret_0__")), stm.to, sub).second
-
-            context.update(stm.identifier,
-                sub.addUnfinished(Function(stm.modifier, stm.identifier, variables, output, stm.body,null), sub))
+            val output = variableInstantiation(modifier, Identifier(listOf("__ret__")), stm.to, sub).second
+            val body = if (stm.body is Block){stm.body.toSequence()}else{stm}
+            val function = Function(stm.modifier, identifier, stm.from, inputs, output, body,null)
+            context.update(stm.identifier, sub.addUnfinished(function, sub))
 
             Empty()
         }
@@ -75,6 +75,10 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
             LinkedVariableAssignment(variable,
                 analyseTop(stm.expr, context) as Expression, stm.op)
+        }
+        is UnlinkedReturnStatement -> {
+            if (context.currentFunction == null) throw Exception("Return must me inside of a function")
+            ReturnStatement(analyseTop(stm.expr, context) as Expression, context.currentFunction!!)
         }
 
 
@@ -97,12 +101,12 @@ fun analyseTop(stm: Statement, context: Context): Statement{
             UnaryExpr(stm.op,
                 analyseTop(stm.first, context) as Expression)
         }
+        is TupleExpr -> {
+            TupleExpr(stm.value.map { analyseTop(it, context) as Expression })
+        }
         is CallExpr -> {
             CallExpr(analyseTop(stm.value, context) as Expression,
                 stm.args.map { s -> analyseTop(s, context) as Expression })
-        }
-        is TupleExpr -> {
-            TupleExpr(stm.value.map { analyseTop(it, context) as Expression })
         }
         else -> {
             stm
@@ -112,18 +116,27 @@ fun analyseTop(stm: Statement, context: Context): Statement{
 
 private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, type: DataType,
                                   context: Context, parent: Variable? = null): Pair<Statement, Variable>{
-    val variable = Variable(modifier, context.currentPath.sub(identifier.toString()), type, parent)
+    val variable = Variable(modifier, context.currentPath.sub(identifier), type, parent)
     context.update(identifier, variable)
     val sub = context.sub(identifier.toString())
     sub.parentVariable = variable
     var type = variable.type
-    if (type is UnresolvedGeneratedType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
-    if (type is UnresolvedGeneratedGenericType && context.hasGeneric(type.name)) type = context.getGeneric(type.name)
 
     val ret = when (type) {
         is StructType -> {
             val struct = type.name
             val stmList = ArrayList<Statement>()
+
+            if (struct.generic != null) {
+                struct.generic.zip(type.type!!)
+                    .map { (o, n) ->
+                        when (o) {
+                            is UnresolvedGeneratedType -> { sub.update(o.name, n) }
+                            is UnresolvedGeneratedGenericType -> { sub.update(o.name, n) }
+                            else -> { throw Exception("Type Parameter should be an identifier") }
+                        }
+                    }
+            }
 
             // Add Fields
             stmList.addAll(
@@ -166,16 +179,20 @@ fun analyseType(stm: DataType, context: Context): DataType {
         is UnresolvedGeneratedType -> {
             if (context.hasStruct(stm.name)){
                 StructType(context.getStruct(stm.name), null)
-            } else if (context.hasClass(stm.name)){
+            } else if (context.hasClass(stm.name)) {
                 ClassType(context.getClass(stm.name), null)
-            } else throw NotImplementedError()
+            } else if (context.hasGeneric(stm.name)){
+                analyseType(context.getGeneric(stm.name), context)
+            } else throw Exception("${stm.name} Type Not Found")
         }
         is UnresolvedGeneratedGenericType -> {
             if (context.hasStruct(stm.name)){
                 StructType(context.getStruct(stm.name), stm.type.map { analyseType(it,context) })
             } else if (context.hasClass(stm.name)){
                 ClassType(context.getClass(stm.name), stm.type.map { analyseType(it,context) })
-            } else throw NotImplementedError()
+            } else if (context.hasGeneric(stm.name)){
+                analyseType(context.getGeneric(stm.name), context)
+            } else throw Exception("${stm.name} Type Not Found")
         }
         is ArrayType -> {
             ArrayType(analyseType(stm.subtype, context), stm.length)

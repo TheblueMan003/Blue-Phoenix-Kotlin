@@ -11,6 +11,6 @@ class OutputFile(val name: String) {
     }
 
     override fun toString():String{
-        return name+":"+data.joinToString("\n")
+        return "\n"+name+": {\n\t"+data.joinToString("\n\t")+"\n}"
     }
 }
