@@ -14,6 +14,7 @@ class Context(private val path: String){
     private var classes  : StackedHashMap<Identifier, Class> = StackedHashMap()
     private var generics  : StackedHashMap<Identifier, DataType> = StackedHashMap()
     private var unfinishedAnalyse = ArrayList<Pair<Function,Context>>()
+    private var tmpVarNb = 0
     var currentFunction: Function? = null
     var functionsList = ArrayList<Function>()
     var parentVariable: ast.Variable? = null
@@ -130,14 +131,14 @@ class Context(private val path: String){
 
     fun sub(id: String):Context{
         val context = Context(id)
-        context.currentPath = currentPath.sub(id)
-        context.variables   = variables.sub()
-        context.functions   = functions.sub()
-        context.structs     = structs.sub()
-        context.classes     = classes.sub()
-        context.generics    = generics.sub()
+        context.currentPath       = currentPath.sub(id)
+        context.variables         = variables.sub()
+        context.functions         = functions.sub()
+        context.structs           = structs.sub()
+        context.classes           = classes.sub()
+        context.generics          = generics.sub()
         context.unfinishedAnalyse = unfinishedAnalyse
-        context.functionsList = functionsList
+        context.functionsList     = functionsList
         children.add(context)
         return context
     }
@@ -171,6 +172,11 @@ class Context(private val path: String){
                 }
             }
         }
+    }
+
+    fun getTmpVarIdentifier():Identifier{
+        val nb = tmpVarNb++
+        return Identifier(listOf("\$tmp_$nb"))
     }
 
     data class IdentifierNotFound(val identifier: Identifier): Exception()

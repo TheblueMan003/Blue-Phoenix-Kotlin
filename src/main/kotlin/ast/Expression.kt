@@ -2,25 +2,31 @@ package ast
 
 abstract class Expression: Statement()
 
+
+/**
+ *  Literal Float, Int, String, Boolean Expression
+ */
+abstract class LitExpr : Expression()
+
 /**
  *  Int Value in Expression
  */
-data class IntLitExpr(val value: Int) : Expression()
+data class IntLitExpr(val value: Int) : LitExpr()
 
 /**
  *  Float Value in Expression
  */
-data class FloatLitExpr(val value: Float) : Expression()
+data class FloatLitExpr(val value: Float) : LitExpr()
 
 /**
  *  Boolean Value in Expression
  */
-data class BoolLitExpr(val value: Boolean) : Expression()
+data class BoolLitExpr(val value: Boolean) : LitExpr()
 
 /**
  *  String Value in Expression
  */
-data class StringLitExpr(val value: String) : Expression()
+data class StringLitExpr(val value: String) : LitExpr()
 
 /**
  *  Variable or Function Value in Expression

@@ -1,17 +1,14 @@
-struct test<T>{
-    public T v1
-    public T v2
+int a,b
 
-    public int test(int b = 0){
-        int a = b + 5
-        return a
-    }
-    public float test(float b = 0){
-        float a = b + 5
-        return a
-    }
+void trueTest(){
+
+}
+void falseTest(){
+
 }
 
-test<test<int>> a
-int b = a.test(1)
-float c = a.test(10.0)
+if (a + 5 < 10){
+    trueTest()
+} else {
+    falseTest()
+}

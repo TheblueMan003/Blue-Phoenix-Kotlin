@@ -8,6 +8,7 @@ class IntType: DataType()
 class FloatType: DataType()
 class BoolType: DataType()
 class StringType: DataType()
+class VarType(var expr: Expression? = null): DataType()
 
 /**
  * Either Generic Type, Struct or Class

@@ -7,6 +7,9 @@ import utils.withDefault
 
 data class InvalidTypeException(val type: DataType): Exception()
 
+fun runChecker(stm: Statement, context: Context): Statement {
+    return check(stm, context)
+}
 fun check(stm: Statement, context: Context): Statement {
     return when(stm){
         is If -> {

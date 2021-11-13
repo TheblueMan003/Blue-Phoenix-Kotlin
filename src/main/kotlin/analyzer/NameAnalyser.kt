@@ -2,13 +2,13 @@ package analyzer
 
 import ast.*
 
-fun analyse(stm: Statement, context: Context): Pair<Statement, Context>{
-    val ret = analyseTop(stm, context)
-    context.runUnfinished{ s, c -> analyseTop(s, c) }
-    return Pair(Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret), context)
+fun runAnalyse(stm: Statement, context: Context): Statement{
+    val ret = analyse(stm, context)
+    context.runUnfinished{ s, c -> analyse(s, c) }
+    return Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret)
 }
 
-fun analyseTop(stm: Statement, context: Context): Statement {
+fun analyse(stm: Statement, context: Context): Statement {
     fun passUpward(stm: Statement): Statement {
         context.resolve()
         return stm
@@ -17,27 +17,27 @@ fun analyseTop(stm: Statement, context: Context): Statement {
     return passUpward(when(stm){
         is Block -> {
             val sub = context.sub("")
-            Block(stm.statements.map { s -> analyseTop(s, sub) }).withParent(stm)
+            Block(stm.statements.map { s -> analyse(s, sub) }).withParent(stm)
         }
         is Sequence -> {
-            Sequence(stm.statements.map { s -> analyseTop(s, context) })
+            Sequence(stm.statements.map { s -> analyse(s, context) })
         }
         is If -> {
-            If(analyseTop(stm.Condition, context) as Expression,
-                      analyseTop(stm.IfBlock, context)).withParent(stm)
+            If(analyse(stm.Condition, context) as Expression,
+                      analyse(stm.IfBlock, context)).withParent(stm)
         }
         is IfElse -> {
-            IfElse(analyseTop(stm.Condition, context) as Expression,
-                          analyseTop(stm.IfBlock, context),
-                          analyseTop(stm.ElseBlock, context)).withParent(stm)
+            IfElse(analyse(stm.Condition, context) as Expression,
+                          analyse(stm.IfBlock, context),
+                          analyse(stm.ElseBlock, context)).withParent(stm)
         }
         is Switch -> {
-            Switch(analyseTop(stm.function, context) as Expression,
-                stm.cases.map { s -> analyseTop(s, context) as Case }).withParent(stm)
+            Switch(analyse(stm.function, context) as Expression,
+                stm.cases.map { s -> analyse(s, context) as Case }).withParent(stm)
         }
         is Case -> {
-            Case(analyseTop(stm.expr, context) as Expression,
-                        analyseTop(stm.statement, context))
+            Case(analyse(stm.expr, context) as Expression,
+                        analyse(stm.statement, context))
         }
 
 
@@ -74,11 +74,11 @@ fun analyseTop(stm: Statement, context: Context): Statement {
             val variable = context.getVariable(stm.identifier)
 
             LinkedVariableAssignment(variable,
-                analyseTop(stm.expr, context) as Expression, stm.op)
+                analyse(stm.expr, context) as Expression, stm.op)
         }
         is UnlinkedReturnStatement -> {
             if (context.currentFunction == null) throw Exception("Return must me inside of a function")
-            ReturnStatement(analyseTop(stm.expr, context) as Expression, context.currentFunction!!)
+            ReturnStatement(analyse(stm.expr, context) as Expression, context.currentFunction!!)
         }
 
 
@@ -94,19 +94,19 @@ fun analyseTop(stm: Statement, context: Context): Statement {
         }
         is BinaryExpr -> {
             BinaryExpr(stm.op,
-                analyseTop(stm.first, context) as Expression,
-                analyseTop(stm.second, context) as Expression)
+                analyse(stm.first, context) as Expression,
+                analyse(stm.second, context) as Expression)
         }
         is UnaryExpr -> {
             UnaryExpr(stm.op,
-                analyseTop(stm.first, context) as Expression)
+                analyse(stm.first, context) as Expression)
         }
         is TupleExpr -> {
-            TupleExpr(stm.value.map { analyseTop(it, context) as Expression })
+            TupleExpr(stm.value.map { analyse(it, context) as Expression })
         }
         is CallExpr -> {
-            CallExpr(analyseTop(stm.value, context) as Expression,
-                stm.args.map { s -> analyseTop(s, context) as Expression })
+            CallExpr(analyse(stm.value, context) as Expression,
+                stm.args.map { s -> analyse(s, context) as Expression })
         }
         else -> {
             stm
@@ -141,16 +141,16 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             // Add Fields
             stmList.addAll(
                 struct.fields.map{ it ->
-                    analyseTop(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
             )
 
             // Add Methods
             stmList.addAll(
                 struct.methods.map{ it ->
-                    analyseTop(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
+                    analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable ), sub)}
             )
 
-            stmList.add(analyseTop(struct.builder, sub))
+            stmList.add(analyse(struct.builder, sub))
 
             Sequence(stmList)
         }
@@ -161,7 +161,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             val modifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PUBLIC
             Sequence(type.type.mapIndexed{ index, it ->
-                analyseTop(VariableDeclaration(modifier, Identifier(listOf("_$index")), it, variable ), sub)})
+                analyse(VariableDeclaration(modifier, Identifier(listOf("_$index")), it, variable ), sub)})
         }
         is FuncType -> {
             Empty()
@@ -176,6 +176,9 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
 
 fun analyseType(stm: DataType, context: Context): DataType {
     return when (stm) {
+        is VarType -> {
+           checkExpression(stm.expr!!, context).second
+        }
         is UnresolvedGeneratedType -> {
             if (context.hasStruct(stm.name)){
                 StructType(context.getStruct(stm.name), null)

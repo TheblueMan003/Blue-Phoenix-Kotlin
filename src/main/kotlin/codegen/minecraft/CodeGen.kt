@@ -5,40 +5,58 @@ import utils.OutputFile
 
 fun genCode(statement: Statement, name: String):List<OutputFile>{
     val sbi = ScoreboardInitializer()
+    val outputFiles = ArrayList<OutputFile>()
     val output = OutputFile(name)
-    return genCode(statement, output, sbi) + output
+    output.add(genCode(statement, outputFiles, sbi))
+    outputFiles.add(output)
+    return outputFiles
 }
 
-fun genCode(stm: Statement, outputFile: OutputFile, sbi: ScoreboardInitializer): List<OutputFile>{
-    val files = ArrayList<OutputFile>()
-    val mpt = emptyList<OutputFile>()
-    files.addAll(when(stm){
+fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardInitializer, forceUnique: Boolean = false): List<String>{
+    return when(stm){
         is Block -> {
-            stm.statements.map { genCode(it, outputFile, sbi) }.flatten()
+            val ret = stm.statements.map { genCode(it, outputFiles, sbi) }.flatten()
+            createBlock("\$block.${ret.hashCode()}", ret, outputFiles)
         }
         is Sequence -> {
-            stm.statements.map { genCode(it, outputFile, sbi) }.flatten()
+            val ret = stm.statements.map { genCode(it, outputFiles, sbi) }.flatten()
+            if (forceUnique){
+                createBlock("\$block.${ret.hashCode()}", ret, outputFiles)
+            } else {
+              ret
+            }
         }
         is LinkedVariableAssignment -> {
-            outputFile.add(setVariableExpression(stm.variable, stm.expr, stm.op, sbi){genCode(it, outputFile, sbi)})
-            mpt
+            val ret = setVariableExpression(stm.variable, stm.expr, stm.op, sbi) { genCode(it, outputFiles, sbi) }
+            return if (!forceUnique || ret.size < 2) {
+                ret
+            }else{
+                createBlock("\$block.${ret.hashCode()}", ret, outputFiles)
+            }
+        }
+        is If -> {
+            listOf(genIf(stm){genCode(it, outputFiles, sbi, true)})
         }
         is RawFunctionCall -> {
-            outputFile.add("function ${stm.function.name}")
-            mpt
+            listOf("function ${stm.function.name}")
         }
         is FunctionBody -> {
             if (stm.function.isUsed()){
-                val file = OutputFile(stm.function.name.toString())
-                files.add(file)
-                genCode(stm.body, file, sbi)
+                createBlock(stm.function.name.toString(), genCode(stm.body, outputFiles, sbi), outputFiles)
+                emptyList<String>()
             } else {
-                mpt
+                emptyList<String>()
             }
         }
         else ->{
-            mpt
+            emptyList<String>()
         }
-    })
-    return files
+    }
+}
+
+fun createBlock(name: String, lines: List<String>, outputFiles: ArrayList<OutputFile>):List<String>{
+    val file = OutputFile(name)
+    outputFiles.add(file)
+    file.add(lines)
+    return listOf(callBlock(file))
 }

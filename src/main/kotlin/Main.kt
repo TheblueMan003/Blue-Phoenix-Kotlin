@@ -1,10 +1,13 @@
 import analyzer.Context
+import analyzer.runAnalyse
+import analyzer.runChecker
+import analyzer.runSimplifier
 import parser.TokenStream
 
 
 fun main(args: Array<String>) {
     val fileContent = getResourceAsText("Main.bp")
-    val res = lexer.parse(fileContent, true, true)
+    val res = lexer.parse(fileContent)
 
     println("Lexer: $res")
 
@@ -13,15 +16,15 @@ fun main(args: Array<String>) {
     println("Parser: ${tree.first}")
 
     val context = Context("root")
-    val symTree = analyzer.analyse(tree.first, tree.second.context).first
+    val symTree = runAnalyse(tree.first, tree.second.context)
 
     println("Tree: $symTree")
 
-    val checkedTree = analyzer.check(symTree, context)
+    val checkedTree = runChecker(symTree, context)
 
     println("Checked: $checkedTree")
 
-    val simplifiedTree = analyzer.simplify(checkedTree, context)
+    val simplifiedTree = runSimplifier(checkedTree, context){s,c -> runChecker(runAnalyse(s,c), c)}
 
     println("Simplified: $simplifiedTree")
 

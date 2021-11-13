@@ -19,6 +19,16 @@ fun isDelimiter(tokens: TokenStream, value: String):Boolean{
         false
     }
 }
+
+fun isRawCommand(tokens: TokenStream):Boolean{
+    return !tokens.isEmpty() && tokens.peek().tokenType == RawCommandToken
+}
+fun getRawCommand(tokens: TokenStream): String{
+    val token = tokens.peek()
+    tokens.next()
+    return token.string
+}
+
 fun isDelimiterNoConsume(tokens: TokenStream, value: String):Boolean{
     return !tokens.isEmpty() && tokens.peek().tokenType == DelimiterTokenType && tokens.peek().string == value
 }

@@ -25,10 +25,10 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                 }
             }
             is BoolLitExpr -> {
-                internal(sbe, IntLitExpr(if (expr.value){1}else{0}), op)
+                internal(sbe, IntLitExpr(litExprToInt(expr)), op)
             }
             is FloatLitExpr -> {
-                internal(sbe, IntLitExpr((expr.value * floatScale).toInt()), op)
+                internal(sbe, IntLitExpr(litExprToInt(expr)), op)
             }
             is VariableExpr -> {
                 listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))
@@ -224,6 +224,21 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
     }
     else {
         internal(s, expr, op)
+    }
+}
+
+fun litExprToInt(expr: LitExpr): Int{
+    return when(expr) {
+        is IntLitExpr -> {
+            expr.value
+        }
+        is BoolLitExpr -> {
+            if (expr.value) { 1 } else { 0 }
+        }
+        is FloatLitExpr -> {
+            (expr.value * floatScale).toInt()
+        }
+        else -> throw NotImplementedError()
     }
 }
 

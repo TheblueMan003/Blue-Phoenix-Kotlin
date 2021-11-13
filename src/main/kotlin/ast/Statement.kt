@@ -113,3 +113,5 @@ data class LambdaDeclaration(val from: List<DataType>, val to: DataType, val bod
 data class UnlinkedReturnStatement(val expr: Expression): Statement()
 
 data class StatementThanExpression(val statement: Statement, val expr: Expression): Expression()
+
+data class RawCommand(val cmd: String): Statement()

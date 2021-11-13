@@ -1,5 +1,6 @@
 package codegen.minecraft
 
+import ast.Block
 import ast.Variable
 
 data class Scoreboard(val name: String, val type: String)
@@ -19,7 +20,50 @@ data class ScoreboardEntry(val name: String, val scoreboard: Scoreboard){
     fun operation(v2: ScoreboardEntry, op: String): String{
         return "scoreboard players operation $name ${scoreboard.name} $op ${v2.name} ${v2.scoreboard.name}"
     }
+    private fun isEquals(value: Int): MCCondition{
+        return MCCondition(false,"score $name ${scoreboard.name} matches $value")
+    }
+    fun isIn(min: Int, max: Int): MCCondition{
+        return MCCondition(false,"score $name ${scoreboard.name} matches $min..$max")
+    }
+    private fun isBiggerEqual(value: Int): MCCondition{
+        return MCCondition(false,"score $name ${scoreboard.name} matches $value..")
+    }
+    private fun isSmallerEqual(value: Int): MCCondition{
+        return MCCondition(false,"score $name ${scoreboard.name} matches ..$value")
+    }
+    fun compare(v2: ScoreboardEntry, op: String): MCCondition{
+        return if (op == "!="){
+            MCCondition(true,"score $name ${scoreboard.name} $op ${v2.name} ${v2.scoreboard.name}")
+        } else {
+            MCCondition(false,"score $name ${scoreboard.name} $op ${v2.name} ${v2.scoreboard.name}")
+        }
+    }
+    fun compare(value: Int, op: String): MCCondition{
+        return when(op){
+            "<"  -> isSmallerEqual(value-1)
+            "<=" -> isSmallerEqual(value)
+            ">"  -> isBiggerEqual(value+1)
+            ">=" -> isBiggerEqual(value)
+            "==" -> isEquals(value)
+            "!=" -> isEquals(value).inverted()
+            else -> throw NotImplementedError()
+        }
+    }
 }
+data class MCCondition(val unless: Boolean, val cond: String){
+    fun inverted(): MCCondition {
+        return MCCondition(!unless, cond)
+    }
+    override fun toString():String{
+        return if (unless){
+            "unless $cond"
+        } else{
+          "if $cond"
+        }
+    }
+}
+
 class ScoreboardInitializer{
     private val lst = HashMap<Int, ScoreboardEntry>()
     private val output = ArrayList<String>()

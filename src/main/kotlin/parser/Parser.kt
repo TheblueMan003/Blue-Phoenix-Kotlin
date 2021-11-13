@@ -7,7 +7,7 @@ import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
 
-private val binaryOperationOrder = listOf("+", "-", "*", "/", "%", "^", "<", "<=", ">", ">=", "||", "&&")
+private val binaryOperationOrder = listOf("&&", "||","<", "<=", ">", ">=","+", "-", "*", "/", "%", "^",)
 private val unaryOperationOrder = listOf("-", "!")
 
 
@@ -33,6 +33,9 @@ private fun parseBlock(tokens: TokenStream, context: ParserContext): Statement {
 
     // If
     if (isKeyword(tokens, "if")){ return parseIf(tokens, context) }
+
+    // RawCommand
+    if (isRawCommand(tokens)) { return RawCommand(getRawCommand(tokens))}
 
     // Switch
     if (isKeyword(tokens, "switch")){ return parseSwitch(tokens, context) }
@@ -141,8 +144,7 @@ private fun parseFunctionDeclaration(tokens: TokenStream, context: ParserContext
 
 
 private fun parseVariableDeclaration(tokens: TokenStream, context: ParserContext, identifier: Identifier,
-                                     type: DataType, modifier: DataStructModifier
-): Sequence {
+                                     type: DataType, modifier: DataStructModifier): Sequence {
     // Variable Declaration
     val vars = parseIdentifierList(tokens, context, identifier)
 
@@ -157,10 +159,13 @@ private fun parseVariableDeclaration(tokens: TokenStream, context: ParserContext
         }else{
             vars.zip(expr).map { (v, expr) -> UnlinkedVariableAssignment(v, expr, AssignmentType.SET) }
         }
-
+        if (type is VarType){
+            type.expr = expr[0]
+        }
         return Sequence(declarations + assignments)
     }
     else{
+        if (type is VarType) throw Exception("Var must be assigned")
         return Sequence(declarations)
     }
 }
@@ -413,6 +418,7 @@ private fun parseSimpleExpression(tokens: TokenStream, context: ParserContext): 
 fun parseType(tokens: TokenStream, context: ParserContext): DataType {
     var type = parseSimpleType(tokens, context)
     while(isDelimiter(tokens, "[")){
+        if (type is VarType) throw UnexpectedException("Var cannot be used as a Type in Arrays")
         expectDelimiter(tokens, "]")
         type = ArrayType(type, -1)
     }
@@ -434,6 +440,9 @@ private fun parseSimpleType(tokens: TokenStream, context: ParserContext): DataTy
         if (lst.size > 2 && lst.contains(VoidType())){
             throw UnexpectedException("Unexpected Void Type in Tuple")
         }
+        if (lst.size > 1 && lst.contains(VarType())){
+            throw UnexpectedException("Var cannot be used as a Type in Tuple")
+        }
         if (isOperationToken(tokens, "=>")){
             return FuncType(lst, parseType(tokens, context))
         }
@@ -451,6 +460,8 @@ private fun parseSimpleType(tokens: TokenStream, context: ParserContext): DataTy
     if (isPrimTypeToken(tokens,"float")){ return FloatType() }
     if (isPrimTypeToken(tokens,"bool")){ return BoolType() }
     if (isPrimTypeToken(tokens,"string")){ return StringType() }
+    if (isPrimTypeToken(tokens,"void")){ return VoidType() }
+    if (isPrimTypeToken(tokens,"var")){ return VarType() }
     throw UnexpectedException("Unknown type: "+tokens.peekString()+" at pos: "+tokens.peekPos())
 }
 
@@ -463,6 +474,9 @@ private fun parseGenerics(tokens: TokenStream, context: ParserContext): ArrayLis
             args.add(parseType(tokens, context))
         } while (isDelimiter(tokens, ","))
         expectOperationToken(tokens, ">")
+        if (args.size > 1 && args.contains(VarType())){
+            throw UnexpectedException("Var cannot be used as a Type in Generics")
+        }
         args
     } else {
         null

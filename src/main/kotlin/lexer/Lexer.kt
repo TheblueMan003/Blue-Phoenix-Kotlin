@@ -6,33 +6,33 @@ import guru.zoroark.lixy.lixy
 import guru.zoroark.lixy.matchers.*
 import lexer.MyTokenTypes.*
 
-val keyword = HashSet(listOf("if","while","for","forgenerate",
-    "class","abstract","struct","define","var","val",
+val keyword = HashSet(listOf("if","while","for","forgenerate", "else",
+    "class","abstract","struct","define",
     "return", "extends", "interface", "implements",
     "initer", "import", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator"))
 
-val primTypes = HashSet(listOf("int","float","string","bool", "void"))
+val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
+val boolLit = HashSet(listOf("true","false"))
 
-fun parse(input: String, removeSpace: Boolean, removeComment: Boolean):List<LixyToken>{
+fun parse(input: String):List<LixyToken>{
     val lexer = lixy {
         state {
             matches("[\\s;]+") isToken SpaceTokenType
-            matches("[A-Za-z_][\\w]*") isToken IdentifierTokenType
-            matches("^\\s*/[^/].*") isToken RawCommandToken
+            matches("/\\*([^\\*/]|(\\*[^/])|(/))*\\*/") isToken CommentTokenType
+            matches("//[^\n]*") isToken CommentTokenType
+            matches("mcc\\([^)]*\\):\\s*/[^/].*") isToken RawCommandToken
+            matches("mcc:\\s*/[^/].*") isToken RawCommandToken
             matches("[\\d]+\\.[\\d]+") isToken FloatLitTokenType
             matches("[\\d]+") isToken IntLitTokenType
+            matches("[A-Za-z_][\\w]*") isToken IdentifierTokenType
             anyOf("(",")","{","}","[","]",".", ",", "->") isToken DelimiterTokenType
-            anyOf("+", "-", "*", "/", "%", "&", "|", "^", "?","=", "=>", "<=", "<", ">=", ">", "&&", "||") isToken OperationToken
-            matches("//[^\n]*") isToken CommentTokenType
-            matches("/\\*([^\\*/]|(\\*[^/])|(/))*\\*/") isToken CommentTokenType
-            anyOf("true","false") isToken BoolLitTokenType
+            anyOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "=>", "<=", "<", ">=", ">") isToken OperationToken
             matches("\"([^\"])*\"") isToken StringLitTokenType
         }
     }
     return lexer.tokenize(input).filterNot {
-        (it.tokenType == CommentTokenType && removeComment) ||
-                (it.tokenType == SpaceTokenType && removeSpace)}
+        (it.tokenType == CommentTokenType) || (it.tokenType == SpaceTokenType)}
         //
         // Done because Lixy doesn't manage word well
         //
@@ -42,6 +42,8 @@ fun parse(input: String, removeSpace: Boolean, removeComment: Boolean):List<Lixy
             }
             else if (primTypes.contains(it.string)){
                 PrimTypeTokenType
+            }else if (boolLit.contains(it.string)){
+                BoolLitTokenType
             }else{
                 it.tokenType
             })

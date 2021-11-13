@@ -4,19 +4,79 @@ import ast.*
 import utils.withDefault
 import kotlin.math.pow
 
+var compile: (Statement, Context)->Statement = {s,_ -> s}
+
+fun runSimplifier(stm: Statement, context: Context, callback: (Statement, Context)->Statement): Statement{
+    compile = callback
+    return simplify(stm, context)
+}
+
 fun simplify(stm: Statement, context: Context): Statement {
     return when(stm){
         is If -> {
-            If(simplifyExpression(stm.Condition, context),
-                simplify(stm.IfBlock, context)).withParent(stm)
+            when(val expr = simplifyExpression(stm.Condition, context)){
+                is BoolLitExpr -> {
+                    if (expr.value){
+                        simplify(stm.IfBlock, context)
+                    }else{
+                        Empty()
+                    }
+                }
+                is BinaryExpr ->{
+                    val block = simplify(stm.IfBlock, context)
+                    when(expr.op){
+                        "&&" -> {
+                            simplify(If(expr.first, If(expr.second, block)), context)
+                        }
+                        "||" -> {
+                            simplify(IfElse(expr.first, block, If(expr.second, block)), context)
+                        }
+                        else -> {
+                            val extracted = extractExpression(expr, context)
+                            Sequence(listOf(
+                                extracted.second,
+                                If(extracted.first, simplify(stm.IfBlock, context)).withParent(stm)))
+                        }
+                    }
+                }
+                else -> If(expr, simplify(stm.IfBlock, context)).withParent(stm)
+            }
         }
         is IfElse -> {
-            IfElse(simplifyExpression(stm.Condition, context),
-                simplify(stm.IfBlock, context),
-                simplify(stm.ElseBlock, context)).withParent(stm)
+            when(val expr = simplifyExpression(stm.Condition, context)){
+                is BoolLitExpr -> {
+                    if (expr.value){
+                        simplify(stm.IfBlock, context)
+                    }else{
+                        simplify(stm.ElseBlock, context)
+                    }
+                }
+                is BinaryExpr -> {
+                    when(expr.op) {
+                        "&&" -> {
+                            simplify(IfElse(expr.first, IfElse(expr.second, stm.IfBlock, stm.ElseBlock), stm.ElseBlock), context)
+                        }
+                        "||" -> {
+                            simplify(IfElse(expr.first, stm.IfBlock, IfElse(expr.second, stm.IfBlock, stm.ElseBlock)), context)
+                        }
+                        else -> {
+                            val extracted = extractExpression(expr, context)
+                            Sequence(listOf(
+                                extracted.second,
+                                simplifyIfElse(IfElse(extracted.first, stm.IfBlock, stm.ElseBlock).withParent(stm) as IfElse,
+                                    extracted.first, context)))
+                        }
+                    }
+                }
+                else -> {
+                    simplifyIfElse(stm, expr, context)
+                }
+            }
         }
         is Block ->{
-            val nstm = stm.statements.map { simplify(it, context) }.filter{ it !is Empty }
+            val nstm = stm.statements.map { simplify(it, context) }
+                          .filter{ it !is Empty }
+                          .map{it -> if (it is Block){ Sequence(it.statements) }else{ it }}
             when (nstm.size) {
                 0 -> { Empty() }
                 1 -> { nstm[0] }
@@ -76,25 +136,74 @@ fun simplify(stm: Statement, context: Context): Statement {
     }
 }
 
+
+fun simplifyIfElse(stm: IfElse, expr: Expression, context: Context):Statement{
+    val variable = getTMPVariable(BoolType(), context)
+    return Sequence(listOf(
+        LinkedVariableAssignment(variable, BoolLitExpr(false), AssignmentType.SET),
+        If(expr, simplify(Block(listOf(
+            stm.IfBlock,
+            LinkedVariableAssignment(variable, BoolLitExpr(true), AssignmentType.SET))
+        ).withParent(stm), context)),
+        If(UnaryExpr("!", VariableExpr(variable)), simplify(
+            stm.ElseBlock
+            , context))
+    ))
+}
+
+fun extractExpression(expr: Expression, context: Context): Pair<Expression, Statement>{
+    return when(expr){
+        is VariableExpr -> { Pair(expr, Empty()) }
+        is LitExpr -> { Pair(expr, Empty()) }
+        is BinaryExpr -> {
+            when(expr.op){
+                in listOf("<","<=", ">", ">=", "==", "!=") -> {
+                    val lst = emptyList<Statement>().toMutableList()
+                    var left = expr.first
+                    if (left !is LitExpr && left !is VariableExpr){
+                        val ret = putInTMPVariable(left, AssignmentType.SET,context)
+                        lst.add(ret.second)
+                        left = VariableExpr(ret.first)
+                    }
+                    var right = expr.second
+                    if (right !is LitExpr && right !is VariableExpr){
+                        val ret = putInTMPVariable(right, AssignmentType.SET, context)
+                        lst.add(ret.second)
+                        right = VariableExpr(ret.first)
+                    }
+                    Pair(BinaryExpr(expr.op, left, right), Sequence(lst))
+                }
+                else -> {
+                    throw NotImplementedError()
+                }
+            }
+        }
+        is UnaryExpr -> {
+            val ext = extractExpression(expr.first, context)
+            Pair(UnaryExpr(expr.op, ext.first), ext.second)
+        }
+        else -> throw NotImplementedError()
+    }
+}
 fun simplifyExpression(expr: Expression, context: Context): Expression {
     return when(expr){
         is BinaryExpr -> {
             val left = simplifyExpression(expr.first, context)
             val right = simplifyExpression(expr.second, context)
             return if (left is IntLitExpr && right is IntLitExpr){
-                IntLitExpr(applyOperation(expr.op, left.value, right.value))
+                applyOperation(expr.op, left.value, right.value)
             }
             else if (left is FloatLitExpr && right is IntLitExpr){
-                FloatLitExpr(applyOperation(expr.op, left.value, right.value.toFloat()))
+                applyOperation(expr.op, left.value, right.value.toFloat())
             }
             else if (left is IntLitExpr && right is FloatLitExpr){
-                FloatLitExpr(applyOperation(expr.op, left.value.toFloat(), right.value))
+                applyOperation(expr.op, left.value.toFloat(), right.value)
             }
             else if (left is FloatLitExpr && right is FloatLitExpr){
-                FloatLitExpr(applyOperation(expr.op, left.value, right.value))
+                applyOperation(expr.op, left.value, right.value)
             }
             else if (left is BoolLitExpr && right is BoolLitExpr){
-                BoolLitExpr(applyOperation(expr.op, left.value, right.value))
+                applyOperation(expr.op, left.value, right.value)
             } else {
                 BinaryExpr(expr.op, left, right)
             }
@@ -148,32 +257,61 @@ fun simplifySequence(nstm: List<Statement>): Statement {
     }
 }
 
-fun applyOperation(op: String, left: Boolean, right: Boolean): Boolean{
+
+
+fun applyOperation(op: String, left: Boolean, right: Boolean): Expression{
     return when(op){
-        "&&" -> left && right
-        "||" -> left || right
+        "&&" -> BoolLitExpr(left && right)
+        "||" -> BoolLitExpr(left || right)
         else -> throw NotImplementedError()
     }
 }
-fun applyOperation(op: String, left: Int, right: Int): Int{
+fun applyOperation(op: String, left: Int, right: Int): Expression{
     return when(op){
-        "+" -> left + right
-        "-" -> left - right
-        "*" -> left * right
-        "/" -> left / right
-        "%" -> left % right
-        "^" -> left.toDouble().pow(right.toDouble()).toInt()
+        "+" -> IntLitExpr(left + right)
+        "-" -> IntLitExpr(left - right)
+        "*" -> IntLitExpr(left * right)
+        "/" -> IntLitExpr(left / right)
+        "%" -> IntLitExpr(left % right)
+        "^" -> IntLitExpr(left.toDouble().pow(right.toDouble()).toInt())
+        "<=" -> BoolLitExpr(left <= right)
+        "<"  -> BoolLitExpr(left < right)
+        ">"  -> BoolLitExpr(left > right)
+        ">=" -> BoolLitExpr(left >= right)
+        "==" -> BoolLitExpr(left == right)
+        "!=" -> BoolLitExpr(left != right)
         else -> throw NotImplementedError()
     }
 }
-fun applyOperation(op: String, left: Float, right: Float): Float{
+fun applyOperation(op: String, left: Float, right: Float): Expression{
     return when(op){
-        "+" -> left + right
-        "-" -> left - right
-        "*" -> left * right
-        "/" -> left / right
-        "%" -> left % right
-        "^" -> left.toDouble().pow(right.toDouble()).toFloat()
+        "+" -> FloatLitExpr(left + right)
+        "-" -> FloatLitExpr(left - right)
+        "*" -> FloatLitExpr(left * right)
+        "/" -> FloatLitExpr(left / right)
+        "%" -> FloatLitExpr(left % right)
+        "^" -> FloatLitExpr(left.toDouble().pow(right.toDouble()).toFloat())
+        "<=" -> BoolLitExpr(left <= right)
+        "<"  -> BoolLitExpr(left < right)
+        ">"  -> BoolLitExpr(left > right)
+        ">=" -> BoolLitExpr(left >= right)
+        "==" -> BoolLitExpr(left == right)
+        "!=" -> BoolLitExpr(left != right)
         else -> throw NotImplementedError()
     }
+}
+fun putInTMPVariable(expr: Expression, op: AssignmentType, context: Context): Pair<Variable, Statement>{
+    val modifier = DataStructModifier()
+    val id = context.getTmpVarIdentifier()
+    val ret = compile(Sequence(listOf(
+        VariableDeclaration(modifier, id, VarType(expr)),
+        UnlinkedVariableAssignment(id,expr,op))),
+        context)
+    return Pair(context.getVariable(id), ret)
+}
+fun getTMPVariable(type: DataType, context: Context): Variable{
+    val modifier = DataStructModifier()
+    val id = context.getTmpVarIdentifier()
+    compile(VariableDeclaration(modifier, id, type), context)
+    return context.getVariable(id)
 }
