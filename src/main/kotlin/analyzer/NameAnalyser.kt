@@ -126,9 +126,9 @@ fun analyse(stm: Statement, context: Context): Statement {
     })
 }
 
-private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, type: DataType,
+private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, foundType: DataType,
                                   context: Context, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
-    val variable = Variable(modifier, context.currentPath.sub(identifier), type, parent)
+    val variable = Variable(modifier, context.currentPath.sub(identifier), foundType, parent)
     context.update(identifier, variable)
     val sub = context.sub(identifier.toString())
     sub.parentVariable = variable
@@ -171,10 +171,10 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             Empty()
         }
         is TupleType -> {
-            val modifier = DataStructModifier()
+            val subModifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PUBLIC
             Sequence(type.type.mapIndexed{ index, it ->
-                analyse(VariableDeclaration(modifier, Identifier(listOf("_$index")), it, variable ), sub)})
+                analyse(VariableDeclaration(subModifier, Identifier(listOf("_$index")), it, variable ), sub)})
         }
         is FuncType -> {
             Empty()

@@ -15,8 +15,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("guru.zoroark.lixy:lixy:1849bb1d75")
-    implementation("guru.zoroark.pangoro:pangoro:963e637714")
+    //implementation("guru.zoroark.lixy:lixy:1849bb1d75")
+    //implementation("guru.zoroark.pangoro:pangoro:963e637714")
 }
 
 tasks.test {

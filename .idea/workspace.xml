@@ -10,22 +10,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer2.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/DataStruct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/DataStruct.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer2.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenStream.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenStream.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Main.bp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/std/math.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/std/math.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -409,7 +401,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636845407057</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Lazy Function&#10;New Lexer&#10;Fixes">
+      <created>1636905204034</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1636905204034</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -433,7 +432,8 @@
     <MESSAGE value="Function Compilation&#10;Function Overloading&#10;Return Value V1" />
     <MESSAGE value="ElseIf &amp; If Statement Compilation" />
     <MESSAGE value="typedef" />
-    <option name="LAST_COMMIT_MESSAGE" value="typedef" />
+    <MESSAGE value="Lazy Function&#10;New Lexer&#10;Fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Lazy Function&#10;New Lexer&#10;Fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

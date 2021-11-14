@@ -1,9 +1,7 @@
 package lexer
 
-import guru.zoroark.lixy.LixyToken
-import guru.zoroark.lixy.LixyTokenType
 
-enum class TokenTypes : LixyTokenType {
+enum class TokenTypes{
     IdentifierTokenType,
     KeywordTokenType,
     PrimTypeTokenType,

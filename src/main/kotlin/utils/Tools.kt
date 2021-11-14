@@ -38,6 +38,5 @@ fun getOperationFunctionName(op: AssignmentType): Identifier{
         AssignmentType.DIV -> Identifier(listOf("divAssign"))
         AssignmentType.MOD -> Identifier(listOf("modAssign"))
         AssignmentType.POW -> Identifier(listOf("powAssign"))
-        else -> throw NotImplementedError()
     }
 }
