@@ -2,6 +2,7 @@ package analyzer
 
 import ast.*
 import ast.Function
+import utils.getOperationFunctionName
 import utils.withDefault
 
 
@@ -85,6 +86,7 @@ fun check(stm: Statement, context: Context): Statement {
             }
 
             context.currentFunction = prev
+            stm.function.body = ret.body
             ret
         }
         else -> stm
@@ -144,6 +146,10 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
             val first = checkExpression(stm.first, context)
             val second = checkExpression(stm.second, context)
             operationCombine(stm.op, first, second, context)
+        }
+        is UnaryExpr ->{
+            val p = checkExpression(stm.first, context)
+            Pair(UnaryExpr(stm.op, p.first), p.second)
         }
         else -> throw NotImplementedError()
     }
@@ -221,17 +227,6 @@ fun isNumerical(t: DataType):Boolean{
     }
 }
 
-fun getOperationFunctionName(op: String): Identifier{
-    return when(op){
-        "+" -> Identifier(listOf("add"))
-        "-" -> Identifier(listOf("sub"))
-        "*" -> Identifier(listOf("mul"))
-        "/" -> Identifier(listOf("div"))
-        "%" -> Identifier(listOf("mod"))
-        "^" -> Identifier(listOf("pow"))
-        else -> throw NotImplementedError()
-    }
-}
 fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean = false): Function {
     val fit =
         lst.asSequence()

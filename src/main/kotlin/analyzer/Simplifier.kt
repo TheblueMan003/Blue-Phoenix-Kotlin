@@ -1,6 +1,7 @@
 package analyzer
 
 import ast.*
+import utils.getOperationFunctionName
 import utils.withDefault
 import kotlin.math.pow
 
@@ -120,21 +121,20 @@ fun simplify(stm: Statement, context: Context): Statement {
                 }
             }
             else if (stm.variable.type is StructType){
-                val type = stm.variable.type as StructType
                 val expr = stm.expr
                 val variable = stm.variable
-                val funcId = Identifier(listOf("set"))
+                val funcId = getOperationFunctionName(stm.op)
                 if (variable.childrenFunction[funcId] != null  &&
-                    variable.childrenFunction[funcId]!!.filter { it.modifier.operator }.isNotEmpty()){
+                    variable.childrenFunction[funcId]!!.any { it.modifier.operator }){
                     simplify(compile(CallExpr(
                         UnresolvedFunctionExpr(variable.childrenFunction[funcId]!!.filter { it.modifier.operator }),
                         listOf(stm.expr)), context), context)
                 } else {
-                    if (expr is VariableExpr) {
+                    if (expr is VariableExpr && stm.op == AssignmentType.SET) {
                         Sequence(stm.variable.childrenVariable.map{
                             LinkedVariableAssignment(it.value, VariableExpr(expr.variable.childrenVariable[it.key]!!), stm.op)
                         })
-                    }else throw NotImplementedError()
+                    } else throw NotImplementedError()
                 }
             }
             else{
@@ -148,7 +148,13 @@ fun simplify(stm: Statement, context: Context): Statement {
             simplifyFunctionCall(stm.value, stm.args, context).first
         }
         is FunctionBody -> {
-            FunctionBody(simplify(stm.body, context), stm.function)
+            if (stm.function.modifier.lazy){
+                stm
+            } else {
+                val body = simplify(stm.body, context)
+                stm.function.body = body
+                FunctionBody(body, stm.function)
+            }
         }
         else -> stm
     }
@@ -258,8 +264,8 @@ fun simplifyExpression(expr: Expression, context: Context): Expression {
 }
 
 fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Context): Pair<Statement, Expression>{
-    if (stm is FunctionExpr) {
-        return Pair(
+    return if (stm is FunctionExpr && !stm.function.modifier.lazy) {
+        Pair(
             simplifySequence(
                 stm.function.input.zip(withDefault(args, stm.function.from.map { it.defaultValue }))
                     .map { (v, e) -> simplify(LinkedVariableAssignment(v, e, AssignmentType.SET), context) } +
@@ -267,7 +273,18 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
             ),
             VariableExpr(stm.function.output)
         )
-    }else throw NotImplementedError()
+    } else if (stm is FunctionExpr && stm.function.modifier.lazy) {
+        val map = stm.function.input
+                    .map { it.name }
+                    .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
+                    .toMap()
+        val block = runReplace(stm.function.body, map)
+
+        Pair(
+            simplify(block, context),
+            VariableExpr(stm.function.output)
+        )
+    } else throw NotImplementedError(stm.toString())
 }
 
 fun simplifySequence(nstm: List<Statement>): Statement {

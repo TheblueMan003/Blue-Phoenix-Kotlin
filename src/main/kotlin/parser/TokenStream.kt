@@ -1,12 +1,12 @@
 package parser
 
-import guru.zoroark.lixy.LixyToken
+import lexer.Token
 
-class TokenStream(tokens_lst: List<LixyToken>, start: Int) {
-    private val tokens: List<LixyToken> = tokens_lst
+class TokenStream(tokens_lst: List<Token>, start: Int) {
+    private val tokens: List<Token> = tokens_lst
     private var index: Int = start
 
-    fun peek():LixyToken{
+    fun peek(): Token {
         return tokens[index]
     }
     fun peekString():String{

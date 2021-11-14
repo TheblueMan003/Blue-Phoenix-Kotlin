@@ -7,7 +7,7 @@ import parser.TokenStream
 
 fun main(args: Array<String>) {
     val fileContent = getResourceAsText("Main.bp")
-    val res = lexer.parse(fileContent)
+    val res = lexer.parse2(fileContent)
 
     println("Lexer: $res")
 

@@ -9,7 +9,7 @@ abstract class DataStruct(private val d_modifier: DataStructModifier, private va
             d_parent.isVisible(visibility, context)
         }
         else{
-            d_modifier.visibility == visibility
+            d_modifier.visibility <= visibility
         }
     }
 }
@@ -18,7 +18,7 @@ abstract class DataStruct(private val d_modifier: DataStructModifier, private va
 enum class DataStructVisibility{
     PRIVATE,
     PROTECTED,
-    PUBLIC
+    PUBLIC,
 }
 
 
@@ -28,6 +28,7 @@ class DataStructModifier{
     var static: Boolean = false
     var abstract: Boolean = false
     var operator: Boolean = false
+    var lazy: Boolean = false
 }
 class Variable(val modifier: DataStructModifier, val name: Identifier,
                val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent){

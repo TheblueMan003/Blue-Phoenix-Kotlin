@@ -1,7 +1,7 @@
 package parser
 
 import analyzer.Context
-import lexer.MyTokenTypes.*
+import lexer.TokenTypes.*
 
 fun isKeyword(tokens: TokenStream, value: String):Boolean{
     return if (!tokens.isEmpty() && tokens.peek().tokenType == KeywordTokenType && tokens.peek().string == value){

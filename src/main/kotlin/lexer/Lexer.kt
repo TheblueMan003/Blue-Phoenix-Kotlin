@@ -1,20 +1,9 @@
 package lexer
 
-import ast.Identifier
 import guru.zoroark.lixy.LixyToken
 import guru.zoroark.lixy.lixy
 import guru.zoroark.lixy.matchers.*
-import lexer.MyTokenTypes.*
-
-val keyword = HashSet(listOf("if","while","for","forgenerate", "else",
-    "class","abstract","struct","define",
-    "return", "extends", "interface", "implements",
-    "initer", "import", "blocktags", "enum", "enitytags",
-    "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef"))
-
-val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
-val boolLit = HashSet(listOf("true","false"))
+import lexer.TokenTypes.*
 
 fun parse(input: String):List<LixyToken>{
     val lexer = lixy {

@@ -21,26 +21,26 @@ class Context(private val path: String){
     var parentVariable: Variable? = null
     var top = true
 
-    private fun update(child: Context){
+    private fun update(child: Context, visibility: DataStructVisibility){
         child.variables.getTopLevel()
-            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(visibility, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.functions.getTopLevel()
-            .map { (k, v) -> k to v.filter { it.isVisible(DataStructVisibility.PUBLIC, this) } }
+            .map { (k, v) -> k to v.filter { it.isVisible(visibility, this) } }
             .filter { (_, v) -> v.isNotEmpty() }
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> v.forEach { update(k, it, true) }}
         child.structs.getTopLevel()
-            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(visibility, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.classes.getTopLevel()
-            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(visibility, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
         child.typedef.getTopLevel()
-            .filter { (_, v) -> v.isVisible(DataStructVisibility.PUBLIC, this)}
+            .filter { (_, v) -> v.isVisible(visibility, this)}
             .map { (k, v) -> child.currentFolder.append(k) to v }
             .map { (k, v) -> update(k, v)}
     }
@@ -86,22 +86,22 @@ class Context(private val path: String){
     // CHECK
     //
     fun hasVariable(id: Identifier): Boolean{
-        return variables.get(id, false) != null
+        return variables[id, false] != null
     }
     fun hasFunction(id: Identifier): Boolean{
-        return functions.get(id, false) != null
+        return functions[id, false] != null
     }
     fun hasStruct(id: Identifier): Boolean{
-        return structs.get(id, false) != null
+        return structs[id, false] != null
     }
     fun hasClass(id: Identifier): Boolean{
-        return classes.get(id, false) != null
+        return classes[id, false] != null
     }
     fun hasGeneric(id: Identifier): Boolean{
-        return generics.get(id, false) != null
+        return generics[id, false] != null
     }
     fun hasTypeDef(id: Identifier): Boolean{
-        return typedef.get(id, false) != null
+        return typedef[id, false] != null
     }
 
     //
@@ -153,6 +153,7 @@ class Context(private val path: String){
         context.generics          = generics.sub()
         context.unfinishedAnalyse = unfinishedAnalyse
         context.functionsList     = functionsList
+        context.currentFunction   = currentFunction
         children.add(context)
         return context
     }
@@ -161,7 +162,7 @@ class Context(private val path: String){
 
     fun resolve(){
         while(children.size > 0){
-            update(children.last())
+            update(children.last(), DataStructVisibility.PROTECTED)
             children.removeLast()
         }
     }

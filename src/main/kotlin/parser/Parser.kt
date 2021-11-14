@@ -237,7 +237,7 @@ private fun parseBlockGroup(tokens: TokenStream, context: ParserContext): Block 
         }
     }
     context.resolve()
-    return Block(statements)
+    return Block(statements+statementsAfterReturn)
 }
 
 
@@ -315,8 +315,11 @@ private fun parseFunctionCall(tokens: TokenStream, context: ParserContext, ident
 
 private fun parseFunctionArgumentsList(tokens: TokenStream, context: ParserContext): List<FunctionArgument>{
     val args = ArrayList<FunctionArgument>()
-    while(!isDelimiter(tokens, ")") || isDelimiter(tokens, ",")){
-        args.add(parseFunctionArguments(tokens, context))
+    if (!isDelimiter(tokens, ")")) {
+        do {
+            args.add(parseFunctionArguments(tokens, context))
+        } while (isDelimiter(tokens, ","))
+        isDelimiter(tokens, ")")
     }
     return args
 }
@@ -326,6 +329,7 @@ private fun parseFunctionArgumentsList(tokens: TokenStream, context: ParserConte
 private fun parseFunctionArguments(tokens: TokenStream, context: ParserContext): FunctionArgument {
     val type = parseType(tokens, context)
     val identifier = parseIdentifier(tokens, context)
+
     return if (isOperationToken(tokens, "=")){
         val value =  parseExpression(tokens, context)
         FunctionArgument(identifier, type, value)
@@ -343,9 +347,25 @@ private fun parseModifier(tokens: TokenStream, context: ParserContext, modifier:
     else if (isKeyword(tokens, "protected")){ modifier.visibility = PROTECTED }
     else if (isKeyword(tokens, "private")){ modifier.visibility = PRIVATE }
 
-    if (isKeyword(tokens, "abstract")){ modifier.abstract = true }
-    if (isKeyword(tokens, "static")){ modifier.static = true }
-    if (isKeyword(tokens, "operator")){ modifier.operator = true }
+    do {
+        var found = false
+        if (isKeyword(tokens, "abstract")) {
+            modifier.abstract = true
+            found = true
+        }
+        if (isKeyword(tokens, "static")) {
+            modifier.static = true
+            found = true
+        }
+        if (isKeyword(tokens, "lazy")) {
+            modifier.lazy = true
+            found = true
+        }
+        if (isKeyword(tokens, "operator")) {
+            modifier.operator = true
+            found = true
+        }
+    }while(found)
 }
 
 
