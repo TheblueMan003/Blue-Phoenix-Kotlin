@@ -11,12 +11,12 @@ fun main(args: Array<String>) {
 
     println("Lexer: $res")
 
-    val tree = parser.parse("root", TokenStream(res, 0))
+    val tree = parser.parse(TokenStream(res, 0))
 
-    println("Parser: ${tree.first}")
+    println("Parser: $tree")
 
     val context = Context("root")
-    val symTree = runAnalyse(tree.first, tree.second.context)
+    val symTree = runAnalyse(tree, context)
 
     println("Tree: $symTree")
 
