@@ -11,10 +11,12 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -420,7 +422,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636906342085</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Lazy Arguments">
+      <created>1636920585504</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1636920585504</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -447,7 +456,8 @@
     <MESSAGE value="Lazy Function&#10;New Lexer&#10;Fixes" />
     <MESSAGE value="Refactoring: Remove old Lexer" />
     <MESSAGE value="Remove ParserContext.kt" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove ParserContext.kt" />
+    <MESSAGE value="Lazy Arguments" />
+    <option name="LAST_COMMIT_MESSAGE" value="Lazy Arguments" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

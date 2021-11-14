@@ -277,7 +277,7 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
         val map = stm.function.input
                     .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
                     .filter { (v, _) -> v.modifier.lazy }
-                    .associate { (v, a) -> Pair(v.name, a) }
+                    .associate { (v, a) -> Pair(v.name.getLast(), a) }
                     .toMap()
 
         val assignment = stm.function.input
@@ -286,9 +286,12 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
             .map { (v, a) -> LinkedVariableAssignment(v, a, AssignmentType.SET) }
 
         val block = runReplace(stm.function.body, map)
+        val sub = context.sub(block.hashCode().toString())
+
+        stm.function.input.map { sub.update(it.name.getLast(), it) }
 
         Pair(
-            Sequence(assignment+simplify(block, context)),
+            Sequence(assignment+simplify(compile(block, sub), context)),
             VariableExpr(stm.function.output)
         )
     } else throw NotImplementedError(stm.toString())

@@ -35,16 +35,31 @@ private fun replace(stm: Statement, map: Map<Identifier, Expression>):Statement{
                     (map[stm.variable.name] as VariableExpr).variable,
                     replaceExpression(stm.expr, map), stm.op
                 )
-            }
-            else {
+            } else {
                 LinkedVariableAssignment(
                     stm.variable,
                     replaceExpression(stm.expr, map), stm.op
                 )
             }
         }
+        is UnlinkedVariableAssignment -> {
+            if (stm.identifier in map){
+                LinkedVariableAssignment(
+                    (map[stm.identifier] as VariableExpr).variable,
+                    replaceExpression(stm.expr, map), stm.op
+                )
+            } else {
+                UnlinkedVariableAssignment(
+                    stm.identifier,
+                    replaceExpression(stm.expr, map), stm.op
+                )
+            }
+        }
         is CallExpr -> {
             CallExpr(replaceExpression(stm.value, map), stm.args.map { replaceExpression(it, map) })
+        }
+        is FunctionDeclaration -> {
+            FunctionDeclaration(stm.modifier, stm.identifier, stm.from, stm.to, replace(stm.body, map), stm.parent)
         }
 
         else ->{
@@ -63,6 +78,13 @@ private fun replaceExpression(stm: Expression, map: Map<Identifier, Expression>)
         }
         is TupleExpr -> {
             TupleExpr(stm.value.map { replaceExpression(it, map)})
+        }
+        is IdentifierExpr -> {
+            if (stm.value in map){
+                map[stm.value]!!
+            } else {
+                stm
+            }
         }
         is VariableExpr -> {
             if (stm.variable.name in map){

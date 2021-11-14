@@ -70,24 +70,27 @@ fun check(stm: Statement, context: Context): Statement {
             ReturnStatement(v.first, context.currentFunction!!)
         }
         is FunctionBody -> {
-            val prev = context.currentFunction
-            context.currentFunction = stm.function
-            val ret = FunctionBody(check(stm.body, context), stm.function)
+            if (stm.function.modifier.lazy){
+                stm
+            } else {
+                val prev = context.currentFunction
+                context.currentFunction = stm.function
+                val ret = FunctionBody(check(stm.body, context), stm.function)
 
-            var startedDefault = false
-            for(v in stm.function.input.zip(stm.function.from)){
-                if (v.second.defaultValue != null) {
-                    check(LinkedVariableAssignment(v.first, v.second.defaultValue!!, AssignmentType.SET), context)
-                    startedDefault = true
+                var startedDefault = false
+                for (v in stm.function.input.zip(stm.function.from)) {
+                    if (v.second.defaultValue != null) {
+                        check(LinkedVariableAssignment(v.first, v.second.defaultValue!!, AssignmentType.SET), context)
+                        startedDefault = true
+                    } else if (startedDefault) {
+                        throw Exception("${v.first.name} must have a default value")
+                    }
                 }
-                else if (startedDefault){
-                    throw Exception("${v.first.name} must have a default value")
-                }
+
+                context.currentFunction = prev
+                stm.function.body = ret.body
+                ret
             }
-
-            context.currentFunction = prev
-            stm.function.body = ret.body
-            ret
         }
         else -> stm
     }

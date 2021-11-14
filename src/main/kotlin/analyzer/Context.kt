@@ -180,10 +180,12 @@ class Context(private val path: String){
 
             unfinished.forEach { (fct, c) ->
                 run {
-                    val pre = c.currentFunction
-                    c.currentFunction = fct
-                    fct.body = func(fct.body, c)
-                    c.currentFunction = pre
+                    if (!fct.modifier.lazy) {
+                        val pre = c.currentFunction
+                        c.currentFunction = fct
+                        fct.body = func(fct.body, c)
+                        c.currentFunction = pre
+                    }
                 }
             }
         }

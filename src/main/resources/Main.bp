@@ -2,7 +2,9 @@ lazy void test(lazy int b){
     void inter(){
         int a = b
     }
+    int a = b
     inter()
 }
 
 test(0)
+test(1)
