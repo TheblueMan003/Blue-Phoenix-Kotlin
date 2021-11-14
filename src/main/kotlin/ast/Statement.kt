@@ -88,7 +88,7 @@ data class VariableDeclaration(val modifier: DataStructModifier, val identifier:
 /**
  * Function Arguments
  */
-data class FunctionArgument(val identifier: Identifier, val type: DataType, val defaultValue: Expression?)
+data class FunctionArgument(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType, val defaultValue: Expression?)
 
 /**
  * Function Declaration

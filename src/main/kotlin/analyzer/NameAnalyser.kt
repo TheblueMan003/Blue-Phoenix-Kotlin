@@ -64,7 +64,7 @@ fun analyse(stm: Statement, context: Context): Statement {
 
             val inputs = stm.from.map {
                 val type = analyseType(it.type, context)
-                variableInstantiation(modifier,
+                variableInstantiation(it.modifier,
                 it.identifier, analyseType(it.type, context), sub, null,
                 if (context.parentVariable!=null){context.parentVariable!!.type == type}else{false}
                 ).second }
@@ -73,7 +73,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                 analyseType(stm.to, context), sub, null, context.parentVariable?.type == stm.to).second
 
             val body = if (stm.body is Block){stm.body.toSequence()}else{stm}
-            val from = stm.from.map { FunctionArgument(it.identifier, analyseType(it.type, context), it.defaultValue) }
+            val from = stm.from.map { FunctionArgument(it.modifier, it.identifier, analyseType(it.type, context), it.defaultValue) }
             val function = Function(stm.modifier, identifier, from, inputs, output, body,context.parentVariable)
             context.update(stm.identifier, sub.addUnfinished(function, sub))
 

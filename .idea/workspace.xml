@@ -11,10 +11,11 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/ParserContext.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -412,7 +413,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636905817660</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Remove ParserContext.kt">
+      <created>1636906342085</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1636906342085</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -438,7 +446,8 @@
     <MESSAGE value="typedef" />
     <MESSAGE value="Lazy Function&#10;New Lexer&#10;Fixes" />
     <MESSAGE value="Refactoring: Remove old Lexer" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactoring: Remove old Lexer" />
+    <MESSAGE value="Remove ParserContext.kt" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove ParserContext.kt" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

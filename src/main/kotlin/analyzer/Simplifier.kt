@@ -275,13 +275,20 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
         )
     } else if (stm is FunctionExpr && stm.function.modifier.lazy) {
         val map = stm.function.input
-                    .map { it.name }
                     .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
+                    .filter { (v, _) -> v.modifier.lazy }
+                    .associate { (v, a) -> Pair(v.name, a) }
                     .toMap()
+
+        val assignment = stm.function.input
+            .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
+            .filter { (v, _) -> !v.modifier.lazy }
+            .map { (v, a) -> LinkedVariableAssignment(v, a, AssignmentType.SET) }
+
         val block = runReplace(stm.function.body, map)
 
         Pair(
-            simplify(block, context),
+            Sequence(assignment+simplify(block, context)),
             VariableExpr(stm.function.output)
         )
     } else throw NotImplementedError(stm.toString())

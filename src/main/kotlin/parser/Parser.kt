@@ -325,15 +325,19 @@ private fun parseFunctionArgumentsList(tokens: TokenStream): List<FunctionArgume
 
 
 private fun parseFunctionArguments(tokens: TokenStream): FunctionArgument {
+    val modifier = DataStructModifier()
+    parseModifier(tokens, modifier)
+    modifier.visibility = PRIVATE
+
     val type = parseType(tokens)
     val identifier = parseIdentifier(tokens)
 
     return if (isOperationToken(tokens, "=")){
         val value =  parseExpression(tokens)
-        FunctionArgument(identifier, type, value)
+        FunctionArgument(modifier, identifier, type, value)
     }
     else{
-        FunctionArgument(identifier, type, null)
+        FunctionArgument(modifier, identifier, type, null)
     }
 }
 
