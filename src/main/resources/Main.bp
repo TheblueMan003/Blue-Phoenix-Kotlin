@@ -1,3 +1,4 @@
-from math import sign as penis
+from math.vector import vector3
 
-penis(0)
+vector3<int> a
+a.x = 0

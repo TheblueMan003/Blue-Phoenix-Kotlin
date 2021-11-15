@@ -70,6 +70,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                         context.update(stm.alias ?: it, other.getVariable(it, DataStructVisibility.PUBLIC), true)
                         Empty()
                     } else {
+                        println(it)
                         FromImport(listOf(it),stm.identifier, stm.alias)
                     }
                 }.filterNot{it is Empty})

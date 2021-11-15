@@ -9,25 +9,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="Function inside lazy function">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/IResourceGetter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/ResourceGetter.kt" afterDir="false" />
+    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/math/vector.bp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenStream.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenStream.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/utils/StackedHashMap.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/utils/StackedHashMap.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Main.bp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/std/math.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/math.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -449,7 +435,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636922570653</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Import">
+      <created>1636964583224</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1636964583224</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -478,7 +471,8 @@
     <MESSAGE value="Remove ParserContext.kt" />
     <MESSAGE value="Lazy Arguments" />
     <MESSAGE value="Function inside lazy function" />
-    <option name="LAST_COMMIT_MESSAGE" value="Function inside lazy function" />
+    <MESSAGE value="Import" />
+    <option name="LAST_COMMIT_MESSAGE" value="Import" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
