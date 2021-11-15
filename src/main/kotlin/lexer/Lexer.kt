@@ -5,7 +5,7 @@ import lexer.TokenTypes.*
 val keyword = HashSet(listOf("if","while","for","forgenerate", "else",
     "class","abstract","struct","define",
     "return", "extends", "interface", "implements",
-    "initer", "import", "blocktags", "enum", "enitytags",
+    "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
     "typedef", "lazy"))
 

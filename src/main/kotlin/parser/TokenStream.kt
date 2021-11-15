@@ -2,7 +2,7 @@ package parser
 
 import lexer.Token
 
-class TokenStream(tokens_lst: List<Token>, start: Int) {
+class TokenStream(tokens_lst: List<Token>, start: Int = 0) {
     private val tokens: List<Token> = tokens_lst
     private var index: Int = start
 

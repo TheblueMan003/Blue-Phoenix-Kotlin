@@ -120,3 +120,6 @@ data class UnlinkedReturnStatement(val expr: Expression): Statement()
 data class StatementThanExpression(val statement: Statement, val expr: Expression): Expression()
 
 data class RawCommand(val cmd: String): Statement()
+
+data class Import(val identifier: Identifier, val alias: Identifier? = null): Statement()
+data class FromImport(val resource: List<Identifier>, val identifier: Identifier, val alias: Identifier? = null): Statement()

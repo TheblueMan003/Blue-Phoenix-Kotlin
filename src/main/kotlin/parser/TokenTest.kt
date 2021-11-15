@@ -11,6 +11,18 @@ fun isKeyword(tokens: TokenStream, value: String):Boolean{
         false
     }
 }
+fun expectKeyword(tokens: TokenStream, value: String){
+    return if (!tokens.isEmpty() && tokens.peek().tokenType == KeywordTokenType && tokens.peek().string == value){
+        tokens.next()
+    } else{
+        if (!tokens.isEmpty()) {
+            throw UnexpectedToken(tokens.peek().string, tokens.peek().startsAt)
+        }
+        else{
+            throw UnexpectedToken("EOF",0)
+        }
+    }
+}
 fun isDelimiter(tokens: TokenStream, value: String):Boolean{
     return if (!tokens.isEmpty() && tokens.peek().tokenType == DelimiterTokenType && tokens.peek().string == value){
         tokens.next()

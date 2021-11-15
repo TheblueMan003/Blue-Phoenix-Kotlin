@@ -43,13 +43,13 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
         is FunctionBody -> {
             if (stm.function.isUsed()){
                 createBlock(stm.function.name.toString(), genCode(stm.body, outputFiles, sbi), outputFiles)
-                emptyList<String>()
+                emptyList()
             } else {
-                emptyList<String>()
+                emptyList()
             }
         }
         else ->{
-            emptyList<String>()
+            emptyList()
         }
     }
 }

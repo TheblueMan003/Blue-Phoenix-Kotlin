@@ -17,6 +17,7 @@ fun <T> withDefault(arg: List<T>, defaults: List<T?>):List<T>{
     }
     return lst
 }
+fun <A, B>List<A>.pmap(f: (A) -> B): List<B> = this.parallelStream().map(f).toList()
 
 fun getOperationFunctionName(op: String): Identifier {
     return when(op){

@@ -3,7 +3,7 @@ Give sign of argument
 -1 if value smaller than 0
     1 otherwise
 */
-int sign(float value){
+public int sign(float value){
     if (value >= 0){
         return(1)
     }
@@ -17,7 +17,7 @@ Give sign of argument
 -1 if value smaller than 0
     1 otherwise
 */
-int sign(int value){
+public int sign(int value){
     if (value >= 0){
         return(1)
     }

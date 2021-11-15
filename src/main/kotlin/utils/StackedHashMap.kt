@@ -29,6 +29,13 @@ class StackedHashMap<K, V>(parent:StackedHashMap<K, V>? = null) {
     fun getTopLevel():HashMap<K, V>{
         return map
     }
+    override fun toString():String{
+        return if (parentStack != null) {
+            "[$map, $parentStack]"
+        }else{
+            "$map"
+        }
+    }
 
     data class ElementNotFoundException(val key: String): Exception()
 }

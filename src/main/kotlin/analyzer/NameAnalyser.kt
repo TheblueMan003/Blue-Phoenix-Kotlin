@@ -40,6 +40,41 @@ fun analyse(stm: Statement, context: Context): Statement {
             Case(analyse(stm.expr, context) as Expression,
                         analyse(stm.statement, context))
         }
+        is Import -> {
+            context.update(context.compiler.import(stm.identifier.toString()),
+                DataStructVisibility.PUBLIC, true, stm.alias)
+            Import(stm.identifier, stm.alias)
+        }
+        is FromImport -> {
+            val other = context.compiler.import(stm.identifier.toString())
+            if (stm.resource.contains(Identifier(listOf("*")))){
+                throw NotImplementedError("*")
+            }else{
+                Sequence(
+                stm.resource.map {
+                    if (other.hasClass(it, DataStructVisibility.PUBLIC)){
+                        context.update(stm.alias ?: it, other.getClass(it, DataStructVisibility.PUBLIC), true)
+                        Empty()
+                    } else if (other.hasStruct(it, DataStructVisibility.PUBLIC)){
+                        context.update(stm.alias ?: it, other.getStruct(it, DataStructVisibility.PUBLIC), true)
+                        Empty()
+                    } else if (other.hasTypeDef(it, DataStructVisibility.PUBLIC)){
+                        context.update(stm.alias ?: it, other.getTypeDef(it, DataStructVisibility.PUBLIC), true)
+                        Empty()
+                    } else if (other.hasFunction(it, DataStructVisibility.PUBLIC)){
+                        other.getFunction(it, DataStructVisibility.PUBLIC).map { fct ->
+                            context.update(stm.alias ?: it, fct, true)
+                        }
+                        Empty()
+                    } else if (other.hasVariable(it, DataStructVisibility.PUBLIC)){
+                        context.update(stm.alias ?: it, other.getVariable(it, DataStructVisibility.PUBLIC), true)
+                        Empty()
+                    } else {
+                        FromImport(listOf(it),stm.identifier, stm.alias)
+                    }
+                }.filterNot{it is Empty})
+            }
+        }
 
 
 
@@ -99,7 +134,9 @@ fun analyse(stm: Statement, context: Context): Statement {
             if (context.hasVariable(stm.value)){ choice.add(VariableExpr(context.getVariable(stm.value))) }
             if (context.hasFunction(stm.value)){ choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value))) }
             when (choice.size) {
-                0 -> { throw Context.IdentifierNotFound(stm.value) }
+                0 -> {
+                    context.printFunctions()
+                    throw Context.IdentifierNotFound(stm.value) }
                 1 -> { choice[0] }
                 else -> { UnresolvedExpr(choice) }
             }
@@ -200,7 +237,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
             } else if (context.hasGeneric(stm.name)){
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
-                analyseType(context.getTypeDef(stm.name), context)
+                analyseType(context.getTypeDef(stm.name).type, context)
             } else throw Exception("${stm.name} Type Not Found")
         }
         is UnresolvedGeneratedGenericType -> {
@@ -211,7 +248,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
             } else if (context.hasGeneric(stm.name)){
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
-                analyseType(context.getTypeDef(stm.name), context)
+                analyseType(context.getTypeDef(stm.name).type, context)
             } else throw Exception("${stm.name} Type Not Found")
         }
         is ArrayType -> {

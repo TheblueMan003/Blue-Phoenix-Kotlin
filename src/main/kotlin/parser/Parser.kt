@@ -24,14 +24,15 @@ fun parse(tokens: TokenStream):Statement{
  * Parse Statement
  */
 private fun parseBlock(tokens: TokenStream): Statement {
-    if (isKeyword(tokens, "import")){
-        return Empty()
-    }
     val modifier = DataStructModifier()
 
 
     // If
     if (isKeyword(tokens, "if")){ return parseIf(tokens) }
+
+    // Import
+    if (isKeyword(tokens, "import")){ return parseImport(tokens) }
+    if (isKeyword(tokens, "from")){ return parseFromImport(tokens) }
 
     // RawCommand
     if (isRawCommand(tokens)) { return RawCommand(getRawCommand(tokens))}
@@ -93,6 +94,26 @@ fun parseTypeDef(tokens: TokenStream, modifier: DataStructModifier): Statement {
     val type = parseType(tokens)
     val id = parseIdentifier(tokens)
     return TypeDefDeclaration(modifier, id, type)
+}
+
+fun parseImport(tokens: TokenStream):Statement{
+    val id = parseIdentifier(tokens)
+    return if (isKeyword(tokens, "as")){
+        Import(id, parseIdentifier(tokens))
+    } else {
+        Import(id)
+    }
+}
+fun parseFromImport(tokens: TokenStream):Statement{
+    val id = parseIdentifier(tokens)
+    expectKeyword(tokens, "import")
+    val res = parseIdentifierList(tokens, parseIdentifier(tokens))
+    return if (isKeyword(tokens, "as")) {
+        if (res.size > 1) throw Exception("Cannot have Multiple import with same alias")
+        FromImport(res, id, parseIdentifier(tokens))
+    } else{
+        FromImport(res, id)
+    }
 }
 
 

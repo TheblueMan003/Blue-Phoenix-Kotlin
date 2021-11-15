@@ -1,37 +1,11 @@
-import analyzer.Context
-import analyzer.runAnalyse
-import analyzer.runChecker
-import analyzer.runSimplifier
-import parser.TokenStream
+import compiler.Compiler
+import compiler.ResourceGetter
 
 
 fun main(args: Array<String>) {
-    val fileContent = getResourceAsText("Main.bp")
-    val res = lexer.parse(fileContent)
-
-    println("Lexer: $res")
-
-    val tree = parser.parse(TokenStream(res, 0))
-
-    println("Parser: $tree")
-
-    val context = Context("root")
-    val symTree = runAnalyse(tree, context)
-
-    println("Tree: $symTree")
-
-    val checkedTree = runChecker(symTree, context)
-
-    println("Checked: $checkedTree")
-
-    val simplifiedTree = runSimplifier(checkedTree, context){s,c -> runChecker(runAnalyse(s,c), c)}
-
-    println("Simplified: $simplifiedTree")
-
-    val file = codegen.minecraft.genCode(simplifiedTree, "root")
-
-    println("File: $file")
-    // Try adding program arguments at Run/Debug configuration
+    val getter = ResourceGetter()
+    val compiler = Compiler(listOf(getter.get("Main")), getter)
+    println(compiler.compile())
 }
 
 fun getResourceAsText(path: String): String {

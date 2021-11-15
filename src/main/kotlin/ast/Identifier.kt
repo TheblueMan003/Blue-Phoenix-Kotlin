@@ -2,19 +2,15 @@ package ast
 
 class Identifier(val paths: List<String>) {
     override fun equals(other: Any?): Boolean {
-        when (other) {
+        return when (other) {
             is Identifier -> {
-                if (paths.size != other.paths.size) return false
-                for(i in paths.indices){
-                    if (paths[i] != other.paths[i]) return false
-                }
-                return true
+                other.toString() == toString()
             }
-            else -> return false
+            else -> false
         }
     }
     override fun hashCode(): Int {
-        return paths.toTypedArray().contentHashCode()
+        return paths.toString().hashCode()
     }
     fun level(): Int{
         return paths.size
