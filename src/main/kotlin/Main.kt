@@ -4,7 +4,7 @@ import compiler.ResourceGetter
 
 fun main(args: Array<String>) {
     val getter = ResourceGetter()
-    val compiler = Compiler(listOf(getter.get("Main")), getter)
+    val compiler = Compiler(listOf(getter.get("compiler_test.Main"), getter.get("compiler_test.Main2")), getter)
     println(compiler.compile())
 }
 

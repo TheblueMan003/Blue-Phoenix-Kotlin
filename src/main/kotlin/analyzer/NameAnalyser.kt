@@ -128,16 +128,18 @@ fun analyse(stm: Statement, context: Context): Statement {
             if (context.currentFunction == null) throw Exception("Return must me inside of a function")
             ReturnStatement(analyse(stm.expr, context) as Expression, context.currentFunction!!)
         }
-
+        is FunctionBody -> {
+            val body = analyse(stm.body, context)
+            stm.function.body = body
+            FunctionBody(body, stm.function)
+        }
 
         is IdentifierExpr -> {
             val choice = ArrayList<AbstractIdentifierExpr>()
             if (context.hasVariable(stm.value)){ choice.add(VariableExpr(context.getVariable(stm.value))) }
             if (context.hasFunction(stm.value)){ choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value))) }
             when (choice.size) {
-                0 -> {
-                    context.printFunctions()
-                    throw Context.IdentifierNotFound(stm.value) }
+                0 -> { if (!context.nameResolvedAllowCrash) {stm} else {throw Exception("${stm.value} Not Found")} }
                 1 -> { choice[0] }
                 else -> { UnresolvedExpr(choice) }
             }

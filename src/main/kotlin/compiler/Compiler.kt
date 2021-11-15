@@ -4,7 +4,6 @@ import analyzer.Context
 import analyzer.runAnalyse
 import analyzer.runChecker
 import analyzer.runSimplifier
-import ast.Identifier
 import ast.Statement
 import codegen.minecraft.genCode
 import parser.TokenStream
@@ -23,10 +22,13 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
         tree.map { contexts[it.first] = Context(it.first, this) }
 
         var symTree = tree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
-        while(contexts.any{it.value.nameResolved}) {
-            contexts.map { it.value.nameResolved = false }
+        while(contexts.any{it.value.nameResolvedCheck}) {
+            contexts.map { it.value.nameResolvedCheck = false }
+            contexts.map { it.value.nameResolvedGet = false }
             println("Resolving:\t$symTree")
             symTree = symTree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
+            val failAll = contexts.all { !it.value.nameResolvedGet }
+            contexts.map { it.value.nameResolvedAllowCrash = failAll }
         }
         println("Resolved:\t$symTree")
 
@@ -46,13 +48,14 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
             return if (string in contexts) {
                 contexts[string]!!
             } else {
+                println(string)
                 val file = filesGetter.get(string)
                 val parsed = lexer.parse(file.second)
                 val tree = parser.parse(TokenStream(parsed))
                 contexts[file.first] = Context(file.first, this)
                 var symTree = runAnalyse(tree, contexts[file.first]!!)
-                while(contexts[file.first]!!.nameResolved) {
-                    contexts[file.first]!!.nameResolved = false
+                while(contexts[file.first]!!.nameResolvedCheck) {
+                    contexts[file.first]!!.nameResolvedCheck = false
                     symTree = runAnalyse(tree, contexts[file.first]!!)
                 }
                 imported += Pair(file.first, symTree)

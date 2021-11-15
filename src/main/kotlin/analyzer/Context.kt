@@ -21,31 +21,37 @@ class Context(private val path: String, val compiler: Compiler){
     var functionsList = ArrayList<Function>()
     var parentVariable: Variable? = null
     var top = true
-    var nameResolved = false
+    var nameResolvedCheck = false
+    var nameResolvedGet = false
+    var nameResolvedAllowCrash = false
 
     fun update(child: Context, visibility: DataStructVisibility, import: Boolean = false, alias: Identifier? = null){
-        val base = alias ?: child.currentFolder
-        child.variables.getTopLevel()
-            .filter { (_, v) -> v.isVisible(visibility, this)}
-            .map { (k, v) -> base.append(k) to v }
-            .map { (k, v) -> update(k, v, import)}
-        child.functions.getTopLevel()
-            .map { (k, v) -> k to v.filter { it.isVisible(visibility, this) } }
-            .filter { (_, v) -> v.isNotEmpty() }
-            .map { (k, v) -> base.append(k) to v }
-            .map { (k, v) -> v.forEach { update(k, it, true) }}
-        child.structs.getTopLevel()
-            .filter { (_, v) -> v.isVisible(visibility, this)}
-            .map { (k, v) -> base.append(k) to v }
-            .map { (k, v) -> update(k, v)}
-        child.classes.getTopLevel()
-            .filter { (_, v) -> v.isVisible(visibility, this)}
-            .map { (k, v) -> base.append(k) to v }
-            .map { (k, v) -> update(k, v)}
-        child.typedef.getTopLevel()
-            .filter { (_, v) -> v.isVisible(visibility, this)}
-            .map { (k, v) -> base.append(k) to v }
-            .map { (k, v) -> update(k, v)}
+        synchronized(if (child.hashCode() < hashCode()){child}else{this}){
+            synchronized(if (child.hashCode() < hashCode()){this}else{child}) {
+                val base = alias ?: child.currentFolder
+                child.variables.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .map { (k, v) -> base.append(k) to v }
+                    .map { (k, v) -> update(k, v, import) }
+                child.functions.getTopLevel()
+                    .map { (k, v) -> k to v.filter { it.isVisible(visibility, this) } }
+                    .filter { (_, v) -> v.isNotEmpty() }
+                    .map { (k, v) -> base.append(k) to v }
+                    .map { (k, v) -> v.forEach { update(k, it, true) } }
+                child.structs.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .map { (k, v) -> base.append(k) to v }
+                    .map { (k, v) -> update(k, v) }
+                child.classes.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .map { (k, v) -> base.append(k) to v }
+                    .map { (k, v) -> update(k, v) }
+                child.typedef.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .map { (k, v) -> base.append(k) to v }
+                    .map { (k, v) -> update(k, v) }
+            }
+        }
     }
 
     //
@@ -103,27 +109,27 @@ class Context(private val path: String, val compiler: Compiler){
     // CHECK
     //
     fun hasVariable(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return variables[id, false] != null && variables[id, false]!!.modifier.visibility >= visibility
     }
     fun hasFunction(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return functions[id, false] != null && functions[id, false]!!.any { it.modifier.visibility >= visibility }
     }
     fun hasStruct(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return structs[id, false] != null && structs[id, false]!!.modifier.visibility >= visibility
     }
     fun hasClass(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return classes[id, false] != null && classes[id, false]!!.modifier.visibility >= visibility
     }
     fun hasGeneric(id: Identifier): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return generics[id, false] != null
     }
     fun hasTypeDef(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Boolean{
-        nameResolved = true
+        nameResolvedCheck = true
         return typedef[id, false] != null && typedef[id, false]!!.modifier.visibility >= visibility
     }
 
@@ -131,37 +137,37 @@ class Context(private val path: String, val compiler: Compiler){
     // GETTER
     //
     fun getVariable(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Variable {
-        nameResolved = true
+        nameResolvedGet = true
         val ret = variables[id] ?: throw IdentifierNotFound(id)
         return if (ret.modifier.visibility >= visibility){
             ret
         } else { throw IdentifierNotFound(id)}
     }
     fun getFunction(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): List<Function> {
-        nameResolved = true
+        nameResolvedGet = true
         val ret = (functions[id] ?: throw IdentifierNotFound(id)).filter { it.modifier.visibility >= visibility}
         return ret.ifEmpty { throw IdentifierNotFound(id) }
     }
     fun getClass(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Class {
-        nameResolved = true
+        nameResolvedGet = true
         val ret = classes[id] ?: throw IdentifierNotFound(id)
         return if (ret.modifier.visibility >= visibility){
             ret
         } else { throw IdentifierNotFound(id)}
     }
     fun getStruct(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): Struct {
-        nameResolved = true
+        nameResolvedGet = true
         val ret = structs[id] ?: throw IdentifierNotFound(id)
         return if (ret.modifier.visibility >= visibility){
             ret
         } else { throw IdentifierNotFound(id)}
     }
     fun getGeneric(id: Identifier): DataType {
-        nameResolved = true
+        nameResolvedGet = true
         return generics[id] ?: throw IdentifierNotFound(id)
     }
     fun getTypeDef(id: Identifier, visibility: DataStructVisibility = DataStructVisibility.PRIVATE): TypeDef {
-        nameResolved = true
+        nameResolvedGet = true
         val ret = (typedef[id] ?: throw IdentifierNotFound(id))
         return if (ret.modifier.visibility >= visibility){
             ret

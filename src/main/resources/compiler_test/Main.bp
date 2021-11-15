@@ -1,0 +1,6 @@
+import compiler_test.Main2
+
+public void function1(){
+    compiler_test.Main2.function2()
+}
+function1()

@@ -1,4 +1,0 @@
-from math.vector import vector3
-
-vector3<int> a
-a.x = 0
