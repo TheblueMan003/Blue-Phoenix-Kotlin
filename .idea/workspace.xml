@@ -10,13 +10,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main2.bp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main2.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main2.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -446,7 +445,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636964583224</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Cyclic function dependency">
+      <created>1636975281705</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1636975281705</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -476,7 +482,8 @@
     <MESSAGE value="Lazy Arguments" />
     <MESSAGE value="Function inside lazy function" />
     <MESSAGE value="Import" />
-    <option name="LAST_COMMIT_MESSAGE" value="Import" />
+    <MESSAGE value="Cyclic function dependency" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cyclic function dependency" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -6,7 +6,9 @@ import ast.Function
 fun runAnalyse(stm: Statement, context: Context): Statement{
     val ret = analyse(stm, context)
     context.runUnfinished{ s, c -> analyse(s, c) }
-    return Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret)
+    val ret2 = Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret)
+    context.isDone = true
+    return ret2
 }
 
 fun analyse(stm: Statement, context: Context): Statement {
@@ -47,6 +49,10 @@ fun analyse(stm: Statement, context: Context): Statement {
         }
         is FromImport -> {
             val other = context.compiler.import(stm.identifier.toString())
+            while (!other.isLib && !other.isDone) {
+                val i = 0
+            }
+
             if (stm.resource.contains(Identifier(listOf("*")))){
                 throw NotImplementedError("*")
             }else{
@@ -70,7 +76,6 @@ fun analyse(stm: Statement, context: Context): Statement {
                         context.update(stm.alias ?: it, other.getVariable(it, DataStructVisibility.PUBLIC), true)
                         Empty()
                     } else {
-                        println(it)
                         FromImport(listOf(it),stm.identifier, stm.alias)
                     }
                 }.filterNot{it is Empty})

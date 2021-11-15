@@ -1,5 +1,3 @@
-import compiler_test.Main
-
-public void function2(){
-    compiler_test.Main.function1()
+public struct test{
+    int a
 }

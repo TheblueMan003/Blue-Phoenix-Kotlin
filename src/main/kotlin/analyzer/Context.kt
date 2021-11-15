@@ -5,7 +5,7 @@ import ast.Function
 import utils.StackedHashMap
 import compiler.Compiler
 
-class Context(private val path: String, val compiler: Compiler){
+class Context(private val path: String, val compiler: Compiler): Object(){
     var currentPath: Identifier = Identifier(path.split('.'))
     var currentFolder: Identifier = Identifier(path.split('.'))
     private var children = ArrayList<Context>()
@@ -24,6 +24,8 @@ class Context(private val path: String, val compiler: Compiler){
     var nameResolvedCheck = false
     var nameResolvedGet = false
     var nameResolvedAllowCrash = false
+    var isLib = false
+    var isDone = false
 
     fun update(child: Context, visibility: DataStructVisibility, import: Boolean = false, alias: Identifier? = null){
         synchronized(if (child.hashCode() < hashCode()){child}else{this}){
@@ -41,15 +43,15 @@ class Context(private val path: String, val compiler: Compiler){
                 child.structs.getTopLevel()
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
-                    .map { (k, v) -> update(k, v) }
+                    .map { (k, v) -> update(k, v, import) }
                 child.classes.getTopLevel()
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
-                    .map { (k, v) -> update(k, v) }
+                    .map { (k, v) -> update(k, v, import) }
                 child.typedef.getTopLevel()
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
-                    .map { (k, v) -> update(k, v) }
+                    .map { (k, v) -> update(k, v, import) }
             }
         }
     }
@@ -202,6 +204,7 @@ class Context(private val path: String, val compiler: Compiler){
         context.unfinishedAnalyse = unfinishedAnalyse
         context.functionsList     = functionsList
         context.currentFunction   = currentFunction
+        context.nameResolvedAllowCrash = nameResolvedAllowCrash
         children.add(context)
         return context
     }
@@ -211,6 +214,8 @@ class Context(private val path: String, val compiler: Compiler){
     fun resolve(){
         while(children.size > 0){
             update(children.last(), DataStructVisibility.PROTECTED)
+            nameResolvedCheck = nameResolvedCheck || children.any{it.nameResolvedCheck}
+            nameResolvedGet = nameResolvedGet || children.any{it.nameResolvedGet}
             children.removeLast()
         }
     }

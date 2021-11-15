@@ -25,6 +25,7 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
         while(contexts.any{it.value.nameResolvedCheck}) {
             contexts.map { it.value.nameResolvedCheck = false }
             contexts.map { it.value.nameResolvedGet = false }
+            contexts.map { it.value.isDone = false }
             println("Resolving:\t$symTree")
             symTree = symTree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
             val failAll = contexts.all { !it.value.nameResolvedGet }
@@ -53,6 +54,7 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
                 val parsed = lexer.parse(file.second)
                 val tree = parser.parse(TokenStream(parsed))
                 contexts[file.first] = Context(file.first, this)
+                contexts[file.first]!!.isLib = true
                 var symTree = runAnalyse(tree, contexts[file.first]!!)
                 while(contexts[file.first]!!.nameResolvedCheck) {
                     contexts[file.first]!!.nameResolvedCheck = false
