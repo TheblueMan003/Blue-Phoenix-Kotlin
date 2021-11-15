@@ -49,9 +49,6 @@ fun analyse(stm: Statement, context: Context): Statement {
         }
         is FromImport -> {
             val other = context.compiler.import(stm.identifier.toString())
-            while (!other.isLib && !other.isDone) {
-                val i = 0
-            }
 
             if (stm.resource.contains(Identifier(listOf("*")))){
                 throw NotImplementedError("*")
@@ -86,7 +83,11 @@ fun analyse(stm: Statement, context: Context): Statement {
 
         is VariableDeclaration -> {
             val type = analyseType(stm.type, context)
-            variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent).first
+            if (type !is UnresolvedGeneratedType && type !is UnresolvedGeneratedGenericType) {
+                variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent).first
+            } else if (!context.nameResolvedAllowCrash) {
+                stm
+            } else {throw Exception("$type Not Resolved Found")}
         }
         is StructDeclaration -> {
             context.update(stm.identifier, Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder))
@@ -124,10 +125,18 @@ fun analyse(stm: Statement, context: Context): Statement {
 
 
         is UnlinkedVariableAssignment -> {
-            val variable = context.getVariable(stm.identifier)
+            if (context.hasVariable(stm.identifier)) {
+                val variable = context.getVariable(stm.identifier)
 
-            LinkedVariableAssignment(variable,
-                analyse(stm.expr, context) as Expression, stm.op)
+                LinkedVariableAssignment(
+                    variable,
+                    analyse(stm.expr, context) as Expression, stm.op
+                )
+            }else if (!context.nameResolvedAllowCrash) {
+                stm
+            } else {
+                throw Exception("${stm.identifier} identifier Not Found")
+            }
         }
         is UnlinkedReturnStatement -> {
             if (context.currentFunction == null) throw Exception("Return must me inside of a function")
@@ -246,7 +255,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
                 analyseType(context.getTypeDef(stm.name).type, context)
-            } else throw Exception("${stm.name} Type Not Found")
+            } else if (!context.nameResolvedAllowCrash) {stm} else {throw Exception("${stm.name} Type Not Found")}
         }
         is UnresolvedGeneratedGenericType -> {
             if (context.hasStruct(stm.name)){
@@ -257,7 +266,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
                 analyseType(context.getTypeDef(stm.name).type, context)
-            } else throw Exception("${stm.name} Type Not Found")
+            } else if (!context.nameResolvedAllowCrash) {stm} else {throw Exception("${stm.name} Type Not Found")}
         }
         is ArrayType -> {
             ArrayType(analyseType(stm.subtype, context), stm.length)

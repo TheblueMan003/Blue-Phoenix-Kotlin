@@ -249,7 +249,7 @@ fun litExprToInt(expr: LitExpr): Int{
         is FloatLitExpr -> {
             (expr.value * floatScale).toInt()
         }
-        else -> throw NotImplementedError()
+        else -> throw NotImplementedError(expr.toString())
     }
 }
 

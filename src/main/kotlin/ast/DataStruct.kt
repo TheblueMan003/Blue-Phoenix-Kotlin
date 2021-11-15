@@ -9,7 +9,7 @@ abstract class DataStruct(private val d_modifier: DataStructModifier, private va
             d_parent.isVisible(visibility, context)
         }
         else{
-            d_modifier.visibility <= visibility
+            d_modifier.visibility >= visibility
         }
     }
 }

@@ -74,6 +74,9 @@ fun simplify(stm: Statement, context: Context): Statement {
                 }
             }
         }
+        is Switch -> {
+            simplify(buildSwitchTree(stm.function, stm.cases, context), context)
+        }
         is Block ->{
             val nstm = stm.statements.map { simplify(it, context) }
                           .filter{ it !is Empty }
@@ -197,6 +200,7 @@ fun extractExpression(expr: Expression, context: Context): Pair<Expression, Stat
                     }
                     Pair(BinaryExpr(expr.op, left, right), Sequence(lst))
                 }
+                "in" -> Pair(expr, Empty())
                 else -> {
                     throw NotImplementedError()
                 }

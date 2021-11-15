@@ -1,3 +1,3 @@
 public struct test{
-    int a
+    public int a
 }

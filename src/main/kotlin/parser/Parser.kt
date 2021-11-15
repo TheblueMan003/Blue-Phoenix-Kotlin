@@ -209,7 +209,7 @@ private fun parseSwitch(tokens: TokenStream): Switch {
     // Get Cases
     while(!isDelimiter(tokens, "}")){
         val expr = parseExpression(tokens)
-        expectDelimiter(tokens, "->")
+        expectOperationToken(tokens, "->")
         val block = parseBlock(tokens)
         cases.add(Case(expr, block))
     }

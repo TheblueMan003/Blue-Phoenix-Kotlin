@@ -13,6 +13,7 @@ import utils.pmap
 class Compiler(private val files: List<Pair<String, String>>, private val filesGetter: IResourceGetter) {
     private var contexts = HashMap<String, Context>()
     private var imported = ArrayList<Pair<String,Statement>>()
+    var treeSize = 20
 
     fun compile(): List<OutputFile> {
         val parsed = files.pmap { Pair(it.first, lexer.parse(it.second)) }

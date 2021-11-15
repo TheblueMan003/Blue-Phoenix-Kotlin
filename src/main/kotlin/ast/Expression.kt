@@ -52,3 +52,8 @@ data class UnaryExpr(val op: String, val first: Expression): Expression()
  *  Tuple Value in Expression
  */
 data class TupleExpr(val value: List<Expression>) : Expression()
+
+/**
+ *  Range Expression use for switch
+ */
+data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr()

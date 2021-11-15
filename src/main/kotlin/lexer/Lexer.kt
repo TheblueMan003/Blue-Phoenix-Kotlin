@@ -2,12 +2,12 @@ package lexer
 
 import lexer.TokenTypes.*
 
-val keyword = HashSet(listOf("if","while","for","forgenerate", "else",
-    "class","abstract","struct","define",
+val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
+    "class","abstract","struct", "define",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy"))
+    "typedef", "lazy", "switch"))
 
 val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
 val boolLit = HashSet(listOf("true","false"))
