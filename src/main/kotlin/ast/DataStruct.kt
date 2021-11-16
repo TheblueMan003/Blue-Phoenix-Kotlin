@@ -34,6 +34,7 @@ class Variable(val modifier: DataStructModifier, val name: Identifier,
                val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent){
     var childrenVariable = HashMap<Identifier, Variable>()
     var childrenFunction = HashMap<Identifier, List<Function>>()
+    var lazyValue: Expression? = null
 
     override fun toString():String{
         return name.toString()
@@ -82,3 +83,6 @@ class Class   (val modifier: DataStructModifier, val name: Identifier, val paren
 
 class TypeDef(val modifier: DataStructModifier, val name: Identifier,
                val type: DataType, val parent: Variable? = null): DataStruct(modifier, parent)
+
+class LazyVariable(val modifier: DataStructModifier, val name: Identifier,
+              val expr: Expression, val parent: Variable? = null): DataStruct(modifier, parent)

@@ -1,16 +1,5 @@
-int v
+import math
 
-switch(v){
-    0 -> v = 1
-    1 -> v = 2
-    2 -> v = 3
-    3 -> v = 4
-    4 -> v = 5
-    5 -> v = 6
-    6 -> v = 7
-    7 -> v = 8
-    8 -> v = 9
-    9 -> v = 10
-    10 -> v = 11
-    11 -> v = 12
-}
+(int, int) a
+
+a = math.sorted(a._0, a._1)

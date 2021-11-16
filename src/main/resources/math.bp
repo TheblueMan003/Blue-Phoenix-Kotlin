@@ -26,12 +26,13 @@ public int sign(int value){
     }
 }
 
+
 /*
 Give magnitude of argument
 v if v > 0
     -v otherwise
 */
-float abs(float value){
+public float abs(float value){
     if (value >= 0){
         return(value)
     }
@@ -45,7 +46,7 @@ Give magnitude of argument
 v if v > 0
     -v otherwise
 */
-int abs(int value){
+public int abs(int value){
     if (value >= 0){
         return(value)
     }
@@ -57,7 +58,7 @@ int abs(int value){
 /*
 Give a mod b the correct way
 */
-float mod(float a, float b){
+public float mod(float a, float b){
     float ret = a+b
     ret %= b
     return(ret)
@@ -66,7 +67,7 @@ float mod(float a, float b){
 /*
 Give a mod b the correct way
 */
-int mod(int a, int b){
+public int mod(int a, int b){
     int ret = a+b
     ret %= b
     return(ret)
@@ -75,7 +76,7 @@ int mod(int a, int b){
 /*
 Round float to closest value
 */
-float round(float value){
+public float round(float value){
     value += 0.5
     value /= 1000
     value *= 1000
@@ -85,7 +86,7 @@ float round(float value){
 /*
 Round float to lowest value
 */
-float floor(float value){
+public float floor(float value){
     value /= 1000
     value *= 1000
     return(value)
@@ -94,9 +95,90 @@ float floor(float value){
 /*
 Round float to upper value
 */
-float ceil(float value){
+public float ceil(float value){
     value += 0.999
     value /= 1000
     value *= 1000
     return(value)
+}
+
+/*
+Give max between a and b
+*/
+public int max(int a, int b){
+    if (a < b){
+        return(b)
+    }
+    if (a >= b){
+        return(a)
+    }
+}
+
+/*
+Give max between a and b
+*/
+public float max(float a, float b){
+    if (a < b){
+        return(b)
+    }
+    if (a >= b){
+        return(a)
+    }
+}
+
+/*
+Give min between a and b
+*/
+public int min(int a, int b){
+    if (a < b){
+        return(a)
+    }
+    if (a >= b){
+        return(b)
+    }
+}
+
+/*
+Give min between a and b
+*/
+public float min(float a, float b){
+    if (a < b){
+        return(a)
+    }
+    if (a >= b){
+        return(b)
+    }
+}
+
+/*
+Give bound a between b and c
+*/
+public int bound(int a, int b, int c){
+    return(max(min(a, b),c))
+}
+
+/*
+Give bound a between b and c
+*/
+public float bound(float a, float b, float c){
+    return(max(min(a, b),c))
+}
+
+public float lerp(float a, float b, float w){
+    return(a*(1-w) + b*w)
+}
+
+public float smoothLerp(float a0, float a1, float w){
+    w = w*w*(3-2*w)
+    float value = (1.0 - w)*a0 + w*a1
+    return value
+}
+
+public (int,int) sorted(int a, int b){
+    if (a > b){
+        return(b, a)
+    }
+    if (a <= b){
+        return(a, b)
+    }
 }

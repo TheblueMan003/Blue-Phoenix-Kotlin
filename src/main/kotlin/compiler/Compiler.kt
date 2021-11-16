@@ -53,13 +53,18 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
                 println(string)
                 val file = filesGetter.get(string)
                 val parsed = lexer.parse(file.second)
+                println("Parsed: $parsed")
                 val tree = parser.parse(TokenStream(parsed))
+                println("Tree: $tree")
                 contexts[file.first] = Context(file.first, this)
                 contexts[file.first]!!.isLib = true
                 var symTree = runAnalyse(tree, contexts[file.first]!!)
                 while(contexts[file.first]!!.nameResolvedCheck) {
                     contexts[file.first]!!.nameResolvedCheck = false
-                    symTree = runAnalyse(tree, contexts[file.first]!!)
+                    contexts[file.first]!!.nameResolvedGet = false
+                    contexts[file.first]!!.isDone = false
+                    symTree = runAnalyse(symTree, contexts[file.first]!!)
+                    contexts.map { it.value.nameResolvedAllowCrash = !contexts[file.first]!!.nameResolvedGet }
                 }
                 imported += Pair(file.first, symTree)
                 contexts[file.first]!!
