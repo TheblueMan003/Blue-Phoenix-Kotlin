@@ -43,6 +43,12 @@ class StringStream(value: String, start: Int) {
     fun nextSlice():String{
         return string.substring(sliceStart..(index))
     }
+    fun hasDoubleNext():Boolean{
+        return index + 1 < string.length
+    }
+    fun peekNext():Char{
+        return string[index+1]
+    }
 
     fun getSliceStart():Int{
         return sliceStart

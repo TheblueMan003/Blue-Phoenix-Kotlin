@@ -1,27 +1,100 @@
 package ast
 
+import data_struct.Class
+import data_struct.Enum
+import data_struct.Struct
+
 abstract class DataType() {
+    override fun hashCode(): Int {
+        return toString().hashCode()
+    }
 }
 
-class VoidType: DataType()
-class IntType: DataType()
-class FloatType: DataType()
-class BoolType: DataType()
-class StringType: DataType()
-class VarType(var expr: Expression? = null): DataType()
+class VoidType: DataType(){
+    override fun toString(): String {
+        return "VoidType"
+    }
+}
+class UnresolvedType: DataType(){
+    override fun toString(): String {
+        return "UnresolvedType"
+    }
+}
+class IntType: DataType(){
+    override fun toString(): String {
+        return "IntType"
+    }
+}
+class FloatType: DataType(){
+    override fun toString(): String {
+        return "FloatType"
+    }
+}
+class BoolType: DataType(){
+    override fun toString(): String {
+        return "BoolType"
+    }
+}
+class StringType: DataType(){
+    override fun toString(): String {
+        return "StringType"
+    }
+}
+class VarType(var expr: Expression? = null): DataType(){
+    override fun toString(): String {
+        return "Var"
+    }
+}
 
 /**
  * Either Generic Type, Struct or Class
  */
-data class UnresolvedGeneratedType(val name: Identifier): DataType()
+data class UnresolvedGeneratedType(val name: Identifier): DataType(){
+    override fun toString(): String {
+        return "UnresolvedGeneratedType($name)"
+    }
+}
 
-data class StructType(val name: Struct, val type: List<DataType>?): DataType()
-data class ClassType(val name: Class, val type: List<DataType>?): DataType()
+data class StructType(val name: Struct, val type: List<DataType>?): DataType(){
+    override fun toString(): String {
+        return "StructType(${name.name}<${type}>)"
+    }
+}
+
+data class ClassType(val name: Class, val type: List<DataType>?): DataType(){
+    override fun toString(): String {
+        return "ClassType(${name.name}<${type}>)"
+    }
+}
+
+data class EnumType(val name: Enum): DataType(){
+    override fun toString(): String {
+        return "EnumType(${name.name})"
+    }
+}
 
 /**
  * Either Generic Type, Struct or Class with generics type in it
  */
-data class UnresolvedGeneratedGenericType(val name: Identifier, val type: List<DataType>): DataType()
-data class ArrayType(val subtype: DataType, val length: Int): DataType()
-data class TupleType(val type: List<DataType>): DataType()
-data class FuncType(val from: List<DataType>, val to: DataType): DataType()
+data class UnresolvedGeneratedGenericType(val name: Identifier, val type: List<DataType>): DataType(){
+    override fun toString(): String {
+        return "UnresolvedGeneratedGenericType(${name}<${type}>)"
+    }
+}
+
+data class ArrayType(val subtype: DataType, val length: Int): DataType(){
+    override fun toString(): String {
+        return "Array(${subtype}[${length}])"
+    }
+}
+
+data class TupleType(val type: List<DataType>): DataType(){
+    override fun toString(): String {
+        return "TupleType(${type})"
+    }
+}
+data class FuncType(val from: List<DataType>, val to: DataType): DataType(){
+    override fun toString(): String {
+        return "FuncType(${from} => $to)"
+    }
+}

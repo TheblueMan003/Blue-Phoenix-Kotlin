@@ -3,17 +3,17 @@ package lexer
 import lexer.TokenTypes.*
 
 val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
-    "class","abstract","struct", "define",
+    "class", "abstract", "struct", "define",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy", "switch"))
+    "typedef", "lazy", "switch", "package"))
 
 val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
 val boolLit = HashSet(listOf("true","false"))
 val delimiter = HashSet(listOf('(', ')', '{', '}', '[', ']', '.', ','))
 val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<'))
-val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "=>", "<=", "<", ">=", ">", "->"))
+val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "==", "=>", "<=", "<", ">=", ">", "->"))
 
 
 fun parse(input: String):List<Token>{
@@ -32,7 +32,7 @@ fun parseOne(stream: StringStream):Token{
         while(stream.hasNext() && stream.peek().isDigit()){
             stream.next()
         }
-        if (stream.hasNext() && stream.peek() == '.'){
+        if (stream.hasNext() && stream.peek() == '.' && stream.hasDoubleNext() && stream.peekNext().isDigit()){
             stream.next()
             while(stream.hasNext() && stream.peek().isDigit()){
                 stream.next()

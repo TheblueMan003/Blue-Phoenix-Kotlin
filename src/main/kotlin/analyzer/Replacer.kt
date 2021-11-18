@@ -21,7 +21,7 @@ private fun replace(stm: Statement, map: Map<Identifier, Expression>):Statement{
             IfElse(replaceExpression(stm.Condition, map), replace(stm.IfBlock, map), replace(stm.ElseBlock, map)).withParent(stm)
         }
         is Switch -> {
-            Switch(replaceExpression(stm.function, map),
+            Switch(replaceExpression(stm.scrutinee, map),
                 stm.cases.map { s -> replace(s, map) as Case }).withParent(stm)
         }
         is Case -> {

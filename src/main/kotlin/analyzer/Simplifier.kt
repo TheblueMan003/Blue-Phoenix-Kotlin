@@ -1,6 +1,9 @@
 package analyzer
 
 import ast.*
+import data_struct.DataStructModifier
+import data_struct.Function
+import data_struct.Variable
 import utils.getOperationFunctionName
 import utils.withDefault
 import kotlin.math.pow
@@ -19,7 +22,7 @@ fun simplify(stm: Statement, context: Context): Statement {
                 is BoolLitExpr -> {
                     if (expr.value){
                         simplify(stm.IfBlock, context)
-                    }else{
+                    } else {
                         Empty()
                     }
                 }
@@ -75,7 +78,7 @@ fun simplify(stm: Statement, context: Context): Statement {
             }
         }
         is Switch -> {
-            simplify(buildSwitchTree(stm.function, stm.cases, context), context)
+            simplify(buildSwitchTree(stm.scrutinee, stm.cases, context), context)
         }
         is Block ->{
             val nstm = stm.statements.map { simplify(it, context) }
@@ -92,7 +95,7 @@ fun simplify(stm: Statement, context: Context): Statement {
             simplifySequence(nstm)
         }
         is Switch ->{
-            Switch(simplifyExpression(stm.function, context),
+            Switch(simplifyExpression(stm.scrutinee, context),
                 stm.cases.map {
                     Case(simplifyExpression(it.expr,context),
                         simplify(it.statement, context))
@@ -140,6 +143,10 @@ fun simplify(stm: Statement, context: Context): Statement {
                     } else throw NotImplementedError()
                 }
             }
+            else if (stm.variable.type is FuncType){
+                if (stm.expr is FunctionExpr) { context.addLambda(stm.expr.function, compile) }
+                stm
+            }
             else{
                 LinkedVariableAssignment(stm.variable, simplifyExpression(stm.expr, context), stm.op)
             }
@@ -186,18 +193,10 @@ fun extractExpression(expr: Expression, context: Context): Pair<Expression, Stat
             when(expr.op){
                 in listOf("<","<=", ">", ">=", "==", "!=") -> {
                     val lst = emptyList<Statement>().toMutableList()
-                    var left = expr.first
-                    if (left !is LitExpr && left !is VariableExpr){
-                        val ret = putInTMPVariable(left, AssignmentType.SET,context)
-                        lst.add(ret.second)
-                        left = VariableExpr(ret.first)
-                    }
-                    var right = expr.second
-                    if (right !is LitExpr && right !is VariableExpr){
-                        val ret = putInTMPVariable(right, AssignmentType.SET, context)
-                        lst.add(ret.second)
-                        right = VariableExpr(ret.first)
-                    }
+
+                    var left = extractSideExpression(expr.first, context, lst)
+                    var right = extractSideExpression(expr.second, context, lst)
+
                     Pair(BinaryExpr(expr.op, left, right), Sequence(lst))
                 }
                 "in" -> Pair(expr, Empty())
@@ -213,6 +212,25 @@ fun extractExpression(expr: Expression, context: Context): Pair<Expression, Stat
         else -> throw NotImplementedError()
     }
 }
+fun extractSideExpression(right: Expression, context: Context, lst: MutableList<Statement>): Expression {
+    return when (right) {
+        is LitExpr, is VariableExpr -> {
+            right
+        }
+        is FunctionExpr -> {
+            IntLitExpr(right.function.hashCode())
+        }
+        is EnumExpr -> {
+            IntLitExpr(right.index)
+        }
+        else -> {
+            val ret = putInTMPVariable(right, AssignmentType.SET, context)
+            lst.add(ret.second)
+            VariableExpr(ret.first)
+        }
+    }
+}
+
 fun simplifyExpression(expr: Expression, context: Context): Expression {
     return when(expr){
         is BinaryExpr -> {
@@ -278,16 +296,8 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
             VariableExpr(stm.function.output)
         )
     } else if (stm is FunctionExpr && stm.function.modifier.lazy) {
-        val map = stm.function.input
-                    .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
-                    .filter { (v, _) -> v.modifier.lazy }
-                    .associate { (v, a) -> Pair(v.name.getLast(), a) }
-                    .toMap()
-
-        val assignment = stm.function.input
-            .zip(withDefault(args, stm.function.from.map { it.defaultValue }))
-            .filter { (v, _) -> !v.modifier.lazy }
-            .map { (v, a) -> LinkedVariableAssignment(v, a, AssignmentType.SET) }
+        val map = lazyFunctionMapLazyArg(stm.function, args)
+        val assignment = lazyFunctionAssignArg(stm.function, args)
 
         val block = runReplace(stm.function.body, map)
         val sub = context.sub(block.hashCode().toString())
@@ -298,7 +308,28 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: Conte
             Sequence(assignment+simplify(compile(block, sub), context)),
             VariableExpr(stm.function.output)
         )
-    } else throw NotImplementedError(stm.toString())
+    } else if (stm is VariableExpr) {
+        simplifyFunctionCall(
+            FunctionExpr(context.getLambdaFunction(stm.variable.type as FuncType, compile)),
+        listOf(stm)+args,
+            context)
+    } else {
+        throw NotImplementedError(stm.toString())
+    }
+}
+
+fun lazyFunctionAssignArg(function: Function, args: List<Expression>):List<Statement>{
+    return function.input
+        .zip(withDefault(args, function.from.map { it.defaultValue }))
+        .filter { (v, _) -> !v.modifier.lazy }
+        .map { (v, a) -> LinkedVariableAssignment(v, a, AssignmentType.SET) }
+}
+fun lazyFunctionMapLazyArg(function: Function, args: List<Expression>):Map<Identifier, Expression>{
+    return function.input
+        .zip(withDefault(args, function.from.map { it.defaultValue }))
+        .filter { (v, _) -> v.modifier.lazy }
+        .associate { (v, a) -> Pair(v.name.getLast(), a) }
+        .toMap()
 }
 
 fun simplifySequence(nstm: List<Statement>): Statement {
@@ -362,12 +393,12 @@ fun putInTMPVariable(expr: Expression, op: AssignmentType, context: Context): Pa
     val modifier = DataStructModifier()
     val id = context.getTmpVarIdentifier()
     val ret = compile(Sequence(listOf(
-        VariableDeclaration(modifier, id, VarType(expr)),
+        VariableDeclaration(modifier, id, VarType(expr), null, true),
         UnlinkedVariableAssignment(id,expr,op))),
         context)
     return Pair(context.getVariable(id), ret)
 }
-fun getTMPVariable(type: DataType, context: Context): Variable{
+fun getTMPVariable(type: DataType, context: Context): Variable {
     val modifier = DataStructModifier()
     val id = context.getTmpVarIdentifier()
     compile(VariableDeclaration(modifier, id, type), context)

@@ -1,8 +1,7 @@
 package analyzer
 
 import ast.*
-import ast.Function
-import utils.getOperationFunctionName
+import data_struct.Function
 import utils.withDefault
 
 
@@ -12,87 +11,119 @@ fun runChecker(stm: Statement, context: Context): Statement {
     return check(stm, context)
 }
 fun check(stm: Statement, context: Context): Statement {
-    return when(stm){
-        is If -> {
-            val cond = checkExpression(stm.Condition, context)
-            expectBoolean(cond.second)
-            If(cond.first, check(stm.IfBlock, context)).withParent(stm)
-        }
-        is IfElse -> {
-            val cond = checkExpression(stm.Condition, context)
-            expectBoolean(cond.second)
-            IfElse(cond.first, check(stm.IfBlock, context), check(stm.ElseBlock, context)).withParent(stm)
-        }
-        is Block ->{
-            Block(stm.statements.map { check(it, context) }).withParent(stm)
-        }
-        is Sequence ->{
-            Sequence(stm.statements.map { check(it, context) })
-        }
-        is Switch ->{
-            val expr = checkExpression(stm.function, context)
-            Switch(expr.first, stm.cases.map {
-                val scrut = checkExpression(it.expr, context)
-                checkOwnership(scrut.second, expr.second)
-                Case(scrut.first, check(it.statement, context))
-            }).withParent(stm)
-        }
-        is LinkedVariableAssignment -> {
-            if (stm.variable.type is FuncType){
-                val vType = stm.variable.type as FuncType
-                when (stm.expr) {
-                    is UnresolvedFunctionExpr -> {
-                        LinkedVariableAssignment(stm.variable,
-                            FunctionExpr(findFunction(vType.from, stm.expr.function)),
-                            stm.op)
-                    }
-                    is UnresolvedExpr -> {
-                        throw Exception("Cannot be assign to function")
-                    }
-                    else -> {
-                        throw Exception("Cannot be assign to function")
+    try{
+        return when(stm){
+            is If -> {
+                val cond = checkExpression(stm.Condition, context)
+                expectBoolean(cond.second)
+                If(cond.first, check(stm.IfBlock, context)).withParent(stm)
+            }
+            is IfElse -> {
+                val cond = checkExpression(stm.Condition, context)
+                expectBoolean(cond.second)
+                IfElse(cond.first, check(stm.IfBlock, context), check(stm.ElseBlock, context)).withParent(stm)
+            }
+            is Block ->{
+                Block(stm.statements.map { check(it, context) }).withParent(stm)
+            }
+            is Sequence ->{
+                Sequence(stm.statements.map { check(it, context) })
+            }
+            is Switch ->{
+                val expr = checkExpression(stm.scrutinee, context)
+                Switch(expr.first, stm.cases.map {
+                    val scrut = checkExpression(it.expr, context)
+                    checkOwnership(scrut.second, expr.second)
+                    Case(scrut.first, check(it.statement, context))
+                }).withParent(stm)
+            }
+            is LinkedVariableAssignment -> {
+                if (stm.variable.type is FuncType){
+                    val vType = stm.variable.type as FuncType
+                    when (stm.expr) {
+                        is UnresolvedFunctionExpr -> {
+                            LinkedVariableAssignment(stm.variable,
+                                FunctionExpr(findFunction(vType.from, stm.expr.function)),
+                                stm.op)
+                        }
+                        is VariableExpr -> {
+                            stm
+                        }
+                        is FunctionExpr -> {
+                            stm
+                        }
+                        is UnresolvedExpr -> {
+                            throw Exception("Cannot be assign to function")
+                        }
+                        else -> {
+                            throw Exception("Cannot be assign to function $stm")
+                        }
                     }
                 }
-            } else {
+                else if (stm.variable.type is EnumType){
+                    val vType = stm.variable.type as EnumType
+                    when (stm.expr) {
+                        is EnumExpr -> {
+                            if (stm.expr.enum != vType.name) throw InvalidTypeException(EnumType(stm.expr.enum))
+                            LinkedVariableAssignment(stm.variable, stm.expr, stm.op)
+                        }
+                        is UnresolvedExpr -> {
+                            val expr = stm.expr.choice.filter { it is EnumExpr }
+                                .map { it as EnumExpr }
+                                .filter { it.enum == vType.name }
+                                .first()
+                            LinkedVariableAssignment(stm.variable, expr, stm.op)
+                        }
+                        is VariableExpr -> {
+                            stm
+                        }
+                        else -> {
+                            throw Exception("Cannot be assign to enum $stm")
+                        }
+                    }
+                } else {
+                    val v = checkExpression(stm.expr, context)
+                    if (!checkOwnership(v.second, stm.variable.type))
+                        throw Exception("Invalid type error: ${v.second} not in ${stm.variable.type}")
+                    LinkedVariableAssignment(stm.variable, v.first, stm.op)
+                }
+            }
+            is CallExpr -> {
+                checkExpression(stm, context).first
+            }
+            is ReturnStatement -> {
                 val v = checkExpression(stm.expr, context)
-                if (!checkOwnership(v.second, stm.variable.type))
-                    throw Exception("Invalid type error: ${v.second} not in ${stm.variable.type}")
-                LinkedVariableAssignment(stm.variable, v.first, stm.op)
+                if (!checkOwnership(v.second, stm.function.output.type))
+                    throw Exception("Invalid type error: ${v.second} not in ${stm.function.output.type}")
+                ReturnStatement(v.first, context.currentFunction!!)
             }
-        }
-        is CallExpr -> {
-            checkExpression(stm, context).first
-        }
-        is ReturnStatement -> {
-            val v = checkExpression(stm.expr, context)
-            if (!checkOwnership(v.second, stm.function.output.type))
-                throw Exception("Invalid type error: ${v.second} not in ${stm.function.output.type}")
-            ReturnStatement(v.first, context.currentFunction!!)
-        }
-        is FunctionBody -> {
-            if (stm.function.modifier.lazy){
-                stm
-            } else {
-                val prev = context.currentFunction
-                context.currentFunction = stm.function
-                val ret = FunctionBody(check(stm.body, context), stm.function)
+            is FunctionBody -> {
+                if (stm.function.modifier.lazy){
+                    stm
+                } else {
+                    val prev = context.currentFunction
+                    context.currentFunction = stm.function
+                    val ret = FunctionBody(check(stm.body, context), stm.function)
 
-                var startedDefault = false
-                for (v in stm.function.input.zip(stm.function.from)) {
-                    if (v.second.defaultValue != null) {
-                        check(LinkedVariableAssignment(v.first, v.second.defaultValue!!, AssignmentType.SET), context)
-                        startedDefault = true
-                    } else if (startedDefault) {
-                        throw Exception("${v.first.name} must have a default value")
+                    var startedDefault = false
+                    for (v in stm.function.input.zip(stm.function.from)) {
+                        if (v.second.defaultValue != null) {
+                            check(LinkedVariableAssignment(v.first, v.second.defaultValue!!, AssignmentType.SET), context)
+                            startedDefault = true
+                        } else if (startedDefault) {
+                            throw Exception("${v.first.name} must have a default value")
+                        }
                     }
-                }
 
-                context.currentFunction = prev
-                stm.function.body = ret.body
-                ret
+                    context.currentFunction = prev
+                    stm.function.body = ret.body
+                    ret
+                }
             }
+            else -> stm
         }
-        else -> stm
+    }catch(e: Exception){
+        throw Exception("Fail to analyse: $stm \n$e")
     }
 }
 
@@ -114,10 +145,15 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
             Pair(stm, stm.variable.type)
         }
         is UnresolvedFunctionExpr -> {
-            throw NotImplementedError()
+            if (stm.function.size == 1){
+                val fct = stm.function[0]
+                return Pair(FunctionExpr(fct), FuncType(fct.from.map { it.type }, fct.output.type))
+            } else {
+                throw NotImplementedError()
+            }
         }
         is UnresolvedExpr -> {
-            throw NotImplementedError()
+            Pair(stm, UnresolvedType())
         }
         is TupleExpr -> {
             val lst = stm.value.map { checkExpression(it, context) }
@@ -140,6 +176,12 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
                 is VariableExpr -> {
                     val to = stm.value.variable.type as FuncType
                     val args = stm.args.map{checkExpression(it, context)}
+
+                    if (to.from.size != args.size) throw Exception("Wrong Number Of Arguments!")
+                    args.zip(to.from).map { (a, b) -> if (!checkOwnership(a.second, b)){
+                        throw Exception("cannot put ${a.second} in $b")}}
+
+
                     Pair(CallExpr(stm.value, args.map { it.first }), to.to)
                 }
                 else -> throw Exception("Invalid Function Call Expression: $stm")
@@ -154,7 +196,14 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
             val p = checkExpression(stm.first, context)
             Pair(UnaryExpr(stm.op, p.first), p.second)
         }
-        else -> throw NotImplementedError()
+        is FunctionExpr -> {
+            val fct = stm.function
+            return Pair(stm, FuncType(fct.from.map { it.type }, fct.output.type))
+        }
+        is EnumExpr -> {
+            Pair(stm, EnumType(stm.enum))
+        }
+        else -> throw NotImplementedError("$stm")
     }
 }
 
@@ -173,14 +222,15 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
         is StringType -> t1 is StringType
         is BoolType -> t1 is BoolType
         is TupleType -> t1 is TupleType && t1.type.zip(t2.type).map { (x,y) -> checkOwnership(x,y) }.all { it }
-        is FuncType -> t1 is FuncType && t1.from.zip(t2.from).map { (x,y) -> checkOwnership(x,y) }.all { it }
+        is FuncType -> t1 is FuncType && t1.from.zip(t2.from).map { (x,y) -> checkOwnership(y,x) }.all { it }
                             && checkOwnership(t1.to, t2.to)
         is ArrayType -> t1 is ArrayType && checkOwnership(t1.subtype, t2.subtype) && t1.length == t2.length
         is StructType ->
             (t1 is StructType && t1.name == t2.name)||
             (
-                t2.name.methods.filter { it.identifier == Identifier(listOf("set")) && it.modifier.operator}
+                t2.name.methods.filter { it.identifier == Identifier("set") && it.modifier.operator}
             ).isNotEmpty()
+        is EnumType -> t1 is EnumType
         else -> throw NotImplementedError()
     }
 }
@@ -208,9 +258,8 @@ fun checkOwnershipCost(t1: DataType, t2: DataType): Int {
             val t = t1 as ArrayType
             checkOwnershipCost(t.subtype, t2.subtype)
         }
-        is StructType -> {
-            if (t1 is StructType && t1.name == t2.name){0}else{1}
-        }
+        is StructType -> { if (t1 is StructType && t1.name == t2.name){0}else{1} }
+        is EnumType -> { if (t1 is EnumType && t1.name == t2.name){0}else{1} }
         else -> throw NotImplementedError()
     }
 }
@@ -273,14 +322,14 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
             in listOf("+","-","*","%","/") -> {
                 Pair(BinaryExpr(op, s1, s2), biggestType(t1, t2))
             }
-            in listOf("<","<=",">",">=") -> {
+            in listOf("<","<=",">",">=", "==") -> {
                 Pair(BinaryExpr(op, s1, s2), BoolType())
             }
             else -> throw NotImplementedError()
         }
     }
     else if (isBoolean(t1) && isBoolean(t2)){
-        if (op in listOf("&&", "||")){
+        if (op in listOf("&&", "||", "==")){
             return Pair(BinaryExpr(op, s1, s2), BoolType())
         }
         throw NotImplementedError()
@@ -290,6 +339,32 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         val funcName = getOperationFunctionName(op)
         val variable = (s1 as VariableExpr).variable
         checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)*/
+    }
+    else if (t1 is EnumType){
+        var other: EnumExpr =
+        if (s2 is EnumExpr){
+            s2
+        } else if (s2 is UnresolvedExpr) {
+            s2.choice.filter { it is EnumExpr }
+                .map { it as EnumExpr }
+                .filter { it.enum == t1.name }
+                .first()
+        } else if (s2 is VariableExpr){
+            when (op) {
+                in listOf("<","<=",">",">=", "==") -> { return Pair(BinaryExpr(op, s1, s2), BoolType()) }
+                else -> throw NotImplementedError("$op for Enums")
+            }
+        } else {
+            throw InvalidTypeException(t2)
+        }
+
+
+        return when (op) {
+            in listOf("<","<=",">",">=", "==") -> {
+                Pair(BinaryExpr(op, s1, other), BoolType())
+            }
+            else -> throw NotImplementedError()
+        }
     }
     else if (t2 is StructType){
         throw NotImplementedError()

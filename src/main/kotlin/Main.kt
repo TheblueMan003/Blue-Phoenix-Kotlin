@@ -1,3 +1,4 @@
+import ast.Identifier
 import compiler.Compiler
 import compiler.ResourceGetter
 

@@ -1,6 +1,7 @@
 package codegen.minecraft
 
 import ast.*
+import data_struct.Variable
 
 var floatScale: Int = 1000
 
@@ -44,9 +45,15 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
             is VariableExpr -> {
                 listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))
             }
+            is EnumExpr -> {
+                internal(sbe, IntLitExpr(expr.index), op)
+            }
             is StatementThanExpression -> {
                 callBack(expr.statement)
                 internal(sbe, expr.expr, op)
+            }
+            is FunctionExpr -> {
+                internal(sbe, IntLitExpr(expr.function.hashCode()), AssignmentType.SET)
             }
             is BinaryExpr -> {
               when(op) {

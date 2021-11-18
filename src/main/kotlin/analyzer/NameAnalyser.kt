@@ -1,12 +1,15 @@
 package analyzer
 
 import ast.*
-import ast.Function
+import data_struct.*
+import data_struct.Enum
+import data_struct.Function
+import utils.withDefault
 
 fun runAnalyse(stm: Statement, context: Context): Statement{
     val ret = analyse(stm, context)
     context.runUnfinished{ s, c -> analyse(s, c) }
-    val ret2 = Sequence(context.functionsList.map { FunctionBody(it.body, it) }+ret)
+    val ret2 = Sequence(context.newFunctionsList.map { FunctionBody(it.body, it) }+ret)
     context.isDone = true
     return ret2
 }
@@ -40,7 +43,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                 ).withParent(stm)
             }
             is Switch -> {
-                Switch(analyse(stm.function, context) as Expression,
+                Switch(analyse(stm.scrutinee, context) as Expression,
                     stm.cases.map { s -> analyse(s, context) as Case }).withParent(stm)
             }
             is Case -> {
@@ -99,7 +102,7 @@ fun analyse(stm: Statement, context: Context): Statement {
             is VariableDeclaration -> {
                 val type = analyseType(stm.type, context)
                 if (type !is UnresolvedGeneratedType && type !is UnresolvedGeneratedGenericType) {
-                    variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent).first
+                    variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent, stm.tmp).first
                 } else if (!context.nameResolvedAllowCrash) {
                     stm
                 } else {
@@ -117,12 +120,18 @@ fun analyse(stm: Statement, context: Context): Statement {
                 context.update(stm.identifier, TypeDef(stm.modifier, stm.identifier, stm.type, stm.parent))
                 Empty()
             }
+            is EnumDeclaration -> {
+                val fields = stm.fields.map{ Enum.Field(it.identifier, it.type, it.defaultValue )}
+                val default = fields.map { it.defaultValue }
+                val entries = stm.entries.map{ Enum.Case(it.name, withDefault(it.data, default)) }
+                context.update(stm.identifier, Enum(stm.modifier, stm.identifier, fields, entries))
+                Empty()
+            }
             is FunctionDeclaration -> {
                 val uuid = context.getUniqueFunctionIdentifier(stm.identifier)
                 val identifier = context.currentPath.sub(uuid)
                 val sub = context.sub(uuid.toString())
-                val modifier = DataStructModifier()
-                modifier.visibility = DataStructVisibility.PRIVATE
+                val modifier = DataStructModifier.newPrivate()
 
                 val inputs = stm.from.map {
                     val type = analyseType(it.type, context)
@@ -138,7 +147,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                 }
 
                 val output = variableInstantiation(
-                    modifier, Identifier(listOf("__ret__")),
+                    modifier, Identifier("__ret__"),
                     analyseType(stm.to, context), sub, null, context.parentVariable?.type == stm.to
                 ).second
 
@@ -160,7 +169,14 @@ fun analyse(stm: Statement, context: Context): Statement {
 
                 Empty()
             }
-
+            is ShortLambdaDeclaration -> {
+                val modifier = DataStructModifier.newPrivate()
+                val name = context.freshLambdaName()
+                analyse(FunctionDeclaration(modifier, name, emptyList(), VoidType(), stm.body), context)
+                val fct = context.getFunction(name)[0]
+                fct.use()
+                FunctionExpr(fct)
+            }
 
 
             is UnlinkedVariableAssignment -> {
@@ -194,6 +210,9 @@ fun analyse(stm: Statement, context: Context): Statement {
                 }
                 if (context.hasFunction(stm.value)) {
                     choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value)))
+                }
+                if (context.hasEnumValue(stm.value)){
+                    choice.addAll(context.getEnumValue(stm.value).map { EnumExpr(it.first, it.second, it.third) })
                 }
                 when (choice.size) {
                     0 -> {
@@ -244,6 +263,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
                                   context: Context, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
     val variable = Variable(modifier, context.currentPath.sub(identifier), foundType, parent)
     context.update(identifier, variable)
+
     val sub = context.sub(identifier.toString())
     sub.parentVariable = variable
     var type = variable.type
@@ -281,6 +301,25 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
 
             Sequence(stmList)
         }
+        is EnumType -> {
+            val enm = type.name
+            val stmList = ArrayList<Statement>()
+            if (!noFunc) {
+                // Add Methods
+
+                stmList.addAll(
+                    enm.fields.mapIndexed { id, it ->
+                        analyse(FunctionDeclaration(DataStructModifier.newPublic(), it.name, emptyList(), it.type,
+                            Block(listOf(
+                            Switch(VariableExpr(variable),
+                            enm.values.map { Case(IdentifierExpr(it.name), UnlinkedReturnStatement(it.data[id])) }
+                            ))), variable), sub)
+                    }
+                )
+            }
+
+            Sequence(stmList)
+        }
         is ArrayType -> {
             Empty()
         }
@@ -288,7 +327,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             val subModifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PUBLIC
             Sequence(type.type.mapIndexed{ index, it ->
-                analyse(VariableDeclaration(subModifier, Identifier(listOf("_$index")), it, variable ), sub)})
+                analyse(VariableDeclaration(subModifier, Identifier("_$index"), it, variable ), sub)})
         }
         is FuncType -> {
             Empty()
@@ -311,6 +350,8 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 StructType(context.getStruct(stm.name), null)
             } else if (context.hasClass(stm.name)) {
                 ClassType(context.getClass(stm.name), null)
+            } else if (context.hasEnum(stm.name)) {
+                EnumType(context.getEnum(stm.name))
             } else if (context.hasGeneric(stm.name)){
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){

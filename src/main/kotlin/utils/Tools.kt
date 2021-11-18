@@ -41,3 +41,8 @@ fun getOperationFunctionName(op: AssignmentType): Identifier{
         AssignmentType.POW -> Identifier(listOf("powAssign"))
     }
 }
+fun <K,V> mergeMapArray(m1: List<Map<K, List<V>>>): Map<K, MutableList<V>>{
+    val ret = HashMap<K, MutableList<V>>()
+    m1.map{it -> it.map { (k,v) -> if(ret.containsKey(k)){ret[k]!!.addAll(v)}else{ ret[k] = v.toMutableList() }}}
+    return ret
+}

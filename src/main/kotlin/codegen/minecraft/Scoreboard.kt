@@ -1,7 +1,6 @@
 package codegen.minecraft
 
-import ast.Block
-import ast.Variable
+import data_struct.Variable
 
 data class Scoreboard(val name: String, val type: String)
 data class ScoreboardEntry(val name: String, val scoreboard: Scoreboard){

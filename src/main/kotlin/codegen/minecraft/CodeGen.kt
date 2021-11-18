@@ -48,8 +48,9 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
                 emptyList()
             }
         }
+        is Empty -> emptyList()
         else ->{
-            emptyList()
+            throw NotImplementedError("$stm")
         }
     }
 }

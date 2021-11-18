@@ -1,5 +1,9 @@
 package ast
 
+import data_struct.DataStructModifier
+import data_struct.Variable
+import data_struct.Enum
+
 enum class AssignmentType(val op: String){
     SET("="),
     ADD("+="),
@@ -14,6 +18,8 @@ enum class ReturnType{
     HALF,
     FULL
 }
+
+
 fun toReturnType(v1: Statement):ReturnType{
     return if (v1 is Splitter) v1.hasReturn else ReturnType.NONE
 }
@@ -40,6 +46,14 @@ abstract class Statement{
         file = f
         return this
     }
+
+    override fun toString(): String {
+        return javaClass.name
+    }
+
+    override fun hashCode(): Int {
+        return toString().hashCode()
+    }
 }
 
 class Empty : Statement()
@@ -54,8 +68,17 @@ abstract class Splitter : Statement(){
         return this
     }
 }
-data class If(val Condition: Expression, val IfBlock: Statement): Splitter()
-data class IfElse(val Condition: Expression, val IfBlock: Statement, val ElseBlock: Statement): Splitter()
+
+data class If(val Condition: Expression, val IfBlock: Statement): Splitter(){
+    override fun toString(): String {
+        return "If($Condition){$IfBlock}"
+    }
+}
+data class IfElse(val Condition: Expression, val IfBlock: Statement, val ElseBlock: Statement): Splitter(){
+    override fun toString(): String {
+        return "IfElse($Condition){$IfBlock}else{$ElseBlock}"
+    }
+}
 
 /**
  * List of Instruction
@@ -64,62 +87,71 @@ data class Block(val statements: List<Statement>): Splitter(){
     fun toSequence():Sequence{
         return Sequence(statements)
     }
+
+    override fun toString(): String {
+        return "{$statements}"
+    }
 }
 
 /**
  * Block that doesn't change context
  */
-data class Sequence(val statements: List<Statement>): Statement()
+data class Sequence(val statements: List<Statement>): Statement(){
+    override fun toString(): String {
+        return "($statements)"
+    }
+}
 
 
-data class Case(val expr: Expression, val statement: Statement): Statement()
-data class Switch(val function: Expression, val cases: List<Case>): Splitter()
+data class Case(val expr: Expression, val statement: Statement): Statement(){
+    override fun toString(): String {
+        return "$expr -> $statement"
+    }
+}
+data class Switch(val scrutinee: Expression, val cases: List<Case>): Splitter(){
+    override fun toString(): String {
+        return "switch($scrutinee){$cases}"
+    }
+}
 
 /**
  *  Variable Before after Name Analysis
  */
-data class UnlinkedVariableAssignment(var identifier: Identifier, val expr: Expression, val op: AssignmentType): Expression()
-
-/**
- *  Variable Declaration
- */
-data class VariableDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType, val parent: Variable? = null): Statement()
-
-/**
- * Function Arguments
- */
-data class FunctionArgument(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType, val defaultValue: Expression?)
-
-/**
- * Function Declaration
- */
-data class FunctionDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val from: List<FunctionArgument>,
-                               val to: DataType, val body: Statement, val parent: Variable? = null): Statement()
-
-/**
- * Struct Declaration
- */
-data class StructDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val generic: List<DataType>?,
-                             val fields: List<VariableDeclaration>, val methods: List<FunctionDeclaration>,
-                             val builder: Sequence
-): Statement()
-
-/**
- *  Typedef Declaration
- */
-data class TypeDefDeclaration(val modifier: DataStructModifier, val identifier: Identifier, val type: DataType, val parent: Variable? = null): Statement()
-
-/**
- * Lambda Declaration
- */
-data class LambdaDeclaration(val from: List<DataType>, val to: DataType, val body: Statement): Expression()
+data class UnlinkedVariableAssignment(var identifier: Identifier, val expr: Expression, val op: AssignmentType): Expression(){
+    override fun toString(): String {
+        return "UnlinkedVariableAssignment($identifier $op $expr)"
+    }
+}
 
 
-data class UnlinkedReturnStatement(val expr: Expression): Statement()
+data class UnlinkedReturnStatement(val expr: Expression): Statement(){
+    override fun toString(): String {
+        return "UnlinkedReturnStatement($expr)"
+    }
+}
 
-data class StatementThanExpression(val statement: Statement, val expr: Expression): Expression()
 
-data class RawCommand(val cmd: String): Statement()
+data class StatementThanExpression(val statement: Statement, val expr: Expression): Expression(){
+    override fun toString(): String {
+        return "UnlinkedReturnStatement($expr)"
+    }
+}
 
-data class Import(val identifier: Identifier, val alias: Identifier? = null): Statement()
+data class RawCommand(val cmd: String): Statement(){
+    override fun toString(): String {
+        return "UnlinkedReturnStatement($cmd)"
+    }
+}
+
+data class Import(val identifier: Identifier, val alias: Identifier? = null): Statement(){
+    override fun toString(): String {
+        return "Import($identifier)"
+    }
+}
+
 data class FromImport(val resource: List<Identifier>, val identifier: Identifier, val alias: Identifier? = null): Statement()
+{
+    override fun toString(): String {
+        return "FromImport($resource, $identifier)"
+    }
+}

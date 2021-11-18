@@ -1,22 +1,25 @@
 package parser
 
-import analyzer.Context
 import ast.*
-import ast.DataStructVisibility.*
+import data_struct.Enum
+import data_struct.DataStructModifier
+import data_struct.DataStructVisibility.*
 import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
 
-private val binaryOperationOrder = listOf("&&", "||","<", "<=", ">", ">=","+", "-", "*", "/", "%", "^",)
+private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">=","+", "-", "*", "/", "%", "^",)
 private val unaryOperationOrder = listOf("-", "!")
 
 
-fun parse(tokens: TokenStream):Statement{
+fun parse(filename: String, tokens: TokenStream):Pair<String, Statement>{
     val statements = ArrayList<Statement>()
+    var name = if (isKeyword(tokens, "package")){ parseIdentifier(tokens).toString() } else filename
+
     while (!tokens.isEmpty()){
         statements.add(parseBlock(tokens))
     }
-    return if (statements.size > 0) { Sequence(statements)} else { Empty()}
+    return Pair(name, if (statements.size > 0) { Sequence(statements)} else { Empty()})
 }
 
 
@@ -62,11 +65,14 @@ private fun parseBlock(tokens: TokenStream): Statement {
 
     parseModifier(tokens, modifier)
 
-    if (isKeyword(tokens, "typedef")){
+    if (isKeyword(tokens, "typedef")) {
         return parseTypeDef(tokens, modifier)
     }
     else if (isKeyword(tokens, "struct")) {
         return parseStructDeclaration(tokens, modifier)
+    }
+    else if (isKeyword(tokens, "enum")) {
+        return parseEnumDeclaration(tokens, modifier)
     }
     else if (isKeyword(tokens, "class")) {
         return Empty()
@@ -76,9 +82,9 @@ private fun parseBlock(tokens: TokenStream): Statement {
         val identifier = parseIdentifier(tokens)
 
         // Function
-        return if (isDelimiter(tokens, "(")){
+        return if (isDelimiter(tokens, "(")) {
             parseFunctionDeclaration(tokens, identifier, type, modifier)
-        } else{
+        } else {
             parseVariableDeclaration(tokens, identifier, type, modifier)
         }
     }
@@ -159,6 +165,31 @@ private fun parseStructDeclaration(tokens: TokenStream, modifier: DataStructModi
 }
 
 
+private fun parseEnumDeclaration(tokens: TokenStream, modifier: DataStructModifier): EnumDeclaration {
+    val identifier = parseIdentifier(tokens)
+    expectDelimiter(tokens, "(")
+    val args = parseFunctionArgumentsList(tokens)
+    expectDelimiter(tokens, "{")
+    val entries = ArrayList<Enum.Case>()
+    if (!isDelimiter(tokens, "}")) {
+        do{
+            val id = parseIdentifier(tokens)
+
+            val expr = if (isDelimiter(tokens, "(")) {
+                val ret = parseExpressionList(tokens)
+                expectDelimiter(tokens, ")")
+                ret
+            } else emptyList()
+
+            entries.add(Enum.Case(id, expr))
+        }while (isDelimiter(tokens, ","))
+        expectDelimiter(tokens, "}")
+    }
+
+    return EnumDeclaration(modifier, identifier, args, entries)
+}
+
+
 
 private fun parseFunctionDeclaration(tokens: TokenStream, identifier: Identifier,
                                      type: DataType, modifier: DataStructModifier
@@ -171,7 +202,8 @@ private fun parseFunctionDeclaration(tokens: TokenStream, identifier: Identifier
 
 
 private fun parseVariableDeclaration(tokens: TokenStream, identifier: Identifier,
-                                     type: DataType, modifier: DataStructModifier): Sequence {
+                                     type: DataType, modifier: DataStructModifier
+): Sequence {
     // Variable Declaration
     val vars = parseIdentifierList(tokens, identifier)
 
@@ -319,11 +351,21 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
     var called: Expression = IdentifierExpr(identifier)
     while(isDelimiter(tokens, "(")) {
         called = if (isDelimiter(tokens, ")")){
-            val args = emptyList<Expression>()
+            val args = ArrayList<Expression>()
+            if (isDelimiter(tokens,"{")){
+                args.add(ShortLambdaDeclaration(
+                    parseBlockGroup(tokens))
+                )
+            }
             CallExpr(called, args)
         }else {
-            val args = parseExpressionList(tokens)
+            val args = parseExpressionList(tokens).toMutableList()
             expectDelimiter(tokens, ")")
+            if (isDelimiter(tokens,"{")){
+                args.add(ShortLambdaDeclaration(
+                    parseBlockGroup(tokens))
+                )
+            }
             CallExpr(called, args)
         }
     }
@@ -467,10 +509,17 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
  */
 fun parseType(tokens: TokenStream): DataType {
     var type = parseSimpleType(tokens)
+
     while(isDelimiter(tokens, "[")){
         if (type is VarType) throw UnexpectedException("Var cannot be used as a Type in Arrays")
         expectDelimiter(tokens, "]")
         type = ArrayType(type, -1)
+    }
+    if (isOperationToken(tokens, "=>")){
+        type = when(type) {
+            is TupleType -> FuncType(type.type, parseType(tokens))
+            else -> FuncType(listOf(type), parseType(tokens))
+        }
     }
     return type
 }
@@ -492,9 +541,6 @@ private fun parseSimpleType(tokens: TokenStream): DataType {
         }
         if (lst.size > 1 && lst.contains(VarType())){
             throw UnexpectedException("Var cannot be used as a Type in Tuple")
-        }
-        if (isOperationToken(tokens, "=>")){
-            return FuncType(lst, parseType(tokens))
         }
         return TupleType(lst)
     }

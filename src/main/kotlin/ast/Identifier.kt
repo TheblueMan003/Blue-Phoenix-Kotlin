@@ -1,6 +1,8 @@
 package ast
 
 class Identifier(val paths: List<String>) {
+    constructor(path: String) : this(listOf(path))
+
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is Identifier -> {

@@ -17,10 +17,14 @@ fun genIf(expr: If, callBack: (Statement)->List<String>):String{
                         val s1 = variableToScoreboard(left.variable)
                         val s2 = variableToScoreboard(right.variable)
                         s1.compare(s2, expr.op)
-                    } else if (left is VariableExpr && right is RangeLitExpr) {
+                    }
+                    // Range
+                    else if (left is VariableExpr && right is RangeLitExpr) {
                         val s1 = variableToScoreboard(left.variable)
                         s1.isIn(litExprToInt(right.min as LitExpr), litExprToInt(right.max as LitExpr))
-                    } else if (left is VariableExpr && right is LitExpr) {
+                    }
+                    // Lit
+                    else if (left is VariableExpr && right is LitExpr) {
                         val s1 = variableToScoreboard(left.variable)
                         s1.compare(litExprToInt(right), expr.op)
                     } else if (left is LitExpr && right is VariableExpr) {
