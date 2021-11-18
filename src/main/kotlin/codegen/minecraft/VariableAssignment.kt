@@ -7,7 +7,7 @@ var floatScale: Int = 1000
 
 
 fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentType, sbi: ScoreboardInitializer,
-                          callBack: (Statement)->Unit): List<String>{
+                          callBack: (Statement)->List<String>): List<String>{
     val s = variableToScoreboard(variable)
     var counter = -1
 
@@ -49,7 +49,7 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                 internal(sbe, IntLitExpr(expr.index), op)
             }
             is StatementThanExpression -> {
-                callBack(expr.statement)
+                callBack(expr.statement) +
                 internal(sbe, expr.expr, op)
             }
             is FunctionExpr -> {

@@ -133,13 +133,13 @@ data class UnlinkedReturnStatement(val expr: Expression): Statement(){
 
 data class StatementThanExpression(val statement: Statement, val expr: Expression): Expression(){
     override fun toString(): String {
-        return "UnlinkedReturnStatement($expr)"
+        return "StatementThanExpression($statement $expr)"
     }
 }
 
 data class RawCommand(val cmd: String): Statement(){
     override fun toString(): String {
-        return "UnlinkedReturnStatement($cmd)"
+        return "RawCommand($cmd)"
     }
 }
 

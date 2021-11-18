@@ -9,11 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/mc/color.bp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStruct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStruct.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
+    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="Remove Cross Import">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -464,14 +463,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637267539013</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="Remove Cross Import">
+      <created>1637267973731</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1637267973731</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="StackedHashMap.kt" />
     <MESSAGE value="NameAnalyser V1" />
     <MESSAGE value="NameAnalyser V2&#10;Parse Switch" />
     <MESSAGE value="Struct Parsing&#10;Upward public V1" />
@@ -496,7 +501,8 @@
     <MESSAGE value="Switch" />
     <MESSAGE value="Fixes" />
     <MESSAGE value="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda" />
+    <MESSAGE value="Remove Cross Import" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove Cross Import" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
