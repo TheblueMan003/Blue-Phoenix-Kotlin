@@ -9,6 +9,7 @@ import data_struct.Enum
 
 class Context(private val path: String, val compiler: Compiler): Object(){
     var currentPath: Identifier = Identifier(path.split('.'))
+    var ownerPackage = path
     var currentFolder: Identifier = Identifier(path.split('.'))
     private var children = ArrayList<Context>()
     private var variables: StackedHashMap<Identifier, Variable>             = StackedHashMap()
@@ -43,27 +44,32 @@ class Context(private val path: String, val compiler: Compiler): Object(){
             synchronized(if (child.hashCode() < hashCode()){this}else{child}) {
                 val base = alias ?: child.currentFolder
                 child.variables.getTopLevel()
+                    .filter { (_, v) -> v.ownerPackage == child.ownerPackage }
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> update(k, v, import) }
                 child.functions.getTopLevel()
-                    .map { (k, v) -> k to v.filter { it.isVisible(visibility, this) } }
+                    .map { (k, v) -> k to v.filter { it.isVisible(visibility, this) && it.ownerPackage == child.ownerPackage } }
                     .filter { (_, v) -> v.isNotEmpty() }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> v.forEach { update(k, it, true) } }
                 child.structs.getTopLevel()
                     .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> update(k, v, import) }
                 child.classes.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> update(k, v, import) }
                 child.enums.getTopLevel()
                     .filter { (_, v) -> v.isVisible(visibility, this) }
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> enumsList.add(v);update(k, v, import) }
                 child.typedef.getTopLevel()
+                    .filter { (_, v) -> v.isVisible(visibility, this) }
                     .filter { (_, v) -> v.isVisible(visibility, this) }
                     .map { (k, v) -> base.append(k) to v }
                     .map { (k, v) -> update(k, v, import) }
@@ -78,6 +84,8 @@ class Context(private val path: String, val compiler: Compiler): Object(){
         if (variables.hasKeyTopLevel(id) && !import) throw Exception("$id was already defined in scope")
         if (variables.hasKeyTopLevel(id) && import) return
         variables[id] = obj
+
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
 
         // Add Variable to Parent
         if (parentVariable != null && id.level() == 1) {
@@ -99,27 +107,32 @@ class Context(private val path: String, val compiler: Compiler): Object(){
             }
             functions[id]!!.add(obj)
         }
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
     }
     fun update(id: Identifier, obj: TypeDef, import: Boolean = false){
         if (typedef.hasKeyTopLevel(id) && !import) throw Exception("$id was already defined in scope")
         if (typedef.hasKeyTopLevel(id) && import) return
         typedef[id] = obj
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
     }
     fun update(id: Identifier, obj: Struct, import: Boolean = false){
         if (structs.hasKeyTopLevel(id) && !import) throw Exception("$id was already defined in scope")
         if (structs.hasKeyTopLevel(id) && import) return
         structs[id] = obj
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
     }
     fun update(id: Identifier, obj: Class, import: Boolean = false){
         if (classes.hasKeyTopLevel(id) && !import) throw Exception("$id was already defined in scope")
         if (classes.hasKeyTopLevel(id) && import) return
         classes[id] = obj
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
     }
     fun update(id: Identifier, obj: Enum, import: Boolean = false){
         if (enums.hasKeyTopLevel(id) && !import) throw Exception("$id was already defined in scope")
         if (enums.hasKeyTopLevel(id) && import) return
         enumsList.add(obj)
         enums[id] = obj
+        if (obj.ownerPackage == null) obj.ownerPackage = ownerPackage
     }
     fun update(id: Identifier, obj: DataType){
         generics[id] = obj
@@ -237,6 +250,7 @@ class Context(private val path: String, val compiler: Compiler): Object(){
     fun sub(id: String):Context{
         val context = Context(id, compiler)
         context.currentPath       = currentPath.sub(id)
+        context.ownerPackage      = ownerPackage
         context.variables         = variables.sub()
         context.functions         = functions.sub()
         context.structs           = structs.sub()
