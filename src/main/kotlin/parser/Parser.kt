@@ -43,6 +43,11 @@ private fun parseBlock(tokens: TokenStream): Statement {
     // Switch
     if (isKeyword(tokens, "switch")){ return parseSwitch(tokens) }
 
+    // While
+    if (isKeyword(tokens, "while")){ return parseWhile(tokens) }
+    // Do While
+    if (isKeyword(tokens, "do")){ return parseDoWhile(tokens) }
+
     // Return
     if (isKeyword(tokens, "return")){ return UnlinkedReturnStatement(parseExpression(tokens)) }
 
@@ -372,6 +377,24 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
     return called
 }
 
+
+private fun parseWhile(tokens: TokenStream): Expression {
+    expectDelimiter(tokens, "(")
+    val args = parseExpressionList(tokens).toMutableList()
+    args.add(ShortLambdaDeclaration(
+        parseBlockGroup(tokens))
+    )
+    return CallExpr(IdentifierExpr(Identifier(listOf("std","whileLoop"))), args)
+}
+private fun parseDoWhile(tokens: TokenStream): Expression {
+    val lambda = ShortLambdaDeclaration(parseBlockGroup(tokens))
+    expectKeyword(tokens, "while")
+    expectDelimiter(tokens, "(")
+    val args = parseExpressionList(tokens).toMutableList()
+    args.add(lambda)
+
+    return CallExpr(IdentifierExpr(Identifier(listOf("std","doWhileLoop"))), args)
+}
 
 
 private fun parseFunctionArgumentsList(tokens: TokenStream): List<FunctionArgument>{

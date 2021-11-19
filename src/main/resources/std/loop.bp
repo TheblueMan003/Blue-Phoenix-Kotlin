@@ -1,0 +1,23 @@
+package std
+
+lazy void whileLoop(lazy bool condition, lazy void=>void block){
+    void loop(){
+        block()
+        if (condition){
+            loop()
+        }
+    }
+    if (condition){
+        loop()
+    }
+}
+
+lazy void doWhileLoop(lazy bool condition, lazy void=>void block){
+    void loop(){
+        block()
+        if (condition){
+            loop()
+        }
+    }
+    loop()
+}

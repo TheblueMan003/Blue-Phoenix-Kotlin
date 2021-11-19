@@ -9,7 +9,7 @@ import utils.withDefault
 fun runAnalyse(stm: Statement, context: Context): Statement{
     val ret = analyse(stm, context)
     context.runUnfinished{ s, c -> analyse(s, c) }
-    val ret2 = Sequence(context.newFunctionsList.map { FunctionBody(it.body, it) }+ret)
+    val ret2 = Sequence(context.newFunctionsList.filter { !it.modifier.lazy }.map { FunctionBody(it.body, it) }+ret)
     context.isDone = true
     return ret2
 }

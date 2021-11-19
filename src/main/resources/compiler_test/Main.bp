@@ -1,3 +1,6 @@
 import math
 
-int a = math.sign(5)
+int a = 10
+whileLoop(a > 0){
+    a -= 1
+}

@@ -184,6 +184,9 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
 
                     Pair(CallExpr(stm.value, args.map { it.first }), to.to)
                 }
+                is FunctionExpr -> {
+                    Pair(stm, stm.value.function.output.type)
+                }
                 else -> throw Exception("Invalid Function Call Expression: $stm")
             }
         }
