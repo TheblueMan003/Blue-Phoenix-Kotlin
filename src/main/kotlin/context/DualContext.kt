@@ -58,7 +58,7 @@ class DualContext(val get: IContext, val set: IContext): IContext {
         return get.hasTypeDef(id, visibility) || set.hasTypeDef(id, visibility)
     }
     override fun hasGeneric(id: Identifier): Boolean {
-        return set.hasGeneric(id)
+        return set.hasGeneric(id) || get.hasGeneric(id)
     }
 
     override fun getVariable(id: Identifier, visibility: DataStructVisibility): Variable {
@@ -111,7 +111,11 @@ class DualContext(val get: IContext, val set: IContext): IContext {
         }
     }
     override fun getGeneric(id: Identifier): DataType {
-        return set.getGeneric(id)
+        return if (set.hasGeneric(id)) {
+            set.getGeneric(id)
+        } else {
+            get.getGeneric(id)
+        }
     }
 
     override fun sub(id: String): IContext {

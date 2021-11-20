@@ -1,6 +1,9 @@
-from math.vector import vector3
+void=>void rec(void=>void test){
 
-vector3<int> a
-vector3<int> b
+}
 
-a += b
+rec(){
+    int a
+}(){
+    int b
+}

@@ -21,9 +21,9 @@ fun <A, B>List<A>.pmap(f: (A) -> B): List<B> = this.parallelStream().map(f).toLi
 
 fun getOperationFunctionName(op: String): Identifier {
     return when(op){
-        "+" -> Identifier(listOf("add"))
-        "-" -> Identifier(listOf("sub"))
-        "*" -> Identifier(listOf("mul"))
+        "+" -> Identifier(listOf("plus"))
+        "-" -> Identifier(listOf("minus"))
+        "*" -> Identifier(listOf("times"))
         "/" -> Identifier(listOf("div"))
         "%" -> Identifier(listOf("mod"))
         "^" -> Identifier(listOf("pow"))

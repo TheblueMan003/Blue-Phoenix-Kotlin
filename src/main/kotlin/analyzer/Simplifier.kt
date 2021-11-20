@@ -1,6 +1,7 @@
 package analyzer
 
 import ast.*
+import context.DualContext
 import context.IContext
 import data_struct.DataStructModifier
 import data_struct.Function
@@ -134,6 +135,11 @@ fun simplify(stm: Statement, context: IContext): Statement {
                         Sequence(stm.variable.childrenVariable.map{
                             LinkedVariableAssignment(it.value, VariableExpr(expr.variable.childrenVariable[it.key]!!), stm.op)
                         })
+                    } else if (expr is CallExpr && expr.value is FunctionExpr) {
+                        Sequence(listOf(
+                            simplify(stm.expr, context),
+                            simplify(compile(LinkedVariableAssignment(stm.variable, VariableExpr(expr.value.function.output), stm.op), context), context)
+                        ))
                     } else throw NotImplementedError()
                 }
             }
@@ -308,7 +314,7 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: ICont
         val assignment = lazyFunctionAssignArg(stm.function, args)
 
         val block = runReplace(stm.function.body, map)
-        val sub = context.sub(block.hashCode().toString())
+        val sub = DualContext(stm.function.context, context).sub(block.hashCode().toString())
 
         stm.function.input.map { sub.update(it.name.getLast(), it) }
 
@@ -321,6 +327,13 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: ICont
             FunctionExpr(context.getLambdaFunction(stm.variable.type as FuncType, compile)),
         listOf(stm)+args,
             context)
+    } else if (stm is CallExpr){
+        val ret = simplifyFunctionCall(stm.value, stm.args, context)
+        val inter = simplifyFunctionCall(
+            ret.second,
+            args,
+            context)
+        return Pair(Sequence(listOf(ret.first)+inter.first), inter.second)
     } else {
         throw NotImplementedError(stm.toString())
     }

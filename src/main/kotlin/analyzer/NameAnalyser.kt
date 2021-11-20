@@ -154,7 +154,7 @@ fun analyse(stm: Statement, context: IContext): Statement {
 
                 val output = variableInstantiation(
                     modifier, Identifier("__ret__"),
-                    analyseType(stm.to, context), sub, null, context.getParentVariable()?.type == stm.to
+                    analyseType(stm.to, context), sub, null, context.getParentVariable()?.type == analyseType(stm.to, context)
                 ).second
 
                 val body = if (stm.body is Block) {

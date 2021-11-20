@@ -1,3 +1,0 @@
-public (int,int) sorted(int a, int b){
-    return(b, a)
-}

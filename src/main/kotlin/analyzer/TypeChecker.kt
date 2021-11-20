@@ -3,6 +3,7 @@ package analyzer
 import ast.*
 import context.IContext
 import data_struct.Function
+import utils.getOperationFunctionName
 import utils.withDefault
 
 
@@ -12,7 +13,7 @@ fun runChecker(stm: Statement, context: IContext): Statement {
     return check(stm, context)
 }
 fun check(stm: Statement, context: IContext): Statement {
-    try{
+//    try{
         return when(stm){
             is If -> {
                 val cond = checkExpression(stm.Condition, context)
@@ -55,6 +56,14 @@ fun check(stm: Statement, context: IContext): Statement {
                         }
                         is UnresolvedExpr -> {
                             throw Exception("Cannot be assign to function")
+                        }
+                        is CallExpr -> {
+                            val call = checkExpression(stm.expr.value, context)
+                            if (call.second is FuncType && checkOwnership((call.second as FuncType).to, stm.variable.type)){
+                                stm
+                            }else {
+                                throw Exception("Cannot be assign to function ${call.second} not in ${stm.variable.type}")
+                            }
                         }
                         else -> {
                             throw Exception("Cannot be assign to function $stm")
@@ -123,9 +132,9 @@ fun check(stm: Statement, context: IContext): Statement {
             }
             else -> stm
         }
-    }catch(e: Exception){
-        throw Exception("Fail to analyse: $stm \n$e")
-    }
+//    }catch(e: Exception){
+//        throw Exception("Fail to analyse: $stm \n$e")
+//    }
 }
 
 fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataType>{
@@ -187,6 +196,14 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
                 }
                 is FunctionExpr -> {
                     Pair(stm, stm.value.function.output.type)
+                }
+                is CallExpr -> {
+                    val inter = checkExpression(stm.value, context)
+                    if (inter.second is FuncType) {
+                        Pair(CallExpr(inter.first, stm.args), (inter.second as FuncType).to)
+                    } else {
+                        throw Exception("${inter.first} Not a function. (${inter.second})")
+                    }
                 }
                 else -> throw Exception("Invalid Function Call Expression: $stm")
             }
@@ -348,10 +365,9 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         throw NotImplementedError()
     }
     else if (t1 is StructType){
-        throw NotImplementedError()/*
         val funcName = getOperationFunctionName(op)
         val variable = (s1 as VariableExpr).variable
-        checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)*/
+        return checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)
     }
     else if (t1 is EnumType){
         var other: EnumExpr =

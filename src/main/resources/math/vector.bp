@@ -7,6 +7,14 @@ public struct vector3<T>{
         z += other.z
     }
 
+    public lazy operator vector3<T> plus(vector3<T> other){
+        vector3<T> out
+        out.x = x + other.x
+        out.y = y + other.y
+        out.z = z + other.z
+        return out
+    }
+
     public operator void minusAssign(vector3<T> other){
         x -= other.x
         y -= other.y
