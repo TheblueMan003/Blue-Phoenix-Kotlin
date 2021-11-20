@@ -1,16 +1,17 @@
 package analyzer
 
 import ast.*
+import context.IContext
 import data_struct.Function
 import utils.withDefault
 
 
 data class InvalidTypeException(val type: DataType): Exception()
 
-fun runChecker(stm: Statement, context: Context): Statement {
+fun runChecker(stm: Statement, context: IContext): Statement {
     return check(stm, context)
 }
-fun check(stm: Statement, context: Context): Statement {
+fun check(stm: Statement, context: IContext): Statement {
     try{
         return when(stm){
             is If -> {
@@ -95,14 +96,14 @@ fun check(stm: Statement, context: Context): Statement {
                 val v = checkExpression(stm.expr, context)
                 if (!checkOwnership(v.second, stm.function.output.type))
                     throw Exception("Invalid type error: ${v.second} not in ${stm.function.output.type}")
-                ReturnStatement(v.first, context.currentFunction!!)
+                ReturnStatement(v.first, context.getCurrentFunction()!!)
             }
             is FunctionBody -> {
                 if (stm.function.modifier.lazy){
                     stm
                 } else {
-                    val prev = context.currentFunction
-                    context.currentFunction = stm.function
+                    val prev = context.getCurrentFunction()
+                    context.setCurrentFunction(stm.function)
                     val ret = FunctionBody(check(stm.body, context), stm.function)
 
                     var startedDefault = false
@@ -115,7 +116,7 @@ fun check(stm: Statement, context: Context): Statement {
                         }
                     }
 
-                    context.currentFunction = prev
+                    context.setCurrentFunction(prev)
                     stm.function.body = ret.body
                     ret
                 }
@@ -127,7 +128,7 @@ fun check(stm: Statement, context: Context): Statement {
     }
 }
 
-fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataType>{
+fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataType>{
     return when(stm){
         is IntLitExpr -> {
             Pair(stm, IntType())
@@ -165,8 +166,8 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
                     val args = stm.args.map{checkExpression(it, context)}
                     val fct = findFunction(args.map { it.second }, stm.value.function)
 
-                    if (context.currentFunction != null){
-                        context.currentFunction!!.addFuncCall(fct)
+                    if (context.getCurrentFunction() != null){
+                        context.getCurrentFunction()!!.addFuncCall(fct)
                     }else{
                         fct.use()
                     }
@@ -206,6 +207,11 @@ fun checkExpression(stm: Expression, context: Context): Pair<Expression, DataTyp
         is EnumExpr -> {
             Pair(stm, EnumType(stm.enum))
         }
+        is RangeLitExpr -> {
+            val first = checkExpression(stm.min, context)
+            val second = checkExpression(stm.max, context)
+            operationCombine("..", first, second, context)
+        }
         else -> throw NotImplementedError("$stm")
     }
 }
@@ -234,6 +240,7 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
                 t2.name.methods.filter { it.identifier == Identifier("set") && it.modifier.operator}
             ).isNotEmpty()
         is EnumType -> t1 is EnumType
+        is RangeType -> t1 is RangeType && checkOwnership(t1.type, t2.type)
         else -> throw NotImplementedError()
     }
 }
@@ -315,7 +322,7 @@ fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean 
     }
 }
 
-fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expression, DataType>, context: Context):Pair<Expression, DataType>{
+fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expression, DataType>, context: IContext):Pair<Expression, DataType>{
     val s1 = p1.first
     val s2 = p2.first
     val t1 = p1.second
@@ -327,6 +334,9 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
             }
             in listOf("<","<=",">",">=", "==") -> {
                 Pair(BinaryExpr(op, s1, s2), BoolType())
+            }
+            ".." -> {
+                Pair(RangeLitExpr(s1, s2), RangeType(biggestType(t1, t2)))
             }
             else -> throw NotImplementedError()
         }

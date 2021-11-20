@@ -1,25 +1,25 @@
 public struct vector3<T>{
     T x,y,z
 
-    public void plusAssign(vector3<T> other){
+    public operator void plusAssign(vector3<T> other){
         x += other.x
         y += other.y
         z += other.z
     }
 
-    public void minusAssign(vector3<T> other){
+    public operator void minusAssign(vector3<T> other){
         x -= other.x
         y -= other.y
         z -= other.z
     }
 
-    public void timesAssign(T other){
+    public operator void timesAssign(T other){
         x *= x
         y *= y
         z *= z
     }
 
-    public void divAssign(T other){
+    public operator void divAssign(T other){
         x /= x
         y /= y
         z /= z

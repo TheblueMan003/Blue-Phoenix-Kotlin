@@ -12,14 +12,14 @@ private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">="
 private val unaryOperationOrder = listOf("-", "!")
 
 
-fun parse(filename: String, tokens: TokenStream):Pair<String, Statement>{
+fun parse(filename: String, forcedImport: List<String>,tokens: TokenStream):Pair<String, Statement>{
     val statements = ArrayList<Statement>()
     var name = if (isKeyword(tokens, "package")){ parseIdentifier(tokens).toString() } else filename
 
     while (!tokens.isEmpty()){
         statements.add(parseBlock(tokens))
     }
-    return Pair(name, if (statements.size > 0) { Sequence(statements)} else { Empty()})
+    return Pair(name, if (statements.size > 0) { Sequence(forcedImport.map {Import(Identifier(it))} + statements)} else { Empty()})
 }
 
 
@@ -380,17 +380,21 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
 
 private fun parseWhile(tokens: TokenStream): Expression {
     expectDelimiter(tokens, "(")
-    val args = parseExpressionList(tokens).toMutableList()
+    val args = ArrayList(listOf(parseExpression(tokens)))
+    expectDelimiter(tokens, ")")
+    expectDelimiter(tokens, "{")
     args.add(ShortLambdaDeclaration(
         parseBlockGroup(tokens))
     )
     return CallExpr(IdentifierExpr(Identifier(listOf("std","whileLoop"))), args)
 }
 private fun parseDoWhile(tokens: TokenStream): Expression {
+    expectDelimiter(tokens, "{")
     val lambda = ShortLambdaDeclaration(parseBlockGroup(tokens))
     expectKeyword(tokens, "while")
     expectDelimiter(tokens, "(")
-    val args = parseExpressionList(tokens).toMutableList()
+    val args = ArrayList(listOf(parseExpression(tokens)))
+    expectDelimiter(tokens, ")")
     args.add(lambda)
 
     return CallExpr(IdentifierExpr(Identifier(listOf("std","doWhileLoop"))), args)
@@ -463,7 +467,7 @@ private fun parseModifier(tokens: TokenStream, modifier: DataStructModifier){
  */
 private fun parseExpression(tokens: TokenStream, index: Int = 0): Expression {
     fun under() = if (index+1 == binaryOperationOrder.size){
-        parseSimpleExpression(tokens)
+        parseRangeAndSimpleExpression(tokens)
     } else{
         parseExpression(tokens, index + 1)
     }
@@ -472,6 +476,19 @@ private fun parseExpression(tokens: TokenStream, index: Int = 0): Expression {
         left = BinaryExpr(binaryOperationOrder[index], left, under())
     }
     return left
+}
+
+
+
+private fun parseRangeAndSimpleExpression(tokens: TokenStream):Expression{
+    val first = parseSimpleExpression(tokens)
+    return if (isDelimiter(tokens, ".")){
+        expectDelimiter(tokens, ".")
+        val second = parseSimpleExpression(tokens)
+        RangeLitExpr(first, second)
+    }else {
+        first
+    }
 }
 
 
@@ -581,6 +598,11 @@ private fun parseSimpleType(tokens: TokenStream): DataType {
     if (isPrimTypeToken(tokens,"string")){ return StringType() }
     if (isPrimTypeToken(tokens,"void")){ return VoidType() }
     if (isPrimTypeToken(tokens,"var")){ return VarType() }
+    if (isPrimTypeToken(tokens,"range")){
+        val generics = parseGenerics(tokens)
+        if (generics == null || generics.size != 1) throw UnexpectedException("Range must have one and only one generics.")
+        return RangeType(generics[0])
+    }
     throw UnexpectedException("Unknown type: "+tokens.peekString()+" at pos: "+tokens.peekPos())
 }
 

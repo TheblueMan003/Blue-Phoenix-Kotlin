@@ -10,12 +10,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/std/loop.bp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/context/DualContext.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/context/IContext.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/context/Context.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/SwitchTreeBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/SwitchTreeBuilder.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/DataType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/DataType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStruct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStruct.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/Function.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/Function.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/Struct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/Struct.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/std/loop.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/std/loop.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,6 +102,7 @@
       <list>
         <option value="Class" />
         <option value="Kotlin File" />
+        <option value="Kotlin Interface" />
         <option value="Kotlin Class" />
       </list>
     </option>
@@ -128,6 +141,7 @@
       <recent name="E:\019_Programming\BluePhoenix\src\main\resources" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="context" />
       <recent name="utils" />
     </key>
   </component>
@@ -480,14 +494,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637269537889</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="While, DoWhile">
+      <created>1637336687882</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1637336687882</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="NameAnalyser V2&#10;Parse Switch" />
     <MESSAGE value="Struct Parsing&#10;Upward public V1" />
     <MESSAGE value="Upward public V2&#10;Struct &amp; Function Analyser" />
     <MESSAGE value="Type Checker V1" />
@@ -512,7 +532,8 @@
     <MESSAGE value="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda" />
     <MESSAGE value="Remove Cross Import" />
     <MESSAGE value="Fix Function Call Code Gen" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix Function Call Code Gen" />
+    <MESSAGE value="While, DoWhile" />
+    <option name="LAST_COMMIT_MESSAGE" value="While, DoWhile" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

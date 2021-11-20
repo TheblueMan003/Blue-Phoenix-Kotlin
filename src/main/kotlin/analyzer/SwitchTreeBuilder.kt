@@ -1,10 +1,11 @@
 package analyzer
 
 import ast.*
+import context.IContext
 import kotlin.math.ceil
 
-fun buildSwitchTree(scrut: Expression, cases: List<Case>, context: Context, reassign: Boolean = true): Statement{
-    val treeSize = context.compiler.treeSize
+fun buildSwitchTree(scrut: Expression, cases: List<Case>, context: IContext, reassign: Boolean = true): Statement{
+    val treeSize = context.getCompiler().treeSize
     val intCases = cases.filter { it.expr is IntLitExpr }.sortedBy { (it.expr as IntLitExpr).value }
     val fctCases = cases.filter { it.expr is FunctionExpr }.sortedBy { (it.expr as FunctionExpr).function.hashCode() }
     val floatCases = cases.filter { it.expr is FloatLitExpr }.sortedBy { (it.expr as FloatLitExpr).value }

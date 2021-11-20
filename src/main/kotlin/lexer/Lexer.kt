@@ -7,9 +7,9 @@ val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy", "switch", "package"))
+    "typedef", "lazy", "switch", "package", "in"))
 
-val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val"))
+val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val", "range"))
 val boolLit = HashSet(listOf("true","false"))
 val delimiter = HashSet(listOf('(', ')', '{', '}', '[', ']', '.', ','))
 val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<'))

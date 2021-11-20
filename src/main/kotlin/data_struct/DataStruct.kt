@@ -1,6 +1,6 @@
 package data_struct
 
-import analyzer.Context
+import context.Context
 
 abstract class DataStruct(private val d_modifier: DataStructModifier, private val d_parent: Variable? = null) {
     var ownerPackage: String? = null

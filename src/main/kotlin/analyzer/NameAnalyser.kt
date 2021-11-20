@@ -1,25 +1,27 @@
 package analyzer
 
 import ast.*
+import context.DualContext
+import context.IContext
 import data_struct.*
 import data_struct.Enum
 import data_struct.Function
 import utils.withDefault
 
-fun runAnalyse(stm: Statement, context: Context): Statement{
+fun runAnalyse(stm: Statement, context: IContext): Statement{
     val ret = analyse(stm, context)
     context.runUnfinished{ s, c -> analyse(s, c) }
-    val ret2 = Sequence(context.newFunctionsList.filter { !it.modifier.lazy }.map { FunctionBody(it.body, it) }+ret)
-    context.isDone = true
+    val ret2 = Sequence(context.getNewFunctionsList().filter { !it.modifier.lazy }.map { FunctionBody(it.body, it) }+ret)
+    context.setDone()
     return ret2
 }
 
-fun analyse(stm: Statement, context: Context): Statement {
+fun analyse(stm: Statement, context: IContext): Statement {
     fun passUpward(stm: Statement): Statement {
         context.resolve()
         return stm
     }
-    try {
+    try{
         return passUpward(
             when(stm) {
             is Block -> {
@@ -53,16 +55,20 @@ fun analyse(stm: Statement, context: Context): Statement {
                 )
             }
             is Import -> {
-                val value = context.compiler.import(stm.identifier.toString())
-                context.update(value, DataStructVisibility.PUBLIC, true, stm.alias)
-                if (value.isLib) {
-                    Empty()
+                if (stm.identifier.toString() != context.getOwnerPackage()) {
+                    val value = context.getCompiler().import(stm.identifier.toString())
+                    context.update(value, DataStructVisibility.PUBLIC, true, stm.alias)
+                    if (value.isLib()) {
+                        Empty()
+                    } else {
+                        Import(stm.identifier, stm.alias)
+                    }
                 } else {
-                    Import(stm.identifier, stm.alias)
+                    Empty()
                 }
             }
             is FromImport -> {
-                val other = context.compiler.import(stm.identifier.toString())
+                val other = context.getCompiler().import(stm.identifier.toString())
 
                 if (stm.resource.contains(Identifier(listOf("*")))) {
                     throw NotImplementedError("*")
@@ -103,7 +109,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                 val type = analyseType(stm.type, context)
                 if (type !is UnresolvedGeneratedType && type !is UnresolvedGeneratedGenericType) {
                     variableInstantiation(stm.modifier, stm.identifier, type, context, stm.parent, stm.tmp).first
-                } else if (!context.nameResolvedAllowCrash) {
+                } else if (!context.areNameCrashAllowed()) {
                     stm
                 } else {
                     throw Exception("$type Not Resolved Found")
@@ -112,7 +118,7 @@ fun analyse(stm: Statement, context: Context): Statement {
             is StructDeclaration -> {
                 context.update(
                     stm.identifier,
-                    Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder)
+                    Struct(stm.modifier, stm.identifier, stm.generic, stm.fields, stm.methods, stm.builder, context)
                 )
                 Empty()
             }
@@ -129,7 +135,7 @@ fun analyse(stm: Statement, context: Context): Statement {
             }
             is FunctionDeclaration -> {
                 val uuid = context.getUniqueFunctionIdentifier(stm.identifier)
-                val identifier = context.currentPath.sub(uuid)
+                val identifier = context.getCurrentPath().sub(uuid)
                 val sub = context.sub(uuid.toString())
                 val modifier = DataStructModifier.newPrivate()
 
@@ -138,8 +144,8 @@ fun analyse(stm: Statement, context: Context): Statement {
                     variableInstantiation(
                         it.modifier,
                         it.identifier, analyseType(it.type, context), sub, null,
-                        if (context.parentVariable != null) {
-                            context.parentVariable!!.type == type
+                        if (context.getParentVariable() != null) {
+                            context.getParentVariable()!!.type == type
                         } else {
                             false
                         }
@@ -148,7 +154,7 @@ fun analyse(stm: Statement, context: Context): Statement {
 
                 val output = variableInstantiation(
                     modifier, Identifier("__ret__"),
-                    analyseType(stm.to, context), sub, null, context.parentVariable?.type == stm.to
+                    analyseType(stm.to, context), sub, null, context.getParentVariable()?.type == stm.to
                 ).second
 
                 val body = if (stm.body is Block) {
@@ -164,7 +170,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                         it.defaultValue
                     )
                 }
-                val function = Function(stm.modifier, identifier, from, inputs, output, body, context.parentVariable)
+                val function = Function(stm.modifier, identifier, from, inputs, output, body, context, context.getParentVariable())
                 context.update(stm.identifier, sub.addUnfinished(function, sub))
 
                 Empty()
@@ -187,18 +193,18 @@ fun analyse(stm: Statement, context: Context): Statement {
                         variable,
                         analyse(stm.expr, context) as Expression, stm.op
                     )
-                } else if (!context.nameResolvedAllowCrash) {
+                } else if (!context.areNameCrashAllowed()) {
                     stm
                 } else {
                     throw Exception("${stm.identifier} identifier Not Found")
                 }
             }
             is UnlinkedReturnStatement -> {
-                if (context.currentFunction == null) throw Exception("Return must me inside of a function")
-                ReturnStatement(analyse(stm.expr, context) as Expression, context.currentFunction!!)
+                if (context.getCurrentFunction() == null) throw Exception("Return must me inside of a function")
+                ReturnStatement(analyse(stm.expr, context) as Expression, context.getCurrentFunction()!!)
             }
             is FunctionBody -> {
-                val body = analyse(stm.body, context)
+                val body = analyse(stm.body, DualContext(stm.function.context, context))
                 stm.function.body = body
                 FunctionBody(body, stm.function)
             }
@@ -216,7 +222,7 @@ fun analyse(stm: Statement, context: Context): Statement {
                 }
                 when (choice.size) {
                     0 -> {
-                        if (!context.nameResolvedAllowCrash) {
+                        if (!context.areNameCrashAllowed()) {
                             stm
                         } else {
                             throw Exception("${stm.value} Not Found")
@@ -255,30 +261,33 @@ fun analyse(stm: Statement, context: Context): Statement {
             }
         }
     )}catch(e: Exception){
-        throw Exception("Fail to analyse: $stm \n$e")
+        throw Exception("Failled to parse: $stm \n$e")
     }
 }
 
 private fun variableInstantiation(modifier: DataStructModifier, identifier: Identifier, foundType: DataType,
-                                  context: Context, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
-    val variable = Variable(modifier, context.currentPath.sub(identifier), foundType, parent)
+                                  context: IContext, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
+    val variable = Variable(modifier, context.getCurrentPath().sub(identifier), foundType, parent)
     context.update(identifier, variable)
 
     val sub = context.sub(identifier.toString())
-    sub.parentVariable = variable
+    sub.setParentVariable(variable)
     var type = variable.type
 
     val ret = when (type) {
         is StructType -> {
             val struct = type.name
+
+            val dualContext = DualContext(struct.context, sub)
+
             val stmList = ArrayList<Statement>()
 
             if (struct.generic != null) {
                 struct.generic.zip(type.type!!)
                     .map { (o, n) ->
                         when (o) {
-                            is UnresolvedGeneratedType -> { sub.update(o.name, n) }
-                            is UnresolvedGeneratedGenericType -> { sub.update(o.name, n) }
+                            is UnresolvedGeneratedType -> { dualContext.update(o.name, n) }
+                            is UnresolvedGeneratedGenericType -> { dualContext.update(o.name, n) }
                             else -> { throw Exception("Type Parameter should be an identifier") }
                         }
                     }
@@ -287,17 +296,18 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             // Add Fields
             stmList.addAll(
                 struct.fields.map{ it ->
-                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), sub)}
+                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), dualContext)
+                }
             )
             if (!noFunc) {
                 // Add Methods
                 stmList.addAll(
                     struct.methods.map { it ->
-                        analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), sub)
+                        analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), dualContext)
                     }
                 )
             }
-            stmList.add(analyse(struct.builder, sub))
+            stmList.add(analyse(struct.builder, dualContext))
 
             Sequence(stmList)
         }
@@ -332,6 +342,19 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
         is FuncType -> {
             Empty()
         }
+        is RangeType -> {
+            val stmList = ArrayList<Statement>()
+
+            // Add Fields
+            stmList.add(
+                analyse(VariableDeclaration(DataStructModifier.newPublic(), Identifier("min"), type.type, variable ), sub)
+            )
+            stmList.add(
+                analyse(VariableDeclaration(DataStructModifier.newPublic(), Identifier("max"), type.type, variable ), sub)
+            )
+
+            Sequence(stmList)
+        }
         else -> {
             Empty()
         }
@@ -340,7 +363,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
     return Pair(ret, variable)
 }
 
-fun analyseType(stm: DataType, context: Context): DataType {
+fun analyseType(stm: DataType, context: IContext): DataType {
     return when (stm) {
         is VarType -> {
            checkExpression(stm.expr!!, context).second
@@ -356,7 +379,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
                 analyseType(context.getTypeDef(stm.name).type, context)
-            } else if (!context.nameResolvedAllowCrash) {stm} else {throw Exception("${stm.name} Type Not Found")}
+            } else if (!context.areNameCrashAllowed()) {stm} else {throw Exception("${stm.name} Type Not Found")}
         }
         is UnresolvedGeneratedGenericType -> {
             if (context.hasStruct(stm.name)){
@@ -367,7 +390,7 @@ fun analyseType(stm: DataType, context: Context): DataType {
                 analyseType(context.getGeneric(stm.name), context)
             } else if (context.hasTypeDef(stm.name)){
                 analyseType(context.getTypeDef(stm.name).type, context)
-            } else if (!context.nameResolvedAllowCrash) {stm} else {throw Exception("${stm.name} Type Not Found")}
+            } else if (!context.areNameCrashAllowed()) {stm} else {throw Exception("${stm.name} Type Not Found")}
         }
         is ArrayType -> {
             ArrayType(analyseType(stm.subtype, context), stm.length)

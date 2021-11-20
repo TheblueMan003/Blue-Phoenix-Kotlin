@@ -98,3 +98,8 @@ data class FuncType(val from: List<DataType>, val to: DataType): DataType(){
         return "FuncType(${from} => $to)"
     }
 }
+data class RangeType(val type: DataType): DataType(){
+    override fun toString(): String {
+        return "Range(${type})"
+    }
+}

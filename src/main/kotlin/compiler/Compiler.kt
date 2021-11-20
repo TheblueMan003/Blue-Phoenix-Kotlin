@@ -1,6 +1,7 @@
 package compiler
 
-import analyzer.Context
+import context.Context
+import context.IContext
 import analyzer.runAnalyse
 import analyzer.runChecker
 import analyzer.runSimplifier
@@ -12,16 +13,17 @@ import utils.mergeMapArray
 import utils.pmap
 
 class Compiler(private val files: List<Pair<String, String>>, private val filesGetter: IResourceGetter) {
-    private var contexts = HashMap<String, Context>()
+    private var contexts = HashMap<String, IContext>()
     private var imported = ArrayList<Pair<String,Statement>>()
     var mainContext = Context("pbpc", this)
     var treeSize = 20
     var printImportDebug = false
+    var forcedImport = listOf("std.loop")
 
     fun compile(): List<OutputFile> {
         val parsed = files.pmap { Pair(it.first, lexer.parse(it.second)) }
         println("Parsed:\t$parsed")
-        val tree = parsed.pmap { parser.parse(it.first, TokenStream(it.second)) }
+        val tree = parsed.pmap { parser.parse(it.first, forcedImport, TokenStream(it.second)) }
                         .groupBy { it.first }
                         .map { Pair(it.key, Sequence(it.value.map { listOf(it.second) }.reduce{ x, y -> x+y })) }
 
@@ -29,14 +31,14 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
         tree.map { contexts[it.first] = Context(it.first, this) }
 
         var symTree = tree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
-        while(contexts.any{it.value.nameResolvedCheck}) {
+        while(contexts.any{it.value.hasNameResolvedCheck()}) {
             contexts.map { it.value.resetState() }
 
             println("Resolving:\t$symTree")
 
             symTree = symTree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
-            val failAll = contexts.all { !it.value.nameResolvedGet }
-            contexts.map { it.value.nameResolvedAllowCrash = failAll }
+            val failAll = contexts.all { !it.value.hasNameResolvedGet() }
+            contexts.map { it.value.allowNameCrash(failAll) }
         }
         println("Resolved:\t$symTree")
 
@@ -52,8 +54,8 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
         return simplifiedTree.pmap { genCode(it.second, it.first) }.flatten() + genCode(lambda, "pbpc")
     }
     private fun generateLambdaTree():Statement{
-        val fcts = contexts.map { it.value.lambdasResolver.toMap() }.reduce{ a,b -> a+b }
-        val lambdas = mergeMapArray(contexts.map{ it.value.lambdas }).map{ (k,v) -> k to Pair(v, fcts[k]) }.toMap()
+        val fcts = contexts.map { it.value.getLambdasResolver().toMap() }.reduce{ a,b -> a+b }
+        val lambdas = mergeMapArray(contexts.map{ it.value.getLambdas() }).map{ (k,v) -> k to Pair(v, fcts[k]) }.toMap()
 
         return runSimplifier(Sequence(lambdas.map{ it ->
             it.value.second!!.use()
@@ -66,7 +68,7 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
             )
         }), mainContext){ s, c -> runChecker(runAnalyse(s, c), c) }
     }
-    fun import(string: String): Context{
+    fun import(string: String): IContext {
         synchronized(this) {
             return if (string in contexts) {
                 contexts[string]!!
@@ -77,19 +79,17 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
 
                 if (printImportDebug) println("Parsed: $parsed")
 
-                val tree = parser.parse(file.first, TokenStream(parsed))
+                val tree = parser.parse(file.first, forcedImport, TokenStream(parsed))
 
                 if (printImportDebug) println("Tree: $tree")
 
-                contexts[file.first] = Context(file.first, this)
-                contexts[file.first]!!.isLib = true
+                contexts[file.first] = Context(tree.first, this)
+                contexts[file.first]!!.setLib()
                 var symTree = runAnalyse(tree.second, contexts[file.first]!!)
-                while(contexts[file.first]!!.nameResolvedCheck) {
-                    contexts[file.first]!!.nameResolvedCheck = false
-                    contexts[file.first]!!.nameResolvedGet = false
-                    contexts[file.first]!!.isDone = false
+                while(contexts[file.first]!!.hasNameResolvedCheck()) {
+                    contexts[file.first]!!.resetState()
                     symTree = runAnalyse(symTree, contexts[file.first]!!)
-                    contexts.map { it.value.nameResolvedAllowCrash = !contexts[file.first]!!.nameResolvedGet }
+                    contexts.map { it.value.allowNameCrash(!contexts[file.first]!!.hasNameResolvedGet()) }
                 }
                 imported += Pair(file.first, symTree)
                 contexts[file.first]!!
