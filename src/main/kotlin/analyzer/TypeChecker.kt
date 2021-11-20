@@ -3,6 +3,7 @@ package analyzer
 import ast.*
 import context.IContext
 import data_struct.Function
+import data_struct.Struct
 import utils.getOperationFunctionName
 import utils.withDefault
 
@@ -184,22 +185,42 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
                     Pair(CallExpr(FunctionExpr(fct), args.map { it.first }), fct.output.type)
                 }
                 is VariableExpr -> {
-                    val to = stm.value.variable.type as FuncType
-                    val args = stm.args.map{checkExpression(it, context)}
+                    val variable = stm.value.variable
+                    val args = stm.args.map { checkExpression(it, context) }
+                    if (variable.type is FuncType) {
+                        val to = variable.type as FuncType
 
-                    if (to.from.size != args.size) throw Exception("Wrong Number Of Arguments!")
-                    args.zip(to.from).map { (a, b) -> if (!checkOwnership(a.second, b)){
-                        throw Exception("cannot put ${a.second} in $b")}}
+                        if (to.from.size != args.size) throw Exception("Wrong Number Of Arguments!")
+                        args.zip(to.from).map { (a, b) ->
+                            if (!checkOwnership(a.second, b)) {
+                                throw Exception("cannot put ${a.second} in $b")
+                            }
+                        }
 
 
-                    Pair(CallExpr(stm.value, args.map { it.first }), to.to)
+                        Pair(CallExpr(stm.value, args.map { it.first }), to.to)
+                    } else if (variable.childrenFunction[Identifier("invoke")] != null) {
+                        if (variable.childrenFunction[Identifier("invoke")] != null) {
+                            val fct = findFunction(
+                                args.map { it.second },
+                                variable.childrenFunction[Identifier("invoke")]!!,
+                                true
+                            )
+
+                            Pair(CallExpr(FunctionExpr(fct), stm.args), fct.output.type)
+                        } else {
+                            throw Exception("$variable Not a function.")
+                        }
+                    } else {
+                        throw Exception("$variable Not a function.")
+                    }
                 }
                 is FunctionExpr -> {
                     Pair(stm, stm.value.function.output.type)
                 }
                 is CallExpr -> {
                     val inter = checkExpression(stm.value, context)
-                    if (inter.second is FuncType) {
+                    return if (inter.second is FuncType) {
                         Pair(CallExpr(inter.first, stm.args), (inter.second as FuncType).to)
                     } else {
                         throw Exception("${inter.first} Not a function. (${inter.second})")

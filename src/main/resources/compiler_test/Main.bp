@@ -1,9 +1,9 @@
-void=>void rec(void=>void test){
+struct test{
+    public operator void invoke(){
 
+    }
 }
 
-rec(){
-    int a
-}(){
-    int b
-}
+test lol
+
+lol()
