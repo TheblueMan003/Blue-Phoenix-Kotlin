@@ -1,13 +1,14 @@
 package lexer
 
 import lexer.TokenTypes.*
+import utils.isReturnLine
 
 val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
     "class", "abstract", "struct", "define",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy", "switch", "package", "in"))
+    "typedef", "lazy", "switch", "package", "in", "inline"))
 
 val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val", "range"))
 val boolLit = HashSet(listOf("true","false"))
@@ -57,7 +58,9 @@ fun parseOne(stream: StringStream):Token{
             val d = stream.next()
             escaped = d == '\\' && !escaped
         }
-        Token(StringLitTokenType, stream.slice(), stream.getSliceStart())
+        stream.next()
+        val str = stream.slice()
+        Token(StringLitTokenType, str.substring(1, str.length-1), stream.getSliceStart())
     } else if (c == '/'){
         if (stream.hasNext() && stream.peek() == '/'){ // Single Line Comment
             while(stream.hasNext() && (stream.peek() != '\n' && stream.peek() != '\r')){
@@ -71,6 +74,12 @@ fun parseOne(stream: StringStream):Token{
             }
             stream.next()
             Token(CommentTokenType, stream.slice(), stream.getSliceStart())
+        } else if (stream.isStartOfLine()){
+            stream.startSlice()
+            while(stream.hasNext() && !stream.peek().isReturnLine()){
+                stream.next()
+            }
+            Token(RawCommandToken, stream.slice(), stream.getSliceStart())
         } else {
             Token(OperationToken, stream.slice(), stream.getSliceStart())
         }

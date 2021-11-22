@@ -41,7 +41,7 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
             listOf("function ${stm.function.name}")
         }
         is FunctionBody -> {
-            if (stm.function.isUsed()){
+            if (stm.function.isUsed() && !stm.function.modifier.lazy && !stm.function.modifier.inline){
                 createBlock(stm.function.name.toString(), genCode(stm.body, outputFiles, sbi), outputFiles)
                 emptyList()
             } else {
@@ -49,6 +49,7 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
             }
         }
         is Empty -> emptyList()
+        is RawCommand -> listOf(stm.cmd)
         else ->{
             throw NotImplementedError("$stm")
         }

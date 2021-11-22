@@ -1,0 +1,43 @@
+package random
+
+struct lcg{
+    int s
+    lazy void constructor(int init_seed){
+        this.s = init_seed
+    }
+    int next(){
+        s *= 1103515245
+        s += 12345
+        s %= 2147483648
+        return s
+    }
+    int nextInt(){
+        s *= 1103515245
+        s += 12345
+        s %= 2147483648
+        return s
+    }
+    int range(int min, int max){
+        int n = next()
+        n -= min
+        n %= (max-min)
+        n += min
+        return n
+    }
+    float nextFloat(){
+        s *= 1103515245
+        s += 12345
+        s %= 2147483648
+        float t
+        t #= s
+        return t
+    }
+    int seed(){
+        int a = s
+        a /= 65536
+        a %= 16384
+        return a
+    }
+}
+
+lcg random = lcg(0)

@@ -2,10 +2,11 @@ package data_struct
 
 class DataStructModifier{
     var visibility: DataStructVisibility = DataStructVisibility.PROTECTED
-    var static: Boolean = false
-    var abstract: Boolean = false
-    var operator: Boolean = false
-    var lazy: Boolean = false
+    var static:     Boolean = false
+    var abstract:   Boolean = false
+    var operator:   Boolean = false
+    var lazy:       Boolean = false
+    var inline:     Boolean = false
 
 
     companion object {

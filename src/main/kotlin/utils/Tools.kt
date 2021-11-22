@@ -46,3 +46,7 @@ fun <K,V> mergeMapArray(m1: List<Map<K, List<V>>>): Map<K, MutableList<V>>{
     m1.map{it -> it.map { (k,v) -> if(ret.containsKey(k)){ret[k]!!.addAll(v)}else{ ret[k] = v.toMutableList() }}}
     return ret
 }
+
+fun Char.isReturnLine():Boolean {
+    return this == '\n' || this == '\r'
+}

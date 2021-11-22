@@ -6,6 +6,7 @@ import context.IContext
 import data_struct.DataStructModifier
 import data_struct.Function
 import data_struct.Variable
+import interpreter.Interpreter
 import utils.getOperationFunctionName
 import utils.withDefault
 import kotlin.math.pow
@@ -300,7 +301,7 @@ fun simplifyExpression(expr: Expression, context: IContext): Expression {
 }
 
 fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: IContext): Pair<Statement, Expression>{
-    return if (stm is FunctionExpr && !stm.function.modifier.lazy) {
+    return if (stm is FunctionExpr && !stm.function.modifier.lazy && !stm.function.modifier.inline) {
         Pair(
             simplifySequence(
                 stm.function.input.zip(withDefault(args, stm.function.from.map { it.defaultValue }))
@@ -322,6 +323,9 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: ICont
             Sequence(assignment+simplify(compile(block, sub), context)),
             VariableExpr(stm.function.output)
         )
+    } else if (stm is FunctionExpr && stm.function.modifier.inline) {
+        val interpreter = Interpreter()
+        Pair(Empty(), interpreter.interpret(CallExpr(stm, args))!!)
     } else if (stm is VariableExpr) {
         simplifyFunctionCall(
             FunctionExpr(context.getLambdaFunction(stm.variable.type as FuncType, compile)),

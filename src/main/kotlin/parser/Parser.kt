@@ -445,16 +445,20 @@ private fun parseModifier(tokens: TokenStream, modifier: DataStructModifier){
             modifier.abstract = true
             found = true
         }
-        if (isKeyword(tokens, "static")) {
+        else if (isKeyword(tokens, "static")) {
             modifier.static = true
             found = true
         }
-        if (isKeyword(tokens, "lazy")) {
+        else if (isKeyword(tokens, "lazy")) {
             modifier.lazy = true
             found = true
         }
-        if (isKeyword(tokens, "operator")) {
+        else if (isKeyword(tokens, "operator")) {
             modifier.operator = true
+            found = true
+        }
+        else if (isKeyword(tokens, "inline")) {
+            modifier.inline = true
             found = true
         }
     }while(found)

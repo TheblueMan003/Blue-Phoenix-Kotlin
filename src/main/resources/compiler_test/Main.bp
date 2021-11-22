@@ -1,9 +1,8 @@
-struct test{
-    public operator void invoke(){
-
-    }
+inline string test(){
+    string start = "test"
+    string middle = "_"
+    string end = "0"
+    return start + middle + end
 }
 
-test lol
-
-lol()
+string a = test()

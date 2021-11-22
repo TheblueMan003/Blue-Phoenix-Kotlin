@@ -385,6 +385,9 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         }
         throw NotImplementedError()
     }
+    else if (t1 is StringType && t2 is StringType){
+        return Pair(BinaryExpr(op, s1, s2), StringType())
+    }
     else if (t1 is StructType){
         val funcName = getOperationFunctionName(op)
         val variable = (s1 as VariableExpr).variable

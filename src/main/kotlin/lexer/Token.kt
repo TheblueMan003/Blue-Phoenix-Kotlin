@@ -1,5 +1,7 @@
 package lexer
 
+import utils.isReturnLine
+
 
 enum class TokenTypes{
     IdentifierTokenType,
@@ -52,5 +54,8 @@ class StringStream(value: String, start: Int) {
 
     fun getSliceStart():Int{
         return sliceStart
+    }
+    fun isStartOfLine():Boolean{
+        return index == 1 || string[index - 2].isReturnLine()
     }
 }
