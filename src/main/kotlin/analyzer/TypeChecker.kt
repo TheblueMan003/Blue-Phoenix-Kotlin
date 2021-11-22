@@ -271,7 +271,7 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
         is VoidType -> true
         is FloatType -> t1 is IntType || t1 is FloatType
         is IntType -> t1 is IntType
-        is StringType -> t1 is StringType
+        is StringType -> true
         is BoolType -> t1 is BoolType
         is TupleType -> t1 is TupleType && t1.type.zip(t2.type).map { (x,y) -> checkOwnership(x,y) }.all { it }
         is FuncType -> t1 is FuncType && t1.from.zip(t2.from).map { (x,y) -> checkOwnership(y,x) }.all { it }
@@ -390,13 +390,16 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         }
         throw NotImplementedError()
     }
-    else if (t1 is StringType && t2 is StringType){
-        return Pair(BinaryExpr(op, s1, s2), StringType())
-    }
     else if (t1 is StructType){
         val funcName = getOperationFunctionName(op)
         val variable = (s1 as VariableExpr).variable
         return checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)
+    }
+    else if (t1 is StringType){
+        return Pair(BinaryExpr(op, s1, s2), StringType())
+    }
+    else if (t2 is StringType){
+        return Pair(BinaryExpr(op, s1, s2), StringType())
     }
     else if (t1 is EnumType){
         var other: EnumValueExpr =

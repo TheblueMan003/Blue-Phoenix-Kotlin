@@ -1,6 +1,7 @@
 package interpreter
 
 import analyzer.applyOperation
+import analyzer.expressionToString
 import ast.*
 import data_struct.Variable
 import utils.withDefault
@@ -79,8 +80,11 @@ class Interpreter {
         else if (left is BoolLitExpr && right is BoolLitExpr){
             applyOperation(op, left.value, right.value)
         }
-        else if (left is StringLitExpr && right is StringLitExpr){
-            applyOperation(op, left.value, right.value)
+        else if (right is StringLitExpr){
+            applyOperation(op, expressionToString(left), right.value)
+        }
+        else if (left is StringLitExpr){
+            applyOperation(op, left.value, expressionToString(right))
         } else {
             throw NotImplementedError()
         }

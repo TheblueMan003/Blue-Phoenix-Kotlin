@@ -291,7 +291,14 @@ fun simplifyExpression(expr: Expression, context: IContext): Expression {
             }
             else if (left is StringLitExpr && right is StringLitExpr){
                 applyOperation(expr.op, left.value, right.value)
-            } else {
+            }
+            else if (right is StringLitExpr){
+                applyOperation(expr.op, expressionToString(left), right.value)
+            }
+            else if (left is StringLitExpr){
+                applyOperation(expr.op, left.value, expressionToString(right))
+            }
+            else {
                 BinaryExpr(expr.op, left, right)
             }
         }
