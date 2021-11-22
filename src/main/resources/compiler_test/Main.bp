@@ -1,11 +1,8 @@
-from math.vector import vector3
+import mc.color
 
-inline int fctTest(){
-     int a = 1
-     int b = 5
-     return a+b
+forgenerate(j, mc.color){
+forgenerate(i, 0..10){
+mcc(i,j):
+/say $0 $1
 }
-
-
-mcc(fctTest()):
-/say $0
+}

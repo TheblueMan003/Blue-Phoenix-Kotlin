@@ -42,6 +42,15 @@ private fun replace(stm: Statement, map: Map<Identifier, Expression>):Statement{
                 )
             }
         }
+        is RawCommandArg -> {
+            RawCommandArg(stm.cmd, stm.args.map { replaceExpression(it, map) })
+        }
+        is LinkedForgenerate -> {
+            LinkedForgenerate(stm.identifier, stm.generator, replace(stm.body, map) as Block)
+        }
+        is UnlinkedForgenerate -> {
+            UnlinkedForgenerate(stm.identifier, stm.generator, replace(stm.body, map) as Block)
+        }
         is UnlinkedVariableAssignment -> {
             if (stm.identifier in map){
                 LinkedVariableAssignment(

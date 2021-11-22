@@ -162,3 +162,6 @@ data class FromImport(val resource: List<Identifier>, val identifier: Identifier
         return "FromImport($resource, $identifier)"
     }
 }
+
+data class UnlinkedForgenerate(val identifier: Identifier, val generator: Expression, val body: Block): Statement()
+data class LinkedForgenerate(val identifier: Identifier, val generator: IGenerator, val body: Block): Statement()

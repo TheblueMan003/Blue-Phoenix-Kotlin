@@ -211,8 +211,16 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 stm.function.body = body
                 FunctionBody(body, stm.function)
             }
+            is UnlinkedForgenerate -> {
+                when(val gen = analyse(stm.generator, context)) {
+                    is RangeLitExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
+                    is EnumExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
+                    else -> throw NotImplementedError("$gen")
+                }
+            }
 
             is IdentifierExpr -> {
+
                 val choice = ArrayList<AbstractIdentifierExpr>()
                 if (context.hasVariable(stm.value)) {
                     choice.add(VariableExpr(context.getVariable(stm.value)))
@@ -221,11 +229,15 @@ fun analyse(stm: Statement, context: IContext): Statement {
                     choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value)))
                 }
                 if (context.hasEnumValue(stm.value)){
-                    choice.addAll(context.getEnumValue(stm.value).map { EnumExpr(it.first, it.second, it.third) })
+                    choice.addAll(context.getEnumValue(stm.value).map { EnumValueExpr(it.first, it.second, it.third) })
+                }
+                if (context.hasEnum(stm.value)){
+                    choice.add(EnumExpr(context.getEnum(stm.value)))
                 }
                 if (context.hasStruct(stm.value)) {
                     choice.add(UnresolvedStructConstructorExpr(context.getStruct(stm.value)))
                 }
+
                 when (choice.size) {
                     0 -> {
                         if (!context.areNameCrashAllowed()) {
@@ -327,7 +339,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             Sequence(stmList)
         }
         is EnumType -> {
-            val enm = type.name
+            val enm = type.enum
             val stmList = ArrayList<Statement>()
             if (!noFunc) {
                 // Add Methods

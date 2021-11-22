@@ -67,9 +67,9 @@ data class ClassType(val name: Class, val type: List<DataType>?): DataType(){
     }
 }
 
-data class EnumType(val name: Enum): DataType(){
+data class EnumType(val enum: Enum): DataType(){
     override fun toString(): String {
-        return "EnumType(${name.name})"
+        return "EnumType(${enum.name})"
     }
 }
 

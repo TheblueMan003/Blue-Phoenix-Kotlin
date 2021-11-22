@@ -73,14 +73,14 @@ fun check(stm: Statement, context: IContext): Statement {
                 else if (stm.variable.type is EnumType){
                     val vType = stm.variable.type as EnumType
                     when (stm.expr) {
-                        is EnumExpr -> {
-                            if (stm.expr.enum != vType.name) throw InvalidTypeException(EnumType(stm.expr.enum))
+                        is EnumValueExpr -> {
+                            if (stm.expr.enum != vType.enum) throw InvalidTypeException(EnumType(stm.expr.enum))
                             LinkedVariableAssignment(stm.variable, stm.expr, stm.op)
                         }
                         is UnresolvedExpr -> {
-                            val expr = stm.expr.choice.filter { it is EnumExpr }
-                                .map { it as EnumExpr }
-                                .filter { it.enum == vType.name }
+                            val expr = stm.expr.choice.filter { it is EnumValueExpr }
+                                .map { it as EnumValueExpr }
+                                .filter { it.enum == vType.enum }
                                 .first()
                             LinkedVariableAssignment(stm.variable, expr, stm.op)
                         }
@@ -247,7 +247,7 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
             val fct = stm.function
             return Pair(stm, FuncType(fct.from.map { it.type }, fct.output.type))
         }
-        is EnumExpr -> {
+        is EnumValueExpr -> {
             Pair(stm, EnumType(stm.enum))
         }
         is RangeLitExpr -> {
@@ -284,7 +284,7 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
             ).isNotEmpty()
         is EnumType -> t1 is EnumType
         is RangeType -> t1 is RangeType && checkOwnership(t1.type, t2.type)
-        else -> throw NotImplementedError()
+        else -> throw NotImplementedError("$t1 < $t2")
     }
 }
 
@@ -312,7 +312,7 @@ fun checkOwnershipCost(t1: DataType, t2: DataType): Int {
             checkOwnershipCost(t.subtype, t2.subtype)
         }
         is StructType -> { if (t1 is StructType && t1.name == t2.name){0}else{1} }
-        is EnumType -> { if (t1 is EnumType && t1.name == t2.name){0}else{1} }
+        is EnumType -> { if (t1 is EnumType && t1.enum == t2.enum){0}else{1} }
         else -> throw NotImplementedError()
     }
 }
@@ -399,13 +399,13 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         return checkExpression(CallExpr(UnresolvedFunctionExpr(variable.childrenFunction[funcName]!!), listOf(s2)), context)
     }
     else if (t1 is EnumType){
-        var other: EnumExpr =
-        if (s2 is EnumExpr){
+        var other: EnumValueExpr =
+        if (s2 is EnumValueExpr){
             s2
         } else if (s2 is UnresolvedExpr) {
-            s2.choice.filter { it is EnumExpr }
-                .map { it as EnumExpr }
-                .filter { it.enum == t1.name }
+            s2.choice.filter { it is EnumValueExpr }
+                .map { it as EnumValueExpr }
+                .filter { it.enum == t1.enum }
                 .first()
         } else if (s2 is VariableExpr){
             when (op) {

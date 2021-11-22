@@ -45,7 +45,7 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
             is VariableExpr -> {
                 listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))
             }
-            is EnumExpr -> {
+            is EnumValueExpr -> {
                 internal(sbe, IntLitExpr(expr.index), op)
             }
             is StatementThanExpression -> {

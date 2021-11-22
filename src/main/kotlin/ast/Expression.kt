@@ -98,17 +98,63 @@ data class TupleExpr(val value: List<Expression>) : Expression(){
 /**
  *  Range Expression use for switch
  */
-data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(){
+data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(), IGenerator{
+    override fun getIterator(): Iterator<Expression> {
+        return RangeIterator(min, max)
+    }
+
     override fun toString(): String {
         return "RangeLitExpr($min..$max)"
+    }
+
+    private class RangeIterator(val min: Expression, val max: Expression):Iterator<Expression>{
+        var cur = min
+        override fun hasNext(): Boolean {
+            return cur != max
+        }
+
+        override fun next(): Expression {
+            val c = cur
+            when(cur){
+                is IntLitExpr ->{ cur = IntLitExpr((cur as IntLitExpr).value+1) }
+                else -> throw NotImplementedError()
+            }
+            return c
+        }
+
     }
 }
 
 /**
  *  Range Expression use for switch
  */
-data class EnumExpr(val value: Enum.Case, val index: Int, val enum: Enum) : AbstractIdentifierExpr(){
+data class EnumValueExpr(val value: Enum.Case, val index: Int, val enum: Enum) : AbstractIdentifierExpr(){
     override fun toString(): String {
-        return "EnumExpr($value)"
+        return "EnumValueExpr($value)"
+    }
+}
+
+/**
+ *  Range Expression use for switch
+ */
+data class EnumExpr(val enum: Enum) : AbstractIdentifierExpr(), IGenerator{
+    override fun toString(): String {
+        return "EnumExpr($enum)"
+    }
+    override fun getIterator(): Iterator<Expression> {
+        return EnumIterator(enum)
+    }
+
+    private class EnumIterator(val enum: Enum):Iterator<Expression>{
+        var index = 0
+        override fun hasNext(): Boolean {
+            return index != enum.values.size
+        }
+
+        override fun next(): Expression {
+            val c = index++
+            return EnumValueExpr(enum.values[index++], c, enum)
+        }
+
     }
 }

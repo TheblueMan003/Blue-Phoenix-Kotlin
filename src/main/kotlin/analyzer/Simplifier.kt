@@ -12,9 +12,10 @@ import utils.withDefault
 import kotlin.math.pow
 
 var compile: (Statement, IContext)->Statement = { s, _ -> s}
-
+var compileSimply: (Statement, IContext)->Statement = { s, _ -> s}
 fun runSimplifier(stm: Statement, context: IContext, callback: (Statement, IContext)->Statement): Statement{
     compile = callback
+    compileSimply = {s, c -> simplify(compile(s, c), c)}
     return simplify(stm, context)
 }
 
@@ -127,15 +128,15 @@ fun simplify(stm: Statement, context: IContext): Statement {
                 val variable = stm.variable
                 val funcId = getOperationFunctionName(stm.op)
                 if (stm.expr is CallExpr && stm.expr.value is UnresolvedStructConstructorExpr){
-                    simplify(compile(CallExpr(
+                    compileSimply(CallExpr(
                         UnresolvedFunctionExpr(variable.childrenFunction[Identifier("init")]!!.filter { it.modifier.operator }),
-                        stm.expr.args), context), context)
+                        stm.expr.args), context)
                 }
                 else if (variable.childrenFunction[funcId] != null  &&
                     variable.childrenFunction[funcId]!!.any { it.modifier.operator }){
-                    simplify(compile(CallExpr(
+                    compileSimply(CallExpr(
                         UnresolvedFunctionExpr(variable.childrenFunction[funcId]!!.filter { it.modifier.operator }),
-                        listOf(stm.expr)), context), context)
+                        listOf(stm.expr)), context)
                 } else {
                     if (expr is VariableExpr && stm.op == AssignmentType.SET) {
                         Sequence(stm.variable.childrenVariable.map{
@@ -144,7 +145,7 @@ fun simplify(stm: Statement, context: IContext): Statement {
                     } else if (expr is CallExpr && expr.value is FunctionExpr) {
                         Sequence(listOf(
                             simplify(stm.expr, context),
-                            simplify(compile(LinkedVariableAssignment(stm.variable, VariableExpr(expr.value.function.output), stm.op), context), context)
+                            compileSimply(LinkedVariableAssignment(stm.variable, VariableExpr(expr.value.function.output), stm.op), context)
                         ))
                     } else throw NotImplementedError()
                 }
@@ -186,12 +187,20 @@ fun simplify(stm: Statement, context: IContext): Statement {
                 FunctionBody(body, stm.function)
             }
         }
+        is LinkedForgenerate -> {
+            val gn = stm.generator.getIterator()
+            val statements = ArrayList<Statement>()
+            while(gn.hasNext()){
+                statements += runReplace(stm.body, mapOf(stm.identifier to gn.next()))
+            }
+            compileSimply(Block(statements), context)
+        }
         is RawCommandArg -> {
             var str = stm.cmd
             val args = stm.args.map { simplifyExpression(it, context) }
-                .mapIndexed{ id, it -> Pair(id, it)}
+                .mapIndexed{ id, it -> Pair(id, it) }
                 .reversed()
-                .map { str = str.replace("\$${it.first}", "${it.second}") }
+                .map { str = str.replace("\$${it.first}", expressionToString(it.second)) }
 
             RawCommand(str)
         }
@@ -249,7 +258,7 @@ fun extractSideExpression(right: Expression, context: IContext, lst: MutableList
         is FunctionExpr -> {
             IntLitExpr(right.function.hashCode())
         }
-        is EnumExpr -> {
+        is EnumValueExpr -> {
             IntLitExpr(right.index)
         }
         else -> {
@@ -442,4 +451,18 @@ fun getTMPVariable(type: DataType, context: IContext): Variable {
     val id = context.getTmpVarIdentifier()
     compile(VariableDeclaration(modifier, id, type), context)
     return context.getVariable(id)
+}
+
+fun expressionToString(expr: Expression): String{
+    return when(expr){
+        is BoolLitExpr -> expr.value.toString()
+        is IntLitExpr -> expr.value.toString()
+        is FloatLitExpr -> expr.value.toString()
+        is StringLitExpr -> expr.value
+        is VariableExpr -> expr.variable.name.toString()
+        is FunctionExpr -> expr.function.name.toString()
+        is StatementThanExpression -> expressionToString(expr.expr)
+        is EnumValueExpr -> expr.value.name.toString()
+        else -> expr.toString()
+    }
 }

@@ -48,6 +48,8 @@ private fun parseBlock(tokens: TokenStream): Statement {
     if (isKeyword(tokens, "while")){ return parseWhile(tokens) }
     // Do While
     if (isKeyword(tokens, "do")){ return parseDoWhile(tokens) }
+    // Generator
+    if (isKeyword(tokens, "forgenerate")){ return parseForgenerate(tokens) }
 
     // Return
     if (isKeyword(tokens, "return")){ return UnlinkedReturnStatement(parseExpression(tokens)) }
@@ -389,7 +391,7 @@ private fun parseMCC(tokens: TokenStream): Statement {
 }
 
 
-private fun parseWhile(tokens: TokenStream): Expression {
+private fun parseWhile(tokens: TokenStream): Statement {
     expectDelimiter(tokens, "(")
     val args = ArrayList(listOf(parseExpression(tokens)))
     expectDelimiter(tokens, ")")
@@ -399,7 +401,7 @@ private fun parseWhile(tokens: TokenStream): Expression {
     )
     return CallExpr(IdentifierExpr(Identifier(listOf("std","whileLoop"))), args)
 }
-private fun parseDoWhile(tokens: TokenStream): Expression {
+private fun parseDoWhile(tokens: TokenStream): Statement {
     expectDelimiter(tokens, "{")
     val lambda = ShortLambdaDeclaration(parseBlockGroup(tokens))
     expectKeyword(tokens, "while")
@@ -409,6 +411,16 @@ private fun parseDoWhile(tokens: TokenStream): Expression {
     args.add(lambda)
 
     return CallExpr(IdentifierExpr(Identifier(listOf("std","doWhileLoop"))), args)
+}
+private fun parseForgenerate(tokens: TokenStream): Statement {
+    expectDelimiter(tokens, "(")
+    val identifier = parseIdentifier(tokens)
+    expectDelimiter(tokens, ",")
+    val generator = parseExpression(tokens)
+    expectDelimiter(tokens, ")")
+    expectDelimiter(tokens, "{")
+
+    return UnlinkedForgenerate(identifier, generator, parseBlockGroup(tokens))
 }
 
 
