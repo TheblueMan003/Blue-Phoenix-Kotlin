@@ -11,8 +11,13 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/utils/Tools.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -523,14 +528,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637567014412</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="Tweak Interpreter.kt">
+      <created>1637568614390</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1637568614390</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Function Resolution" />
     <MESSAGE value="Simplifier.kt&#10;Struct Base Instantiation&#10;Tuple Set" />
     <MESSAGE value="Function Variable Instantiation" />
     <MESSAGE value="refactor NameAnalyser.kt for Function" />
@@ -555,7 +566,8 @@
     <MESSAGE value="Invoke" />
     <MESSAGE value="Inline Function" />
     <MESSAGE value="Constructor" />
-    <option name="LAST_COMMIT_MESSAGE" value="Constructor" />
+    <MESSAGE value="Tweak Interpreter.kt" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tweak Interpreter.kt" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

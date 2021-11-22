@@ -8,13 +8,13 @@ val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
     "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy", "switch", "package", "in", "inline"))
+    "typedef", "lazy", "switch", "package", "in", "inline", "mcc"))
 
 val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val", "range"))
 val boolLit = HashSet(listOf("true","false"))
 val delimiter = HashSet(listOf('(', ')', '{', '}', '[', ']', '.', ','))
-val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<'))
-val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "==", "=>", "<=", "<", ">=", ">", "->"))
+val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<', ':'))
+val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "==", "=>", "<=", "<", ">=", ">", "->", ":"))
 
 
 fun parse(input: String):List<Token>{

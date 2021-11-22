@@ -11,7 +11,8 @@ enum class AssignmentType(val op: String){
     MUL("*="),
     DIV("/="),
     MOD("%"),
-    POW("^=")
+    POW("^="),
+    NOTNULL("?")
 }
 enum class ReturnType{
     NONE,
@@ -140,6 +141,12 @@ data class StatementThanExpression(val statement: Statement, val expr: Expressio
 data class RawCommand(val cmd: String): Statement(){
     override fun toString(): String {
         return "RawCommand($cmd)"
+    }
+}
+
+data class RawCommandArg(val cmd: String, val args: List<Expression>): Statement(){
+    override fun toString(): String {
+        return "RawCommandArg($cmd, $args)"
     }
 }
 

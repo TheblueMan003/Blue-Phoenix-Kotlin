@@ -8,7 +8,7 @@ import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
 
-private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">=","+", "-", "*", "/", "%", "^",)
+private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
 private val unaryOperationOrder = listOf("-", "!")
 
 
@@ -39,6 +39,7 @@ private fun parseBlock(tokens: TokenStream): Statement {
 
     // RawCommand
     if (isRawCommand(tokens)) { return RawCommand(getRawCommand(tokens))}
+    if (isKeyword(tokens, "mcc")){ return parseMCC(tokens) }
 
     // Switch
     if (isKeyword(tokens, "switch")){ return parseSwitch(tokens) }
@@ -319,6 +320,7 @@ private fun parseVariableAssignment(tokens: TokenStream, identifier: Identifier)
             "/" -> AssignmentType.DIV
             "%" -> AssignmentType.MOD
             "^" -> AssignmentType.POW
+            "?" -> AssignmentType.NOTNULL
             else -> throw NotImplementedError()
         }
         if (expr.size == 1){
@@ -375,6 +377,15 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
         }
     }
     return called
+}
+
+private fun parseMCC(tokens: TokenStream): Statement {
+    expectDelimiter(tokens, "(")
+    val args = parseExpressionList(tokens)
+    expectDelimiter(tokens, ")")
+    expectOperationToken(tokens,":")
+    val cmd = getRawCommand(tokens)
+    return RawCommandArg(cmd, args)
 }
 
 

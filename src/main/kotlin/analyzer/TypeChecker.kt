@@ -130,6 +130,9 @@ fun check(stm: Statement, context: IContext): Statement {
                     ret
                 }
             }
+            is RawCommandArg -> {
+                RawCommandArg(stm.cmd, stm.args.map{ checkExpression(it, context).first})
+            }
             else -> stm
         }
 //    }catch(e: Exception){

@@ -7,4 +7,5 @@ inline int fctTest(){
 }
 
 
-int test = fctTest()
+mcc(fctTest()):
+/say $0

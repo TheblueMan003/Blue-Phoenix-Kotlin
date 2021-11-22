@@ -186,6 +186,15 @@ fun simplify(stm: Statement, context: IContext): Statement {
                 FunctionBody(body, stm.function)
             }
         }
+        is RawCommandArg -> {
+            var str = stm.cmd
+            val args = stm.args.map { simplifyExpression(it, context) }
+                .mapIndexed{ id, it -> Pair(id, it)}
+                .reversed()
+                .map { str = str.replace("\$${it.first}", "${it.second}") }
+
+            RawCommand(str)
+        }
         else -> stm
     }
 }

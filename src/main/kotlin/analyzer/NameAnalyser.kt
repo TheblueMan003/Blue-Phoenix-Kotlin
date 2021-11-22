@@ -48,6 +48,9 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 Switch(analyse(stm.scrutinee, context) as Expression,
                     stm.cases.map { s -> analyse(s, context) as Case }).withParent(stm)
             }
+            is RawCommandArg -> {
+                RawCommandArg(stm.cmd, stm.args.map { analyse(it, context) as Expression })
+            }
             is Case -> {
                 Case(
                     analyse(stm.expr, context) as Expression,
