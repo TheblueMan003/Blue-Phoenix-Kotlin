@@ -126,7 +126,12 @@ fun simplify(stm: Statement, context: IContext): Statement {
                 val expr = stm.expr
                 val variable = stm.variable
                 val funcId = getOperationFunctionName(stm.op)
-                if (variable.childrenFunction[funcId] != null  &&
+                if (stm.expr is CallExpr && stm.expr.value is UnresolvedStructConstructorExpr){
+                    simplify(compile(CallExpr(
+                        UnresolvedFunctionExpr(variable.childrenFunction[Identifier("init")]!!.filter { it.modifier.operator }),
+                        stm.expr.args), context), context)
+                }
+                else if (variable.childrenFunction[funcId] != null  &&
                     variable.childrenFunction[funcId]!!.any { it.modifier.operator }){
                     simplify(compile(CallExpr(
                         UnresolvedFunctionExpr(variable.childrenFunction[funcId]!!.filter { it.modifier.operator }),

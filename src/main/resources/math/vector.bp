@@ -1,6 +1,12 @@
 public struct vector3<T>{
     T x,y,z
 
+    public lazy operator void init(lazy T x, lazy T y, lazy T z){
+        this.x = x
+        this.y = y
+        this.z = z
+    }
+
     public operator void plusAssign(vector3<T> other){
         x += other.x
         y += other.y

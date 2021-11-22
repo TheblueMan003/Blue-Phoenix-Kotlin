@@ -1,8 +1,3 @@
-inline string test(){
-    string start = "test"
-    string middle = "_"
-    string end = "0"
-    return start + middle + end
-}
+from math.vector import vector3
 
-string a = test()
+vector3<int> test = vector3(1, 2, 3)

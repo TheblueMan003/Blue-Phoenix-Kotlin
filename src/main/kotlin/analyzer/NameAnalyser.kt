@@ -220,6 +220,9 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 if (context.hasEnumValue(stm.value)){
                     choice.addAll(context.getEnumValue(stm.value).map { EnumExpr(it.first, it.second, it.third) })
                 }
+                if (context.hasStruct(stm.value)) {
+                    choice.add(UnresolvedStructConstructorExpr(context.getStruct(stm.value)))
+                }
                 when (choice.size) {
                     0 -> {
                         if (!context.areNameCrashAllowed()) {
@@ -282,6 +285,9 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
 
             val stmList = ArrayList<Statement>()
 
+            val thiz = Identifier("this")
+
+
             if (struct.generic != null) {
                 struct.generic.zip(type.type!!)
                     .map { (o, n) ->
@@ -296,14 +302,20 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             // Add Fields
             stmList.addAll(
                 struct.fields.map{ it ->
-                    analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), dualContext)
+                    val ret = analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), dualContext)
+                    val vr = dualContext.getVariable(it.identifier)
+                    dualContext.update(thiz.append(it.identifier), vr)
+                    ret
                 }
             )
             if (!noFunc) {
                 // Add Methods
                 stmList.addAll(
                     struct.methods.map { it ->
-                        analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), dualContext)
+                        val ret =analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), dualContext)
+                        val vr = dualContext.getFunction(it.identifier)
+                        vr.map{ fct -> dualContext.update(thiz.append(it.identifier), fct)}
+                        ret
                     }
                 )
             }

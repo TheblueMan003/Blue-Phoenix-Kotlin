@@ -1,6 +1,7 @@
 package ast
 
 import data_struct.Function
+import data_struct.Struct
 import data_struct.Variable
 
 
@@ -34,11 +35,29 @@ data class FunctionExpr(var function: Function) : AbstractIdentifierExpr(){
 }
 
 /**
+ * Function Expression After Type Checker
+ */
+data class StructConstructorExpr(var struct: Function) : AbstractIdentifierExpr(){
+    override fun toString(): String {
+        return "StructConstructorExpr($struct)"
+    }
+}
+
+/**
  *  Function Expression Before Type Checker
  */
 data class UnresolvedFunctionExpr(val function: List<Function>) : AbstractIdentifierExpr(){
     override fun toString(): String {
         return "UnresolvedFunctionExpr($function)"
+    }
+}
+
+/**
+ *  Function Expression Before Type Checker
+ */
+data class UnresolvedStructConstructorExpr(val struct: Struct) : AbstractIdentifierExpr(){
+    override fun toString(): String {
+        return "UnresolvedStructConstructorExpr($struct)"
     }
 }
 

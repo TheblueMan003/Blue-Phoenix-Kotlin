@@ -3,7 +3,6 @@ package analyzer
 import ast.*
 import context.IContext
 import data_struct.Function
-import data_struct.Struct
 import utils.getOperationFunctionName
 import utils.withDefault
 
@@ -172,6 +171,9 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
         }
         is CallExpr -> {
             return when(stm.value){
+                is UnresolvedStructConstructorExpr -> {
+                    Pair(CallExpr(stm.value, stm.args), StructType(stm.value.struct, emptyList()))
+                }
                 is UnresolvedFunctionExpr -> {
                     val args = stm.args.map{checkExpression(it, context)}
                     val fct = findFunction(args.map { it.second }, stm.value.function)
