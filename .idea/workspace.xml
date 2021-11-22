@@ -9,10 +9,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="Remove Cross Import">
+    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/eclipse_lsp4j.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/language_server/LanguageServer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,6 +103,11 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/main/kotlin/language_server/LanguageServer.kt" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/build.gradle.kts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/gradle.properties" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProjectCodeStyleSettingsMigration">
     <option name="version" value="2" />
   </component>
@@ -110,18 +116,22 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="Downloaded.Files.Path.Enabled" value="true" />
+    <property name="Repository.Attach.Annotations" value="true" />
+    <property name="Repository.Attach.JavaDocs" value="true" />
+    <property name="Repository.Attach.Sources" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="project.structure.last.edited" value="Artifacts" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/lib" />
+    <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.27073172" />
-    <property name="project.structure.side.proportion" value="0.3108935" />
+    <property name="project.structure.side.proportion" value="0.42895442" />
     <property name="settings.editor.selected.configurable" value="project.kotlinCompiler" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="E:\019_Programming\BluePhoenix\src\main\kotlin\data_struct" />
+      <recent name="C:\Users\chris\Desktop\Blue-Phoenix-Kotlin\src\main\resources\compiler_test" />
       <recent name="E:\019_Programming\BluePhoenix\src\main\resources" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
@@ -442,41 +452,22 @@
       <option name="project" value="LOCAL" />
       <updated>1636964583224</updated>
     </task>
-    <task id="LOCAL-00024" summary="Switch">
-      <created>1637007611954</created>
+    <task id="LOCAL-00024" summary="Cyclic function dependency">
+      <created>1636975281705</created>
       <option name="number" value="00024" />
       <option name="presentableId" value="LOCAL-00024" />
       <option name="project" value="LOCAL" />
-      <updated>1637007611954</updated>
+      <updated>1636975281705</updated>
     </task>
-    <task id="LOCAL-00025" summary="Fixes">
-      <created>1637048231850</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1637048231851</updated>
-    </task>
-    <task id="LOCAL-00026" summary="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda">
-      <created>1637267539013</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1637267539013</updated>
-    </task>
-    <task id="LOCAL-00027" summary="Remove Cross Import">
-      <created>1637267973731</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1637267973731</updated>
-    </task>
-    <option name="localTasksCounter" value="28" />
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
+    <MESSAGE value="Fix Type Parser" />
+    <MESSAGE value="StackedHashMap.kt" />
     <MESSAGE value="NameAnalyser V1" />
     <MESSAGE value="NameAnalyser V2&#10;Parse Switch" />
     <MESSAGE value="Struct Parsing&#10;Upward public V1" />
@@ -498,11 +489,8 @@
     <MESSAGE value="Lazy Arguments" />
     <MESSAGE value="Function inside lazy function" />
     <MESSAGE value="Import" />
-    <MESSAGE value="Switch" />
-    <MESSAGE value="Fixes" />
-    <MESSAGE value="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda" />
-    <MESSAGE value="Remove Cross Import" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove Cross Import" />
+    <MESSAGE value="Cyclic function dependency" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cyclic function dependency" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -511,14 +499,6 @@
           <properties class="java.lang.Exception" package="java.lang" />
           <option name="timeStamp" value="1" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt</url>
-          <line>11</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
