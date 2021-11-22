@@ -178,7 +178,7 @@ fun simplify(stm: Statement, context: IContext): Statement {
             simplifyFunctionCall(stm.value, stm.args, context).first
         }
         is FunctionBody -> {
-            if (stm.function.modifier.lazy){
+            if (stm.function.modifier.lazy || stm.function.modifier.inline){
                 stm
             } else {
                 val body = simplify(stm.body, context)
@@ -330,7 +330,7 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: ICont
         )
     } else if (stm is FunctionExpr && stm.function.modifier.inline) {
         val interpreter = Interpreter()
-        Pair(Empty(), interpreter.interpret(CallExpr(stm, args))!!)
+        Pair(Empty(), interpreter.interpret(CallExpr(stm, args), null)!!)
     } else if (stm is VariableExpr) {
         simplifyFunctionCall(
             FunctionExpr(context.getLambdaFunction(stm.variable.type as FuncType, compile)),

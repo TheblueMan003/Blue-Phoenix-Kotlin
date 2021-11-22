@@ -1,3 +1,10 @@
 from math.vector import vector3
 
-vector3<int> test = vector3(1, 2, 3)
+inline int fctTest(){
+     int a = 1
+     int b = 5
+     return a+b
+}
+
+
+int test = fctTest()

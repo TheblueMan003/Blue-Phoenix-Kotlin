@@ -8,14 +8,14 @@ import utils.withDefault
 class Interpreter {
     private val variables = HashMap<Variable, Expression>()
 
-    fun interpret(stm: Statement): Expression?{
+    fun interpret(stm: Statement, output: Variable?): Expression?{
         return when(stm){
             is Block -> {
-                val values = stm.statements.mapNotNull { interpret(it) }
+                val values = stm.statements.mapNotNull { interpret(it, output) }
                 if (values.isNotEmpty()){ values.last() } else null
             }
             is Sequence -> {
-                val values = stm.statements.mapNotNull { interpret(it) }
+                val values = stm.statements.mapNotNull { interpret(it, output) }
                 if (values.isNotEmpty()){ values.last() } else null
             }
             is LinkedVariableAssignment -> {
@@ -30,39 +30,32 @@ class Interpreter {
                     AssignmentType.POW -> { variables[stm.variable] = expressionEvaluation("^", current!!, value) }
                     AssignmentType.MOD -> { variables[stm.variable] = expressionEvaluation("%", current!!, value) }
                 }
-                variables[stm.variable]
+                null
             }
             is CallExpr -> {
-                when(stm.value){
-                    is FunctionExpr -> {
-                        val fct = stm.value.function
-                        val args = fct.input.zip(withDefault(stm.args, fct.from.map { it.defaultValue }))
-                        val instr = args.map { LinkedVariableAssignment(it.first, it.second, AssignmentType.SET) }
-                        interpret(Sequence(instr))
-                        interpret(stm.value.function.body)
-                    }
-                    is VariableExpr -> {
-                        interpret(CallExpr(variables[stm.value.variable]!!, stm.args))
-                    }
-                    else -> throw NotImplementedError()
-                }
+                expressionEvaluation(stm)
             }
             is RawFunctionCall -> {
-                interpret(stm.function.body)
+                interpret(stm.function.body, output)
             }
             is If -> {
                 val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
                 if (cond.value){
-                    interpret(stm.IfBlock)
+                    interpret(stm.IfBlock, output)
                 } else null
             }
+            is Empty -> null
             is IfElse -> {
                 val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
                 if (cond.value){
-                    interpret(stm.IfBlock)
+                    interpret(stm.IfBlock, output)
                 } else {
-                    interpret(stm.ElseBlock)
+                    interpret(stm.ElseBlock, output)
                 }
+            }
+            is ReturnStatement -> {
+                variables[output!!] = expressionEvaluation(stm.expr)
+                return variables[output]!!
             }
             else -> throw NotImplementedError("$stm")
         }
@@ -116,6 +109,22 @@ class Interpreter {
             }
             is VariableExpr -> {
                 variables[e.variable]!!
+            }
+            is CallExpr -> {
+                when(e.value){
+                    is FunctionExpr -> {
+                        val fct = e.value.function
+                        val args = fct.input.zip(withDefault(e.args, fct.from.map { it.defaultValue }))
+                        val instr = args.map { LinkedVariableAssignment(it.first, it.second, AssignmentType.SET) }
+                        interpret(Sequence(instr), null)
+                        interpret(e.value.function.body, fct.output)
+                        variables[fct.output]!!
+                    }
+                    is VariableExpr -> {
+                        expressionEvaluation(CallExpr(variables[e.value.variable]!!, e.args))
+                    }
+                    else -> throw NotImplementedError()
+                }
             }
             else -> e
         }

@@ -11,13 +11,9 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/utils/OutputFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/utils/OutputFile.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/math/vector.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/math/vector.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -520,14 +516,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637565298061</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Constructor">
+      <created>1637567014412</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1637567014412</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fix Rec Analyse" />
     <MESSAGE value="Function Resolution" />
     <MESSAGE value="Simplifier.kt&#10;Struct Base Instantiation&#10;Tuple Set" />
     <MESSAGE value="Function Variable Instantiation" />
@@ -552,7 +554,8 @@
     <MESSAGE value="Currying" />
     <MESSAGE value="Invoke" />
     <MESSAGE value="Inline Function" />
-    <option name="LAST_COMMIT_MESSAGE" value="Inline Function" />
+    <MESSAGE value="Constructor" />
+    <option name="LAST_COMMIT_MESSAGE" value="Constructor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
