@@ -230,6 +230,7 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 when(val gen = analyse(stm.generator, context)) {
                     is RangeLitExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
                     is EnumExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
+                    is VariableExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
                     else -> throw NotImplementedError("$gen")
                 }
             }
@@ -342,7 +343,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
                 // Add Methods
                 stmList.addAll(
                     struct.methods.map { it ->
-                        val ret =analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), dualContext)
+                        val ret = analyse(FunctionDeclaration(it.modifier, it.identifier, it.from, it.to, it.body, variable), dualContext)
                         val vr = dualContext.getFunction(it.identifier)
                         vr.map{ fct -> dualContext.update(thiz.append(it.identifier), fct)}
                         ret
@@ -374,7 +375,42 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             Sequence(stmList)
         }
         is ArrayType -> {
-            Empty()
+            val stmList = ArrayList<Statement>()
+            val casesGet = ArrayList<Case>()
+            val casesSet = ArrayList<Case>()
+            stmList.addAll((0..type.length).map {
+                val id =  Identifier("_$it")
+                val ret = analyse(VariableDeclaration(DataStructModifier.newPrivate(), id, type.subtype, variable ), sub)
+                val vr = sub.getVariable(id)
+
+                casesGet.add(Case(IntLitExpr(it), UnlinkedReturnStatement(VariableExpr(vr))))
+                casesSet.add(Case(IntLitExpr(it), UnlinkedVariableAssignment(id, IdentifierExpr(Identifier("value")), AssignmentType.SET)))
+
+                ret
+            })
+            // Set
+            stmList.add(
+                analyse(FunctionDeclaration(DataStructModifier.newOperator(), Identifier("set"),
+                listOf(
+                    FunctionArgument(DataStructModifier.newPrivate(), Identifier("index"), IntType(), null),
+                    FunctionArgument(DataStructModifier.newPrivate(), Identifier("value"), type.subtype, null)
+                ),
+                type.subtype,
+                Block(listOf(Switch(IdentifierExpr(Identifier("index")), casesSet, emptyList())))
+                , variable), sub)
+            )
+            // Get
+            stmList.add(
+                analyse(FunctionDeclaration(DataStructModifier.newOperator(), Identifier("get"),
+                    listOf(
+                        FunctionArgument(DataStructModifier.newPrivate(), Identifier("index"), IntType(), null)
+                    ),
+                    type.subtype,
+                    Block(listOf(Switch(IdentifierExpr(Identifier("index")), casesGet, emptyList())))
+                    , variable), sub)
+            )
+
+            Sequence(stmList)
         }
         is TupleType -> {
             val subModifier = DataStructModifier()
@@ -409,7 +445,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
 fun analyseType(stm: DataType, context: IContext): DataType {
     return when (stm) {
         is VarType -> {
-           checkExpression(stm.expr!!, context).second
+           checkExpression(analyse(stm.expr!!, context) as Expression, context).second
         }
         is UnresolvedGeneratedType -> {
             if (context.hasStruct(stm.name)){

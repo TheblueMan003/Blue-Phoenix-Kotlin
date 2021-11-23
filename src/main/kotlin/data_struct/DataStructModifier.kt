@@ -20,6 +20,12 @@ class DataStructModifier{
             modifier.visibility = DataStructVisibility.PUBLIC
             return modifier
         }
+        fun newOperator(): DataStructModifier {
+            val modifier = DataStructModifier()
+            modifier.visibility = DataStructVisibility.PUBLIC
+            modifier.operator = true
+            return modifier
+        }
     }
 
 

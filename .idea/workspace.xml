@@ -13,6 +13,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStructModifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStructModifier.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
@@ -573,14 +575,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637692518680</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="Get &amp; Set">
+      <created>1637695259212</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1637695259212</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="typedef" />
     <MESSAGE value="Lazy Function&#10;New Lexer&#10;Fixes" />
     <MESSAGE value="Refactoring: Remove old Lexer" />
     <MESSAGE value="Remove ParserContext.kt" />
@@ -605,7 +613,8 @@
     <MESSAGE value="Improve Inlining" />
     <MESSAGE value="Forgenerate &amp; Switch" />
     <MESSAGE value="Forgenerate Fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="Forgenerate Fix" />
+    <MESSAGE value="Get &amp; Set" />
+    <option name="LAST_COMMIT_MESSAGE" value="Get &amp; Set" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

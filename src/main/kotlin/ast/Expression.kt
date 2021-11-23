@@ -155,7 +155,6 @@ data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(), I
                 Pair("index", IntLitExpr(index-minV)),
                 Pair("count", IntLitExpr(maxV-minV + 1)))
         }
-
     }
 }
 
@@ -197,6 +196,5 @@ data class EnumExpr(val enum: Enum) : AbstractIdentifierExpr(), IGenerator{
                 Pair("count", IntLitExpr(enum.values.size))
             )
         }
-
     }
 }

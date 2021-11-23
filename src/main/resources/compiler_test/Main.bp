@@ -1,20 +1,11 @@
 //import mc.color
 
-struct test{
-    int b
-
-    public operator void init(){
-        b = 0
-    }
-
-    public operator int get(int index){
-        return b
-    }
-    public operator void set(int index, int value){
-        b = value
-    }
+struct vector{
+    int x,y,z
 }
 
-test monade = test()
-monade[0] = 5
-int a = monade[0]
+vector test
+
+forgenerate(i, test){
+    mcc(i):./say $0
+}

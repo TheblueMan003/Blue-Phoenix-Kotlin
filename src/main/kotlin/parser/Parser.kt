@@ -65,14 +65,12 @@ private fun parseBlock(tokens: TokenStream): Statement {
             return parseFunctionCall(tokens, identifier)
         }else if (isDelimiterNoConsume(tokens, "[")){
             val get = parseGetExpr(tokens, identifier)
-            return if (isOperationTokenNoConsume(tokens, assignTokens)){
-                if (isOperationToken(tokens, "=")){
+            if (isOperationTokenNoConsume(tokens, assignTokens)){
+                return if (isOperationToken(tokens, "=")){
                     SetExpr(get.value, get.args, parseExpression(tokens))
                 } else {
                     SetExpr(get.value, get.args, BinaryExpr(getOperationToken(tokens), get, parseExpression(tokens)))
                 }
-            } else {
-                get
             }
         } else if (isOperationTokenNoConsume(tokens, assignTokens)) {
             return parseVariableAssignment(tokens, identifier)
@@ -634,8 +632,9 @@ fun parseType(tokens: TokenStream): DataType {
 
     while(isDelimiter(tokens, "[")){
         if (type is VarType) throw UnexpectedException("Var cannot be used as a Type in Arrays")
+        val size = getIntLit(tokens)
         expectDelimiter(tokens, "]")
-        type = ArrayType(type, -1)
+        type = ArrayType(type, size)
     }
     if (isOperationToken(tokens, "=>")){
         type = when(type) {
