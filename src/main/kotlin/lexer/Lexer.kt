@@ -74,16 +74,22 @@ fun parseOne(stream: StringStream):Token{
             }
             stream.next()
             Token(CommentTokenType, stream.slice(), stream.getSliceStart())
-        } else if (stream.isStartOfLine()){
+        } else {
+            Token(OperationToken, stream.slice(), stream.getSliceStart())
+        }
+    } else if (c == '.'){
+        if (stream.hasNext() && stream.peek() == '/'){
+            stream.next()
             stream.startSlice()
             while(stream.hasNext() && !stream.peek().isReturnLine()){
                 stream.next()
             }
             Token(RawCommandToken, stream.slice(), stream.getSliceStart())
         } else {
-            Token(OperationToken, stream.slice(), stream.getSliceStart())
+            Token(DelimiterTokenType, stream.slice(), stream.getSliceStart())
         }
-    } else if (c in delimiter){
+    }
+    else if (c in delimiter){
         Token(DelimiterTokenType, stream.slice(), stream.getSliceStart())
     } else if (c in operationChar){
         while(stream.hasNext() && stream.nextSlice() in operation){

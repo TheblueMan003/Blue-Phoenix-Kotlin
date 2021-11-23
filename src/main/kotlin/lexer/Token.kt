@@ -26,6 +26,7 @@ class StringStream(value: String, start: Int) {
     private var string: String = value
     private var index: Int = start
     private var sliceStart: Int = -1
+    private var MCCState = 0
 
     fun next():Char{
         return string[index++]
@@ -57,5 +58,21 @@ class StringStream(value: String, start: Int) {
     }
     fun isStartOfLine():Boolean{
         return index == 1 || string[index - 2].isReturnLine()
+    }
+
+    fun mccStep(step: Int){
+        MCCState = if (MCCState == step -1) {
+            1
+        } else {
+            0
+        }
+    }
+    fun mccCheck(step: Int):Boolean {
+        return if (MCCState == step){
+            MCCState = 0
+            true
+        } else {
+            false
+        }
     }
 }
