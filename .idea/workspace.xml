@@ -10,9 +10,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/context/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/context/Context.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/context/DualContext.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/context/DualContext.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/context/IContext.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/context/IContext.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -543,14 +549,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637614457346</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="String cast">
+      <created>1637614850277</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1637614850277</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="refactor NameAnalyser.kt for Function" />
     <MESSAGE value="Simplifier.kt remove Empty" />
     <MESSAGE value="Function Compilation&#10;Function Overloading&#10;Return Value V1" />
     <MESSAGE value="ElseIf &amp; If Statement Compilation" />
@@ -575,7 +587,8 @@
     <MESSAGE value="Tweak Interpreter.kt" />
     <MESSAGE value="MCC with args basics" />
     <MESSAGE value="forgenerate base" />
-    <option name="LAST_COMMIT_MESSAGE" value="forgenerate base" />
+    <MESSAGE value="String cast" />
+    <option name="LAST_COMMIT_MESSAGE" value="String cast" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

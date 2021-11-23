@@ -278,6 +278,11 @@ class Context(private val path: String, val com: Compiler): IContext{
         children.add(context)
         return context
     }
+    override fun withPath(id: Identifier): IContext {
+        val s = sub("_") as Context
+        s.m_currentPath = id
+        return s
+    }
     override fun resolve(){
         while(children.size > 0){
             update(children.last(), DataStructVisibility.PROTECTED)

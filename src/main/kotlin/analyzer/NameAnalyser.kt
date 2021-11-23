@@ -206,8 +206,12 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 if (context.getCurrentFunction() == null) throw Exception("Return must me inside of a function")
                 ReturnStatement(analyse(stm.expr, context) as Expression, context.getCurrentFunction()!!)
             }
+            is ReturnStatement -> {
+                ReturnStatement(analyse(stm.expr, context) as Expression, stm.function)
+            }
             is FunctionBody -> {
-                val body = analyse(stm.body, DualContext(stm.function.context, context))
+                val c = context.sub(stm.function.name.getLast().toString())
+                val body = analyse(stm.body, DualContext(stm.function.context, c))
                 stm.function.body = body
                 FunctionBody(body, stm.function)
             }
@@ -287,7 +291,6 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
                                   context: IContext, parent: Variable? = null, noFunc: Boolean = false): Pair<Statement, Variable>{
     val variable = Variable(modifier, context.getCurrentPath().sub(identifier), foundType, parent)
     context.update(identifier, variable)
-
     val sub = context.sub(identifier.toString())
     sub.setParentVariable(variable)
     var type = variable.type

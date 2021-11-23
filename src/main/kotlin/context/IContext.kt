@@ -46,6 +46,7 @@ interface IContext {
     fun getGeneric(id: Identifier): DataType
 
     fun sub(id: String): IContext
+    fun withPath(id: Identifier): IContext
     fun resolve()
 
     fun getCompiler(): Compiler

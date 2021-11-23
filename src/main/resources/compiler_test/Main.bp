@@ -1,8 +1,15 @@
 import mc.color
 
+inline float inlined(mc.color a){
+    return a.r()
+}
+
+
+float b = inlined(red)
+
 forgenerate(j, mc.color){
 forgenerate(i, 0..10){
-mcc(i,j):
+mcc(i, inlined(j)):
 /say $0 $1
 }
 }

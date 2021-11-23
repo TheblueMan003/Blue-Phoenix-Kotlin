@@ -13,7 +13,7 @@ fun runChecker(stm: Statement, context: IContext): Statement {
     return check(stm, context)
 }
 fun check(stm: Statement, context: IContext): Statement {
-//    try{
+    try{
         return when(stm){
             is If -> {
                 val cond = checkExpression(stm.Condition, context)
@@ -135,9 +135,9 @@ fun check(stm: Statement, context: IContext): Statement {
             }
             else -> stm
         }
-//    }catch(e: Exception){
-//        throw Exception("Fail to analyse: $stm \n$e")
-//    }
+    }catch(e: Exception){
+        throw Exception("Fail to analyse: $stm \n$e")
+    }
 }
 
 fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataType>{

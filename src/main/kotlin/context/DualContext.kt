@@ -121,6 +121,11 @@ class DualContext(val get: IContext, val set: IContext): IContext {
     override fun sub(id: String): IContext {
         return DualContext(get, set.sub(id))
     }
+
+    override fun withPath(id: Identifier): IContext {
+        return DualContext(get, set.withPath(id))
+    }
+
     override fun resolve() {
         set.resolve()
     }

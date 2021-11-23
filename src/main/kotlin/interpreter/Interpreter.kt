@@ -10,55 +10,81 @@ class Interpreter {
     private val variables = HashMap<Variable, Expression>()
 
     fun interpret(stm: Statement, output: Variable?): Expression?{
-        return when(stm){
-            is Block -> {
-                val values = stm.statements.mapNotNull { interpret(it, output) }
-                if (values.isNotEmpty()){ values.last() } else null
-            }
-            is Sequence -> {
-                val values = stm.statements.mapNotNull { interpret(it, output) }
-                if (values.isNotEmpty()){ values.last() } else null
-            }
-            is LinkedVariableAssignment -> {
-                val value = expressionEvaluation(stm.expr)
-                val current = variables[stm.variable]
-                when (stm.op) {
-                    AssignmentType.SET -> { variables[stm.variable] = expressionEvaluation(value) }
-                    AssignmentType.SUB -> { variables[stm.variable] = expressionEvaluation("-", current!!, value) }
-                    AssignmentType.ADD -> { variables[stm.variable] = expressionEvaluation("+", current!!, value) }
-                    AssignmentType.MUL -> { variables[stm.variable] = expressionEvaluation("*", current!!, value) }
-                    AssignmentType.DIV -> { variables[stm.variable] = expressionEvaluation("/", current!!, value) }
-                    AssignmentType.POW -> { variables[stm.variable] = expressionEvaluation("^", current!!, value) }
-                    AssignmentType.MOD -> { variables[stm.variable] = expressionEvaluation("%", current!!, value) }
+        try {
+            return when (stm) {
+                is Block -> {
+                    val values = stm.statements.mapNotNull { interpret(it, output) }
+                    if (values.isNotEmpty()) {
+                        values.last()
+                    } else null
                 }
-                null
-            }
-            is CallExpr -> {
-                expressionEvaluation(stm)
-            }
-            is RawFunctionCall -> {
-                interpret(stm.function.body, output)
-            }
-            is If -> {
-                val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
-                if (cond.value){
-                    interpret(stm.IfBlock, output)
-                } else null
-            }
-            is Empty -> null
-            is IfElse -> {
-                val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
-                if (cond.value){
-                    interpret(stm.IfBlock, output)
-                } else {
-                    interpret(stm.ElseBlock, output)
+                is Sequence -> {
+                    val values = stm.statements.mapNotNull { interpret(it, output) }
+                    if (values.isNotEmpty()) {
+                        values.last()
+                    } else null
                 }
+                is LinkedVariableAssignment -> {
+                    val value = expressionEvaluation(stm.expr)
+                    val current = variables[stm.variable]
+                    when (stm.op) {
+                        AssignmentType.SET -> {
+                            variables[stm.variable] = expressionEvaluation(value)
+                        }
+                        AssignmentType.SUB -> {
+                            variables[stm.variable] = expressionEvaluation("-", current!!, value)
+                        }
+                        AssignmentType.ADD -> {
+                            variables[stm.variable] = expressionEvaluation("+", current!!, value)
+                        }
+                        AssignmentType.MUL -> {
+                            variables[stm.variable] = expressionEvaluation("*", current!!, value)
+                        }
+                        AssignmentType.DIV -> {
+                            variables[stm.variable] = expressionEvaluation("/", current!!, value)
+                        }
+                        AssignmentType.POW -> {
+                            variables[stm.variable] = expressionEvaluation("^", current!!, value)
+                        }
+                        AssignmentType.MOD -> {
+                            variables[stm.variable] = expressionEvaluation("%", current!!, value)
+                        }
+                    }
+                    null
+                }
+                is CallExpr -> {
+                    expressionEvaluation(stm)
+                }
+                is RawFunctionCall -> {
+                    interpret(stm.function.body, output)
+                }
+                is If -> {
+                    val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
+                    if (cond.value) {
+                        interpret(stm.IfBlock, output)
+                    } else null
+                }
+                is Empty -> null
+                is IfElse -> {
+                    val cond = expressionEvaluation(stm.Condition) as BoolLitExpr
+                    if (cond.value) {
+                        interpret(stm.IfBlock, output)
+                    } else {
+                        interpret(stm.ElseBlock, output)
+                    }
+                }
+                is ReturnStatement -> {
+                    var expr = expressionEvaluation(stm.expr)
+                    if (output!!.type is FloatType && expr is IntLitExpr){
+                        expr = FloatLitExpr(expr.value.toFloat())
+                    }
+                    variables[output] = expr
+                    return variables[output]!!
+                }
+                else -> throw NotImplementedError("$stm")
             }
-            is ReturnStatement -> {
-                variables[output!!] = expressionEvaluation(stm.expr)
-                return variables[output]!!
-            }
-            else -> throw NotImplementedError("$stm")
+        }catch(e: Exception){
+            throw Exception("Fail to interpret: $stm \n$e")
         }
     }
     fun expressionEvaluation(op: String, e1: Expression, e2: Expression):Expression{
@@ -85,8 +111,18 @@ class Interpreter {
         }
         else if (left is StringLitExpr){
             applyOperation(op, left.value, expressionToString(right))
-        } else {
-            throw NotImplementedError()
+        }
+        else if (left is EnumValueExpr && right is EnumValueExpr){
+            applyOperation(op, left.index, right.index)
+        }
+        else if (left is EnumValueExpr && right is IntLitExpr){
+            applyOperation(op, left.index, right.value)
+        }
+        else if (left is IntLitExpr && right is EnumValueExpr){
+            applyOperation(op, left.value, right.index)
+        }
+        else {
+            throw NotImplementedError("$e1 $op $e2")
         }
     }
     fun expressionEvaluation(e: Expression):Expression{
@@ -127,7 +163,7 @@ class Interpreter {
                     is VariableExpr -> {
                         expressionEvaluation(CallExpr(variables[e.value.variable]!!, e.args))
                     }
-                    else -> throw NotImplementedError()
+                    else -> throw NotImplementedError("$e")
                 }
             }
             else -> e
