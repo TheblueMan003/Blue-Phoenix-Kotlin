@@ -1,38 +1,36 @@
 package random
 
-struct lcg{
+public struct lcg{
     int s
-    lazy void constructor(int init_seed){
+    public lazy operator void init(int init_seed){
         this.s = init_seed
     }
-    int next(){
+    public int next(){
         s *= 1103515245
         s += 12345
-        s %= 2147483648
+        s %= 2147483647
         return s
     }
-    int nextInt(){
+    public int nextInt(){
         s *= 1103515245
         s += 12345
-        s %= 2147483648
+        s %= 2147483647
         return s
     }
-    int range(int min, int max){
+    public int range(int min, int max){
         int n = next()
         n -= min
         n %= (max-min)
         n += min
         return n
     }
-    float nextFloat(){
+    public float nextFloat(){
         s *= 1103515245
         s += 12345
-        s %= 2147483648
-        float t
-        t #= s
-        return t
+        s %= 2147483647
+        return s
     }
-    int seed(){
+    public int seed(){
         int a = s
         a /= 65536
         a %= 16384
@@ -40,4 +38,4 @@ struct lcg{
     }
 }
 
-lcg random = lcg(0)
+public lcg random = lcg(0)

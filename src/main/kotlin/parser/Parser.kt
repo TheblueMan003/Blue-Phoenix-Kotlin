@@ -244,21 +244,33 @@ private fun parseSwitch(tokens: TokenStream): Switch {
     val scrut = parseExpression(tokens)
     expectDelimiter(tokens, ")")
     expectDelimiter(tokens, "{")
-    val cases = ArrayList<Case>()
 
-    // Get Cases
-    while(!isDelimiter(tokens, "}")){
-        val expr = parseExpression(tokens)
-        expectOperationToken(tokens, "->")
-        val block = parseBlock(tokens)
-        cases.add(Case(expr, block))
-    }
+    val (cases, forgenerates) = parseCases(tokens)
 
-    val ret = Switch(scrut, cases)
-    ret.hasReturn = cases.map { toReturnType(it.statement) }.reduce{ a, b -> mergeReturnType(a,b) }
+    val ret = Switch(scrut, cases, forgenerates)
+    val returnTypes = cases.map { toReturnType(it.statement) }
+    ret.hasReturn = if (returnTypes.isNotEmpty()){
+        returnTypes.reduce{ a, b -> mergeReturnType(a,b) }
+    }else { ReturnType.NONE }
     return ret
 }
 
+private fun parseCases(tokens: TokenStream):Pair<List<Case>, List<Forgenerate>>{
+    val cases = ArrayList<Case>()
+    val forgenerates = ArrayList<Forgenerate>()
+    // Get Cases
+    while(!isDelimiter(tokens, "}")){
+        if (isKeyword(tokens, "forgenerate")){
+            forgenerates.add(parseForgenerateSwitch(tokens) as Forgenerate)
+        } else {
+            val expr = parseExpression(tokens)
+            expectOperationToken(tokens, "->")
+            val block = parseBlock(tokens)
+            cases.add(Case(expr, block))
+        }
+    }
+    return Pair(cases, forgenerates)
+}
 
 
 private fun parseIf(tokens: TokenStream): Statement {
@@ -337,9 +349,11 @@ private fun parseVariableAssignment(tokens: TokenStream, identifier: Identifier)
 
 private fun parseExpressionList(tokens: TokenStream): List<Expression>{
     val expr = ArrayList<Expression>()
-    do {
-        expr.add(parseExpression(tokens))
-    }while(isDelimiter(tokens, ","))
+    if (!isDelimiterNoConsume(tokens, ")")) {
+        do {
+            expr.add(parseExpression(tokens))
+        } while (isDelimiter(tokens, ","))
+    }
     return expr
 }
 
@@ -367,7 +381,7 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
                 )
             }
             CallExpr(called, args)
-        }else {
+        } else {
             val args = parseExpressionList(tokens).toMutableList()
             expectDelimiter(tokens, ")")
             if (isDelimiter(tokens,"{")){
@@ -422,6 +436,19 @@ private fun parseForgenerate(tokens: TokenStream): Statement {
 
     return UnlinkedForgenerate(identifier, generator, parseBlockGroup(tokens))
 }
+private fun parseForgenerateSwitch(tokens: TokenStream): Statement {
+    expectDelimiter(tokens, "(")
+    val identifier = parseIdentifier(tokens)
+    expectDelimiter(tokens, ",")
+    val generator = parseExpression(tokens)
+    expectDelimiter(tokens, ")")
+    expectDelimiter(tokens, "{")
+
+    val (cases, forgnerates) = parseCases(tokens)
+
+    return UnlinkedForgenerate(identifier, generator, Block(cases + forgnerates))
+}
+
 
 
 private fun parseFunctionArgumentsList(tokens: TokenStream): List<FunctionArgument>{

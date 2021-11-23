@@ -109,7 +109,7 @@ data class Case(val expr: Expression, val statement: Statement): Statement(){
         return "$expr -> $statement"
     }
 }
-data class Switch(val scrutinee: Expression, val cases: List<Case>): Splitter(){
+data class Switch(val scrutinee: Expression, val cases: List<Case>, val forgenerate: List<Forgenerate>): Splitter(){
     override fun toString(): String {
         return "switch($scrutinee){$cases}"
     }
@@ -163,5 +163,6 @@ data class FromImport(val resource: List<Identifier>, val identifier: Identifier
     }
 }
 
-data class UnlinkedForgenerate(val identifier: Identifier, val generator: Expression, val body: Block): Statement()
-data class LinkedForgenerate(val identifier: Identifier, val generator: IGenerator, val body: Block): Statement()
+abstract class Forgenerate(): Statement()
+data class UnlinkedForgenerate(val identifier: Identifier, val generator: Expression, val body: Block): Forgenerate()
+data class LinkedForgenerate(val identifier: Identifier, val generator: IGenerator, val body: Block): Forgenerate()

@@ -150,6 +150,10 @@ class Interpreter {
             is VariableExpr -> {
                 variables[e.variable]!!
             }
+            is StatementThanExpression -> {
+                interpret(e.statement, null)
+                expressionEvaluation(e.expr)
+            }
             is CallExpr -> {
                 when(e.value){
                     is FunctionExpr -> {

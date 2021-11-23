@@ -82,7 +82,9 @@ fun simplify(stm: Statement, context: IContext): Statement {
             }
         }
         is Switch -> {
-            simplify(buildSwitchTree(stm.scrutinee, stm.cases, context), context)
+            val genCases = ArrayList<Case>()
+            collectCases(Sequence(stm.forgenerate.map{ simplify(it, context) }), genCases)
+            simplify(buildSwitchTree(stm.scrutinee, stm.cases+genCases, context), context)
         }
         is Block -> {
             val nstm = stm.statements.map { simplify(it, context) }
@@ -193,7 +195,7 @@ fun simplify(stm: Statement, context: IContext): Statement {
             while(gn.hasNext()){
                 statements += runReplace(stm.body, mapOf(stm.identifier to gn.next()))
             }
-            compileSimply(Block(statements), context)
+            compileSimply(Sequence(statements), context)
         }
         is RawCommandArg -> {
             var str = stm.cmd
@@ -471,5 +473,14 @@ fun expressionToString(expr: Expression): String{
         is StatementThanExpression -> expressionToString(expr.expr)
         is EnumValueExpr -> expr.value.name.toString()
         else -> expr.toString()
+    }
+}
+
+fun collectCases(stm: Statement, lst: ArrayList<Case>){
+    when(stm){
+        is Case -> lst.add(stm)
+        is Block -> stm.statements.map { collectCases(it, lst) }
+        is Sequence -> stm.statements.map { collectCases(it, lst) }
+        else -> throw Exception("Switch can only contains cases. Found: $stm")
     }
 }

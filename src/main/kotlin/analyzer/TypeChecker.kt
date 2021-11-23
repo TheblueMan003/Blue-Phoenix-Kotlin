@@ -36,8 +36,8 @@ fun check(stm: Statement, context: IContext): Statement {
                 Switch(expr.first, stm.cases.map {
                     val scrut = checkExpression(it.expr, context)
                     checkOwnership(scrut.second, expr.second)
-                    Case(scrut.first, check(it.statement, context))
-                }).withParent(stm)
+                    Case(scrut.first, check(it.statement, context)) },
+                    stm.forgenerate).withParent(stm)
             }
             is LinkedVariableAssignment -> {
                 if (stm.variable.type is FuncType){

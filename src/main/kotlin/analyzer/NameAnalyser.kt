@@ -46,7 +46,9 @@ fun analyse(stm: Statement, context: IContext): Statement {
             }
             is Switch -> {
                 Switch(analyse(stm.scrutinee, context) as Expression,
-                    stm.cases.map { s -> analyse(s, context) as Case }).withParent(stm)
+                    stm.cases.map { s -> analyse(s, context) as Case },
+                    stm.forgenerate.map { s -> analyse(s, context) as Forgenerate }
+                ).withParent(stm)
             }
             is RawCommandArg -> {
                 RawCommandArg(stm.cmd, stm.args.map { analyse(it, context) as Expression })
@@ -352,7 +354,8 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
                         analyse(FunctionDeclaration(DataStructModifier.newPublic(), it.name, emptyList(), it.type,
                             Block(listOf(
                             Switch(VariableExpr(variable),
-                            enm.values.map { Case(IdentifierExpr(it.name), UnlinkedReturnStatement(it.data[id])) }
+                            enm.values.map { Case(IdentifierExpr(it.name), UnlinkedReturnStatement(it.data[id])) },
+                            emptyList()
                             ))), variable), sub)
                     }
                 )

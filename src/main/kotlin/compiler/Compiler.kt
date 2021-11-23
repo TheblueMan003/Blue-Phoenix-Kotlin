@@ -62,8 +62,8 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
             FunctionBody(
                 Switch(VariableExpr(it.value.second!!.input[0]),
                     it.value.first.map { f -> Case(FunctionExpr(f),
-                        CallExpr(FunctionExpr(f), it.value.second!!.input.drop(1).map { VariableExpr(it) })) }
-                ),
+                        CallExpr(FunctionExpr(f), it.value.second!!.input.drop(1).map { VariableExpr(it) })) },
+                emptyList()),
                 it.value.second!!
             )
         }), mainContext){ s, c -> runChecker(runAnalyse(s, c), c) }

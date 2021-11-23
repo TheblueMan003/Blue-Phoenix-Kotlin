@@ -22,7 +22,8 @@ private fun replace(stm: Statement, map: Map<Identifier, Expression>):Statement{
         }
         is Switch -> {
             Switch(replaceExpression(stm.scrutinee, map),
-                stm.cases.map { s -> replace(s, map) as Case }).withParent(stm)
+                stm.cases.map { s -> replace(s, map) as Case },
+                stm.forgenerate.map { s -> replace(s, map) as Forgenerate }).withParent(stm)
         }
         is Case -> {
             Case(replaceExpression(stm.expr, map),

@@ -11,9 +11,16 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Replacer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/interpreter/Interpreter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/random/lcg.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/random/lcg.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
