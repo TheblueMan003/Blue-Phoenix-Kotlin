@@ -1,0 +1,42 @@
+public struct vector3<T>{
+    T x,y,z
+
+    public lazy operator void init(lazy T x, lazy T y, lazy T z){
+        this.x = x
+        this.y = y
+        this.z = z
+    }
+
+    public operator void plusAssign(vector3<T> other){
+        x += other.x
+        y += other.y
+        z += other.z
+    }
+
+    public lazy operator vector3<T> plus(vector3<T> other){
+        vector3<T> out
+        out.x = x + other.x
+        out.y = y + other.y
+        out.z = z + other.z
+        return out
+    }
+
+    public operator void minusAssign(vector3<T> other){
+        x -= other.x
+        y -= other.y
+        z -= other.z
+    }
+
+    public operator void timesAssign(T other){
+        x *= x
+        y *= y
+        z *= z
+    }
+
+    public operator void divAssign(T other){
+        x /= x
+        y /= y
+        z /= z
+    }
+}
+public typedef vector3<int> vector3Int

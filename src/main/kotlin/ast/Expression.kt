@@ -99,7 +99,7 @@ data class TupleExpr(val value: List<Expression>) : Expression(){
  *  Range Expression use for switch
  */
 data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(), IGenerator{
-    override fun getIterator(): Iterator<Expression> {
+    override fun getIterator(): Iterator<Map<String, Expression>> {
         return RangeIterator(min, max)
     }
 
@@ -107,19 +107,34 @@ data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(), I
         return "RangeLitExpr($min..$max)"
     }
 
-    private class RangeIterator(val min: Expression, val max: Expression):Iterator<Expression>{
+    private class RangeIterator(val min: Expression, val max: Expression):Iterator<Map<String,Expression>>{
         var cur = min
         override fun hasNext(): Boolean {
-            return cur != max
+            val minV = (min as IntLitExpr).value
+            val maxV = (max as IntLitExpr).value
+            val index = (cur as IntLitExpr).value
+            return if (minV < maxV) {
+                index <= maxV
+            } else {
+                index >= minV
+            }
         }
 
-        override fun next(): Expression {
+        override fun next(): Map<String, Expression> {
             val c = cur
-            when(cur){
-                is IntLitExpr ->{ cur = IntLitExpr((cur as IntLitExpr).value+1) }
-                else -> throw NotImplementedError()
+            val minV = (min as IntLitExpr).value
+            val maxV = (max as IntLitExpr).value
+            val index = (c as IntLitExpr).value
+
+            cur = if (minV < maxV) {
+                IntLitExpr((cur as IntLitExpr).value + 1)
+            } else {
+                IntLitExpr((cur as IntLitExpr).value - 1)
             }
-            return c
+
+            return mapOf(Pair("", c), Pair("index", c),
+                Pair("index", IntLitExpr(index-minV)),
+                Pair("count", IntLitExpr(maxV-minV + 1)))
         }
 
     }
@@ -141,19 +156,27 @@ data class EnumExpr(val enum: Enum) : AbstractIdentifierExpr(), IGenerator{
     override fun toString(): String {
         return "EnumExpr($enum)"
     }
-    override fun getIterator(): Iterator<Expression> {
+    override fun getIterator(): Iterator<Map<String, Expression>> {
         return EnumIterator(enum)
     }
 
-    private class EnumIterator(val enum: Enum):Iterator<Expression>{
+    private class EnumIterator(val enum: Enum):Iterator<Map<String, Expression>>{
         var index = 0
         override fun hasNext(): Boolean {
             return index != enum.values.size
         }
 
-        override fun next(): Expression {
+        override fun next(): Map<String, Expression> {
             val c = index++
-            return EnumValueExpr(enum.values[index++], c, enum)
+
+            val value = enum.values[index++]
+            val map = (value.data.zip(enum.fields).map { (v, f) -> Pair(f.name.toString(), v) }).toMap()
+
+            return map + mapOf(
+                Pair("",EnumValueExpr(enum.values[index++], c, enum)),
+                Pair("index", IntLitExpr(c)),
+                Pair("count", IntLitExpr(enum.values.size))
+            )
         }
 
     }

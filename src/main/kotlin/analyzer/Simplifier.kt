@@ -193,7 +193,8 @@ fun simplify(stm: Statement, context: IContext): Statement {
             val gn = stm.generator.getIterator()
             val statements = ArrayList<Statement>()
             while(gn.hasNext()){
-                statements += runReplace(stm.body, mapOf(stm.identifier to gn.next()))
+                statements += runReplace(stm.body,
+                    gn.next().map{ (k,v) -> stm.identifier.sub(k) to v }.toMap())
             }
             compileSimply(Sequence(statements), context)
         }

@@ -1,5 +1,5 @@
 package ast
 
 interface IGenerator {
-    fun getIterator(): Iterator<Expression>
+    fun getIterator(): Iterator<Map<String, Expression>>
 }
