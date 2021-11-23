@@ -1,6 +1,2 @@
 //import mc.color
 
-int[2,3,4] test
-
-test[0,0,0] = 5
-int a = test[0,0,0]

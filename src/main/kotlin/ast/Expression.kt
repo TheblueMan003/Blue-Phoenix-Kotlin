@@ -115,6 +115,15 @@ data class TupleExpr(val value: List<Expression>) : Expression(){
 }
 
 /**
+ *  Tuple Value in Expression
+ */
+data class ArrayExpr(val value: List<Expression>) : Expression(){
+    override fun toString(): String {
+        return "ArrayExpr($value)"
+    }
+}
+
+/**
  *  Range Expression use for switch
  */
 data class RangeLitExpr(val min: Expression, val max: Expression) : LitExpr(), IGenerator{

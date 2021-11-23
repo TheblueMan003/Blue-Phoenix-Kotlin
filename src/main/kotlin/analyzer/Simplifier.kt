@@ -170,6 +170,30 @@ fun simplify(stm: Statement, context: IContext): Statement {
                 if (stm.expr is FunctionExpr) { context.addLambda(stm.expr.function, compile) }
                 stm
             }
+            else if (stm.variable.type is ArrayType){
+                if (stm.expr is VariableExpr){
+                    if (stm.expr.variable.type is ArrayType){
+                        Sequence(
+                            stm.variable.childrenVariable.map{ (k, it) ->
+                                LinkedVariableAssignment(it, VariableExpr(stm.expr.variable.childrenVariable[k]!!), stm.op)
+                            }
+                        )
+                    } else {
+                        Sequence(
+                            stm.variable.childrenVariable.map {
+                                LinkedVariableAssignment(it.value, stm.expr, stm.op)
+                            }
+                        )
+                    }
+
+                } else {
+                    Sequence(
+                        stm.variable.childrenVariable.map {
+                            LinkedVariableAssignment(it.value, stm.expr, stm.op)
+                        }
+                    )
+                }
+            }
             else{
                 LinkedVariableAssignment(stm.variable, simplifyExpression(stm.expr, context), stm.op)
             }

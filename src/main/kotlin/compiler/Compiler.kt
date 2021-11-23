@@ -18,37 +18,38 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
     var mainContext = Context("pbpc", this)
     var treeSize = 20
     var printImportDebug = false
+    var printDebug = false
     var forcedImport = listOf("std.loop")
 
     fun compile(): List<OutputFile> {
         val parsed = files.pmap { Pair(it.first, lexer.parse(it.second)) }
-        println("Parsed:\t$parsed")
+        if (printDebug){ println("Parsed:\t$parsed") }
         val tree = parsed.pmap { parser.parse(it.first, forcedImport, TokenStream(it.second)) }
                         .groupBy { it.first }
                         .map { Pair(it.key, Sequence(it.value.map { listOf(it.second) }.reduce{ x, y -> x+y })) }
 
-        println("Trees:\t$tree")
+        if (printDebug){ println("Trees:\t$tree") }
         tree.map { contexts[it.first] = Context(it.first, this) }
 
         var symTree = tree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
         while(contexts.any{it.value.hasNameResolvedCheck()}) {
             contexts.map { it.value.resetState() }
 
-            println("Resolving:\t$symTree")
+            if (printDebug){ println("Resolving:\t$symTree") }
 
             symTree = symTree.pmap { Pair(it.first, runAnalyse(it.second, contexts[it.first]!!)) }
             val failAll = contexts.all { !it.value.hasNameResolvedGet() }
             contexts.map { it.value.allowNameCrash(failAll) }
         }
-        println("Resolved:\t$symTree")
+        if (printDebug){ println("Resolved:\t$symTree") }
 
         val checkedTree = (symTree + imported).pmap { Pair(it.first, runChecker(it.second, contexts[it.first]!!)) }
-        println("Checked:\t$checkedTree")
+        if (printDebug){ println("Checked:\t$checkedTree") }
 
         val simplifiedTree = checkedTree.pmap {
             Pair(it.first, runSimplifier(it.second, contexts[it.first]!!) { s, c -> runChecker(runAnalyse(s, c), c) })
         }
-        println("Simplified:\t$simplifiedTree")
+        if (printDebug){ println("Simplified:\t$simplifiedTree") }
 
         val lambda = generateLambdaTree()
         return simplifiedTree.pmap { genCode(it.second, it.first) }.flatten() + genCode(lambda, "pbpc")
