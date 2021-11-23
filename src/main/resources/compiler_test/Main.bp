@@ -5,8 +5,8 @@
 int a
 switch(a){
     forgenerate(j, 0..10){
-        forgenerate(i, 0..10){
-            i -> mcc(i, j): ./say $0 $1
+        forgenerate(i, 10..20){
+            i.index -> mcc(i, j): ./say $0 $1
         }
     }
 }
