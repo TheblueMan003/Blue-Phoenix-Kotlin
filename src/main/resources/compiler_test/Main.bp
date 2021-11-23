@@ -1,11 +1,6 @@
 //import mc.color
 
-struct vector{
-    int x,y,z
-}
+int[2,3,4] test
 
-vector test
-
-forgenerate(i, test){
-    mcc(i):./say $0
-}
+test[0,0,0] = 5
+int a = test[0,0,0]

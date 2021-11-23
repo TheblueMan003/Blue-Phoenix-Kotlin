@@ -82,9 +82,9 @@ data class UnresolvedGeneratedGenericType(val name: Identifier, val type: List<D
     }
 }
 
-data class ArrayType(val subtype: DataType, val length: Int): DataType(){
+data class ArrayType(val subtype: DataType, val length: List<Int>): DataType(){
     override fun toString(): String {
-        return "Array(${subtype}[${length}])"
+        return "Array(${subtype}${length})"
     }
 }
 

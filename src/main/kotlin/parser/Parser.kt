@@ -632,9 +632,12 @@ fun parseType(tokens: TokenStream): DataType {
 
     while(isDelimiter(tokens, "[")){
         if (type is VarType) throw UnexpectedException("Var cannot be used as a Type in Arrays")
-        val size = getIntLit(tokens)
+        val sizes = ArrayList<Int>()
+        do {
+            sizes.add(getIntLit(tokens))
+        } while(isDelimiter(tokens, ","))
         expectDelimiter(tokens, "]")
-        type = ArrayType(type, size)
+        type = ArrayType(type, sizes)
     }
     if (isOperationToken(tokens, "=>")){
         type = when(type) {

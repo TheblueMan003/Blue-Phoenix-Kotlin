@@ -375,41 +375,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             Sequence(stmList)
         }
         is ArrayType -> {
-            val stmList = ArrayList<Statement>()
-            val casesGet = ArrayList<Case>()
-            val casesSet = ArrayList<Case>()
-            stmList.addAll((0..type.length).map {
-                val id =  Identifier("_$it")
-                val ret = analyse(VariableDeclaration(DataStructModifier.newPrivate(), id, type.subtype, variable ), sub)
-                val vr = sub.getVariable(id)
-
-                casesGet.add(Case(IntLitExpr(it), UnlinkedReturnStatement(VariableExpr(vr))))
-                casesSet.add(Case(IntLitExpr(it), UnlinkedVariableAssignment(id, IdentifierExpr(Identifier("value")), AssignmentType.SET)))
-
-                ret
-            })
-            // Set
-            stmList.add(
-                analyse(FunctionDeclaration(DataStructModifier.newOperator(), Identifier("set"),
-                listOf(
-                    FunctionArgument(DataStructModifier.newPrivate(), Identifier("index"), IntType(), null),
-                    FunctionArgument(DataStructModifier.newPrivate(), Identifier("value"), type.subtype, null)
-                ),
-                type.subtype,
-                Block(listOf(Switch(IdentifierExpr(Identifier("index")), casesSet, emptyList())))
-                , variable), sub)
-            )
-            // Get
-            stmList.add(
-                analyse(FunctionDeclaration(DataStructModifier.newOperator(), Identifier("get"),
-                    listOf(
-                        FunctionArgument(DataStructModifier.newPrivate(), Identifier("index"), IntType(), null)
-                    ),
-                    type.subtype,
-                    Block(listOf(Switch(IdentifierExpr(Identifier("index")), casesGet, emptyList())))
-                    , variable), sub)
-            )
-
+            val stmList = instantiateArray(type, variable, sub)
             Sequence(stmList)
         }
         is TupleType -> {
@@ -440,6 +406,80 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
     }
     context.resolve()
     return Pair(ret, variable)
+}
+
+private fun instantiateArray(type: ArrayType, variable: Variable, sub: IContext): ArrayList<Statement> {
+    val stmList = ArrayList<Statement>()
+    val casesGet = ArrayList<Case>()
+    val casesSet = ArrayList<Case>()
+    stmList.addAll((0..type.length.reduce { x, y -> x * y }).map {
+        val id = Identifier("_$it")
+        val ret = analyse(VariableDeclaration(DataStructModifier.newPrivate(), id, type.subtype, variable), sub)
+        val vr = sub.getVariable(id)
+
+        casesGet.add(Case(IntLitExpr(it), UnlinkedReturnStatement(VariableExpr(vr))))
+        casesSet.add(
+            Case(
+                IntLitExpr(it),
+                UnlinkedVariableAssignment(id, IdentifierExpr(Identifier("value")), AssignmentType.SET)
+            )
+        )
+
+        ret
+    })
+
+    // Set
+    val scrut = if (type.length.size > 1) {
+        type.length.mapIndexed { id, it ->
+                Pair(IdentifierExpr(Identifier("index_$id")) as Expression, it)
+            }.reduce { (id1, it1), (id2, it2) ->
+                Pair(BinaryExpr("+", BinaryExpr("*", id1, IntLitExpr(it2)), id2), it1)
+            }.first
+    } else { IdentifierExpr(Identifier("index_0")) }
+
+    stmList.add(
+        analyse(
+            FunctionDeclaration(
+                DataStructModifier.newOperator(), Identifier("set"),
+                (0 until type.length.size).map {
+                    FunctionArgument(
+                        DataStructModifier.newPrivate(),
+                        Identifier("index_$it"),
+                        IntType(),
+                        null
+                    )
+                } +
+                        FunctionArgument(
+                            DataStructModifier.newPrivate(),
+                            Identifier("value"),
+                            type.subtype,
+                            null
+                        ),
+                type.subtype,
+                Block(listOf(Switch(scrut, casesSet, emptyList()))), variable
+            ), sub
+        )
+    )
+    // Get
+    stmList.add(
+        analyse(
+            FunctionDeclaration(
+                DataStructModifier.newOperator(), Identifier("get"),
+                (0 until type.length.size).map {
+                    FunctionArgument(
+                        DataStructModifier.newPrivate(),
+                        Identifier("index_$it"),
+                        IntType(),
+                        null
+                    )
+                },
+                type.subtype,
+                Block(listOf(Switch(scrut, casesGet, emptyList()))), variable
+            ), sub
+        )
+    )
+
+    return stmList
 }
 
 fun analyseType(stm: DataType, context: IContext): DataType {
