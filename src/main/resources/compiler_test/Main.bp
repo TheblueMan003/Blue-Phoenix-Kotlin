@@ -1,12 +1,20 @@
 //import mc.color
 
+struct test{
+    int b
 
+    public operator void init(){
+        b = 0
+    }
 
-int a
-switch(a){
-    forgenerate(j, 0..10){
-        forgenerate(i, 10..20){
-            i.index -> mcc(i, j): ./say $0 $1
-        }
+    public operator int get(int index){
+        return b
+    }
+    public operator void set(int index, int value){
+        b = value
     }
 }
+
+test monade = test()
+monade[0] = 5
+int a = monade[0]

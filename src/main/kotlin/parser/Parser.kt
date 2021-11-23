@@ -10,7 +10,7 @@ import kotlin.collections.ArrayList
 
 private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
 private val unaryOperationOrder = listOf("-", "!")
-
+private val assignTokens = listOf("+","*","-","/","%","=","^")
 
 fun parse(filename: String, forcedImport: List<String>,tokens: TokenStream):Pair<String, Statement>{
     val statements = ArrayList<Statement>()
@@ -63,7 +63,18 @@ private fun parseBlock(tokens: TokenStream): Statement {
         val identifier = parseIdentifier(tokens)
         if (isDelimiterNoConsume(tokens, "(")){
             return parseFunctionCall(tokens, identifier)
-        } else if (isOperationTokenNoConsume(tokens, listOf("+","*","-","/","%","=","^"))) {
+        }else if (isDelimiterNoConsume(tokens, "[")){
+            val get = parseGetExpr(tokens, identifier)
+            return if (isOperationTokenNoConsume(tokens, assignTokens)){
+                if (isOperationToken(tokens, "=")){
+                    SetExpr(get.value, get.args, parseExpression(tokens))
+                } else {
+                    SetExpr(get.value, get.args, BinaryExpr(getOperationToken(tokens), get, parseExpression(tokens)))
+                }
+            } else {
+                get
+            }
+        } else if (isOperationTokenNoConsume(tokens, assignTokens)) {
             return parseVariableAssignment(tokens, identifier)
         } else {
             tokens.restoreState(state)
@@ -395,6 +406,21 @@ private fun parseFunctionCall(tokens: TokenStream, identifier:Identifier): Expre
     return called
 }
 
+private fun parseGetExpr(tokens: TokenStream, identifier:Identifier): GetExpr {
+    var called: Expression = IdentifierExpr(identifier)
+    while(isDelimiter(tokens, "[")) {
+        called = if (isDelimiter(tokens, "]")){
+            val args = ArrayList<Expression>()
+            GetExpr(called, args)
+        } else {
+            val args = parseExpressionList(tokens).toMutableList()
+            expectDelimiter(tokens, "]")
+            GetExpr(called, args)
+        }
+    }
+    return called as GetExpr
+}
+
 private fun parseMCC(tokens: TokenStream): Statement {
     expectDelimiter(tokens, "(")
     val args = parseExpressionList(tokens)
@@ -589,6 +615,8 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
         val identifier = parseIdentifier(tokens)
         return if (isDelimiterNoConsume(tokens, "(")){
             parseFunctionCall(tokens, identifier)
+        } else if (isDelimiterNoConsume(tokens, "[")){
+            parseGetExpr(tokens, identifier)
         } else{
             IdentifierExpr(identifier)
         }

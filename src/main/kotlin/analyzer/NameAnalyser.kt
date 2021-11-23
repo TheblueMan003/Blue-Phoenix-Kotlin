@@ -189,6 +189,15 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 FunctionExpr(fct)
             }
 
+            is GetExpr -> {
+                stm.value as IdentifierExpr
+                analyse(CallExpr(IdentifierExpr(stm.value.value.sub("get")), stm.args, true), context)
+            }
+            is SetExpr -> {
+                stm.value as IdentifierExpr
+                analyse(CallExpr(IdentifierExpr(stm.value.value.sub("set")), stm.args + stm.setValue, true), context)
+            }
+
 
             is UnlinkedVariableAssignment -> {
                 if (context.hasVariable(stm.identifier)) {
@@ -278,7 +287,8 @@ fun analyse(stm: Statement, context: IContext): Statement {
             }
             is CallExpr -> {
                 CallExpr(analyse(stm.value, context) as Expression,
-                    stm.args.map { s -> analyse(s, context) as Expression })
+                    stm.args.map { s -> analyse(s, context) as Expression },
+                    stm.operator)
             }
             else -> {
                 stm

@@ -62,11 +62,30 @@ data class IdentifierExpr(var value: Identifier) : Expression(){
 /**
  *  Function Call Value in Expression
  */
-data class CallExpr(val value: Expression, val args: List<Expression>) : Expression(){
+data class CallExpr(val value: Expression, val args: List<Expression>, val operator: Boolean = false) : Expression(){
     override fun toString(): String {
         return "CallExpr($value($args))"
     }
 }
+
+/**
+ *  Function Get Value in Expression
+ */
+data class GetExpr(val value: Expression, val args: List<Expression>) : Expression(){
+    override fun toString(): String {
+        return "$value[$args]"
+    }
+}
+
+/**
+ *  Function Set Value in Expression
+ */
+data class SetExpr(val value: Expression, val args: List<Expression>, val setValue: Expression) : Expression(){
+    override fun toString(): String {
+        return "$value[$args] = $setValue"
+    }
+}
+
 
 /**
  *  Binary Expression

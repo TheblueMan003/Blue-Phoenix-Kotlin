@@ -105,7 +105,7 @@ private fun replaceExpression(stm: Expression, map: Map<Identifier, Expression>)
             }
         }
         is CallExpr -> {
-            CallExpr(replaceExpression(stm.value, map), stm.args.map { replaceExpression(it, map) })
+            CallExpr(replaceExpression(stm.value, map), stm.args.map { replaceExpression(it, map) }, stm.operator)
         }
         else -> stm
     }
