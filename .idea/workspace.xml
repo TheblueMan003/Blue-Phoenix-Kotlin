@@ -12,13 +12,9 @@
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Generator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Generator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
@@ -607,14 +603,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637701020601</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="Forgenerate Improvement">
+      <created>1637759116404</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1637759116404</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Lazy Arguments" />
     <MESSAGE value="Function inside lazy function" />
     <MESSAGE value="Import" />
     <MESSAGE value="Switch" />
@@ -639,7 +641,8 @@
     <MESSAGE value="Forgenerate Variable" />
     <MESSAGE value="Multi-dimension Array" />
     <MESSAGE value="Array Copy" />
-    <option name="LAST_COMMIT_MESSAGE" value="Array Copy" />
+    <MESSAGE value="Forgenerate Improvement" />
+    <option name="LAST_COMMIT_MESSAGE" value="Forgenerate Improvement" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

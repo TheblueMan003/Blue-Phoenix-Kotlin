@@ -202,11 +202,14 @@ fun analyse(stm: Statement, context: IContext): Statement {
             is UnlinkedVariableAssignment -> {
                 if (context.hasVariable(stm.identifier)) {
                     val variable = context.getVariable(stm.identifier)
+                    val expr = analyse(stm.expr, context) as Expression
 
-                    LinkedVariableAssignment(
-                        variable,
-                        analyse(stm.expr, context) as Expression, stm.op
-                    )
+                    if (variable.modifier.lazy){
+                        variable.lazyValue = expr
+                        Empty()
+                    } else {
+                        LinkedVariableAssignment(variable, expr, stm.op)
+                    }
                 } else if (!context.areNameCrashAllowed()) {
                     stm
                 } else {
@@ -234,10 +237,14 @@ fun analyse(stm: Statement, context: IContext): Statement {
             }
 
             is IdentifierExpr -> {
-
                 val choice = ArrayList<AbstractIdentifierExpr>()
                 if (context.hasVariable(stm.value)) {
-                    choice.add(VariableExpr(context.getVariable(stm.value)))
+                    val v = context.getVariable(stm.value)
+                    if (v.modifier.lazy){
+                        choice.add(LazyVariableExpr(v.lazyValue!!))
+                    } else {
+                        choice.add(VariableExpr(v))
+                    }
                 }
                 if (context.hasFunction(stm.value)) {
                     choice.add(UnresolvedFunctionExpr(context.getFunction(stm.value)))
@@ -261,7 +268,12 @@ fun analyse(stm: Statement, context: IContext): Statement {
                         }
                     }
                     1 -> {
-                        choice[0]
+                        val expr = choice[0]
+                        if (expr is LazyVariableExpr) {
+                            expr.expr
+                        } else{
+                            expr
+                        }
                     }
                     else -> {
                         UnresolvedExpr(choice)

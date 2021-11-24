@@ -390,6 +390,11 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
             else -> throw NotImplementedError()
         }
     }
+    else if (isNumerical(t1) && t2 is RangeType){
+        if (op == "in"){
+            return Pair(BinaryExpr(op, s1, s2), BoolType())
+        } else throw NotImplementedError()
+    }
     else if (isBoolean(t1) && isBoolean(t2)){
         if (op in listOf("&&", "||", "==")){
             return Pair(BinaryExpr(op, s1, s2), BoolType())

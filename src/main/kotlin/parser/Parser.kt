@@ -8,7 +8,7 @@ import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
 
-private val binaryOperationOrder = listOf("&&", "||", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
+private val binaryOperationOrder = listOf("&&", "||", "in", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
 private val unaryOperationOrder = listOf("-", "!")
 private val assignTokens = listOf("+","*","-","/","%","=","^")
 

@@ -1,5 +1,5 @@
 //import mc.color
 
-forgenerate(i, ((0,0),(0,0),(0,0),(0,0))){
-    mcc(i._0):./say $0
-}
+lazy int test = 0
+
+int a = test

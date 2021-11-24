@@ -47,6 +47,7 @@ fun parseOne(stream: StringStream):Token{
             stream.next()
         }
         when (val word = stream.slice()) {
+            "in" ->         { Token(OperationToken,      word, stream.getSliceStart()) }
             in keyword ->   { Token(KeywordTokenType,    word, stream.getSliceStart()) }
             in boolLit ->   { Token(BoolLitTokenType,    word, stream.getSliceStart()) }
             in primTypes -> { Token(PrimTypeTokenType,   word, stream.getSliceStart()) }

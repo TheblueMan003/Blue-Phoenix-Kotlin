@@ -30,6 +30,15 @@ data class VariableExpr(var variable: Variable) : AbstractIdentifierExpr(), IGen
 }
 
 /**
+ *  Lazy Variable Expression after Name Analysis
+ */
+data class LazyVariableExpr(var expr: Expression) : AbstractIdentifierExpr(){
+    override fun toString(): String {
+        return "LazyVariableExpr($expr)"
+    }
+}
+
+/**
  * Function Expression After Type Checker
  */
 data class FunctionExpr(var function: Function) : AbstractIdentifierExpr(){
