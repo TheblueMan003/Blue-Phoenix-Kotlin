@@ -11,9 +11,15 @@
   <component name="ChangeListManager">
     <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Generator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Generator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Statement.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -594,14 +600,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637699363539</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="Array Copy">
+      <created>1637701020601</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1637701020601</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Remove ParserContext.kt" />
     <MESSAGE value="Lazy Arguments" />
     <MESSAGE value="Function inside lazy function" />
     <MESSAGE value="Import" />
@@ -626,7 +638,8 @@
     <MESSAGE value="Get &amp; Set" />
     <MESSAGE value="Forgenerate Variable" />
     <MESSAGE value="Multi-dimension Array" />
-    <option name="LAST_COMMIT_MESSAGE" value="Multi-dimension Array" />
+    <MESSAGE value="Array Copy" />
+    <option name="LAST_COMMIT_MESSAGE" value="Array Copy" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

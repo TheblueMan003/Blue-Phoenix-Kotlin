@@ -173,25 +173,37 @@ fun simplify(stm: Statement, context: IContext): Statement {
             else if (stm.variable.type is ArrayType){
                 if (stm.expr is VariableExpr){
                     if (stm.expr.variable.type is ArrayType){
-                        Sequence(
+                        simplify(Sequence(
                             stm.variable.childrenVariable.map{ (k, it) ->
                                 LinkedVariableAssignment(it, VariableExpr(stm.expr.variable.childrenVariable[k]!!), stm.op)
                             }
-                        )
+                        ), context)
                     } else {
-                        Sequence(
+                        simplify(Sequence(
                             stm.variable.childrenVariable.map {
                                 LinkedVariableAssignment(it.value, stm.expr, stm.op)
                             }
-                        )
+                        ), context)
                     }
 
+                } else if (stm.expr is ArrayExpr) {
+                    simplify(Sequence(
+                        stm.variable.childrenVariable.values.sortedBy { it.name.toString() }
+                            .zip(stm.expr.value)
+                            .map { (v, e) -> LinkedVariableAssignment(v, e, stm.op) }
+                    ), context)
+                } else if (stm.expr is TupleExpr) {
+                    simplify(Sequence(
+                        stm.variable.childrenVariable.values.sortedBy { it.name.toString() }
+                            .zip(stm.expr.value)
+                            .map { (v, e) -> LinkedVariableAssignment(v, e, stm.op) }
+                    ), context)
                 } else {
-                    Sequence(
+                    simplify(Sequence(
                         stm.variable.childrenVariable.map {
                             LinkedVariableAssignment(it.value, stm.expr, stm.op)
                         }
-                    )
+                    ), context)
                 }
             }
             else{

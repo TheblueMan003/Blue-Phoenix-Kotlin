@@ -589,7 +589,7 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
         return StringLitExpr(getStringLit(tokens))
     }
 
-    // Parent
+    // Parent or Parent
     if (isDelimiter(tokens, "(")){
         var expr = parseExpression(tokens)
         if (isDelimiter(tokens, ",")){
@@ -599,6 +599,11 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
         }
         expectDelimiter(tokens,")")
         return expr
+    }
+    if(isDelimiter(tokens, "[")){
+        val args = parseExpressionList(tokens)
+        expectDelimiter(tokens,"]")
+        return ArrayExpr(args)
     }
 
     // Unary Operation

@@ -108,7 +108,11 @@ data class UnaryExpr(val op: String, val first: Expression): Expression(){
 /**
  *  Tuple Value in Expression
  */
-data class TupleExpr(val value: List<Expression>) : Expression(){
+data class TupleExpr(val value: List<Expression>) : Expression(), IGenerator{
+    override fun getIterator(): Iterator<Map<String, Expression>> {
+        return ListIterator(value)
+    }
+
     override fun toString(): String {
         return "TupleExpr($value)"
     }
@@ -117,7 +121,11 @@ data class TupleExpr(val value: List<Expression>) : Expression(){
 /**
  *  Tuple Value in Expression
  */
-data class ArrayExpr(val value: List<Expression>) : Expression(){
+data class ArrayExpr(val value: List<Expression>) : Expression(), IGenerator{
+    override fun getIterator(): Iterator<Map<String, Expression>> {
+        return ListIterator(value)
+    }
+
     override fun toString(): String {
         return "ArrayExpr($value)"
     }
@@ -196,11 +204,11 @@ data class EnumExpr(val enum: Enum) : AbstractIdentifierExpr(), IGenerator{
         override fun next(): Map<String, Expression> {
             val c = index++
 
-            val value = enum.values[index++]
+            val value = enum.values[c]
             val map = (value.data.zip(enum.fields).map { (v, f) -> Pair(f.name.toString(), v) }).toMap()
 
             return map + mapOf(
-                Pair("",EnumValueExpr(enum.values[index++], c, enum)),
+                Pair("",EnumValueExpr(enum.values[c], c, enum)),
                 Pair("index", IntLitExpr(c)),
                 Pair("count", IntLitExpr(enum.values.size))
             )

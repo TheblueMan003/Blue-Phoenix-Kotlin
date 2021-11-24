@@ -1,9 +1,5 @@
 package ast
 
-import data_struct.DataStructModifier
-import data_struct.Variable
-import data_struct.Enum
-
 enum class AssignmentType(val op: String){
     SET("="),
     ADD("+="),

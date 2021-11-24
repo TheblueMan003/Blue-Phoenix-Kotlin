@@ -21,26 +21,11 @@ data class LinkedVariableAssignment(var variable: Variable, val expr: Expression
  */
 data class VariableExpr(var variable: Variable) : AbstractIdentifierExpr(), IGenerator{
     override fun getIterator(): Iterator<Map<String, Expression>> {
-        return VariableIterator(variable.childrenVariable.values.toList())
+        return ListIterator(variable.childrenVariable.values.map { VariableExpr(it) })
     }
 
     override fun toString(): String {
         return "VariableExpr($variable)"
-    }
-
-    private class VariableIterator(val variable: List<Variable>):Iterator<Map<String,Expression>>{
-        var index = 0
-        override fun hasNext(): Boolean {
-            return index < variable.size
-        }
-
-        override fun next(): Map<String, Expression> {
-            val c = index ++
-
-            return mapOf(Pair("", VariableExpr(variable[c])),
-                Pair("index", IntLitExpr(c)),
-                Pair("count", IntLitExpr(variable.size)))
-        }
     }
 }
 

@@ -255,6 +255,12 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
             val second = checkExpression(stm.max, context)
             operationCombine("..", first, second, context)
         }
+        is ArrayExpr -> {
+            val checked = stm.value.map { checkExpression(it, context) }
+            val types = checked.map { it.second }
+            val data = checked.map { it.first }
+            Pair(ArrayExpr(data), ArrayType(types.reduce { a,b -> biggestType(a,b) }, listOf(types.size)))
+        }
         else -> throw NotImplementedError("$stm")
     }
 }
@@ -402,7 +408,7 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
         return Pair(BinaryExpr(op, s1, s2), StringType())
     }
     else if (t1 is EnumType){
-        var other: EnumValueExpr =
+        val other: EnumValueExpr =
         if (s2 is EnumValueExpr){
             s2
         } else if (s2 is UnresolvedExpr) {

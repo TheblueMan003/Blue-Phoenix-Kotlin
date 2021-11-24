@@ -18,7 +18,7 @@ class Compiler(private val files: List<Pair<String, String>>, private val filesG
     var mainContext = Context("pbpc", this)
     var treeSize = 20
     var printImportDebug = false
-    var printDebug = false
+    var printDebug = true
     var forcedImport = listOf("std.loop")
 
     fun compile(): List<OutputFile> {

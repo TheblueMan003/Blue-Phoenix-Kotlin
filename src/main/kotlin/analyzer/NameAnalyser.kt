@@ -228,9 +228,7 @@ fun analyse(stm: Statement, context: IContext): Statement {
             }
             is UnlinkedForgenerate -> {
                 when(val gen = analyse(stm.generator, context)) {
-                    is RangeLitExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
-                    is EnumExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
-                    is VariableExpr -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
+                    is IGenerator -> { LinkedForgenerate(stm.identifier, gen, stm.body) }
                     else -> throw NotImplementedError("$gen")
                 }
             }
