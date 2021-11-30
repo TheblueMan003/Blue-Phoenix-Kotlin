@@ -56,10 +56,14 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
         is RawCommand -> listOf(stm.cmd)
         is RawCommandArg -> {
             var str = stm.cmd
-
+            val prepare = ArrayList<String>()
             stm.args.mapIndexed{ id, it -> Pair(id, it) }
                 .reversed()
-                .map { str = str.replace("\$${it.first}", expressionToString(it.second)) }
+                .map {
+                    val eval = expressionToString(it.second, sbi)
+                    prepare.addAll(eval.first)
+                    str = str.replace("\$${it.first}", eval.second)
+                }
 
             listOf(str)
         }

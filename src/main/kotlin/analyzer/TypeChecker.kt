@@ -202,7 +202,7 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
                     val variable = stm.value.variable
                     val args = stm.args.map { checkExpression(it, context) }
                     if (variable.type is FuncType) {
-                        val to = variable.type as FuncType
+                        val to = variable.type
 
                         if (to.from.size != args.size) throw Exception("Wrong Number Of Arguments!")
                         args.zip(to.from).map { (a, b) ->
@@ -272,6 +272,9 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
             val types = checked.map { it.second }
             val data = checked.map { it.first }
             Pair(ArrayExpr(data), ArrayType(types.reduce { a,b -> biggestType(a,b) }, listOf(types.size)))
+        }
+        is BuildInFunctionCall -> {
+            Pair(BuildInFunctionCall(stm.function, stm.expr.map { checkExpression(it, context).first }), VoidType())
         }
         else -> throw NotImplementedError("$stm")
     }

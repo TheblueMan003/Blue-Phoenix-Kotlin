@@ -4,9 +4,7 @@ import mc.entity
 entity int x
 
 lazy void test(params any value){
-    forgenerate(v, value){
-        mcc(v):./say $0
-    }
+    mcc(__to_raw_json__(value)):./say $0
 }
 
 test(0, 1, 2, 3)
