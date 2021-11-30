@@ -241,13 +241,9 @@ fun simplify(stm: Statement, context: IContext): Statement {
             compileSimply(Sequence(statements), context)
         }
         is RawCommandArg -> {
-            var str = stm.cmd
-            stm.args.map { simplifyExpression(it, context) }
-                .mapIndexed{ id, it -> Pair(id, it) }
-                .reversed()
-                .map { str = str.replace("\$${it.first}", expressionToString(it.second)) }
+            val arg = stm.args.map { simplifyExpression(it, context) }
 
-            RawCommand(str)
+            RawCommandArg(stm.cmd, arg)
         }
         is BuildInFunctionCall -> {
             BuildInFunctionCall(stm.function, stm.expr.map { s -> simplifyExpression(s, context) })

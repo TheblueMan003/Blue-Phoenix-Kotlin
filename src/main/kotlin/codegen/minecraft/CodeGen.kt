@@ -54,6 +54,15 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
         }
         is Empty -> emptyList()
         is RawCommand -> listOf(stm.cmd)
+        is RawCommandArg -> {
+            var str = stm.cmd
+
+            stm.args.mapIndexed{ id, it -> Pair(id, it) }
+                .reversed()
+                .map { str = str.replace("\$${it.first}", expressionToString(it.second)) }
+
+            listOf(str)
+        }
         else ->{
             throw NotImplementedError("$stm")
         }
@@ -65,4 +74,13 @@ fun createBlock(name: String, lines: List<String>, outputFiles: ArrayList<Output
     outputFiles.add(file)
     file.add(lines)
     return listOf(callBlock(file))
+}
+
+fun expressionToString(expr: Expression, sbi: ScoreboardInitializer): Pair<List<String>, String>{
+    return when(expr){
+        is BuildInFunctionCall -> {
+            (builtInFunction[expr.function.toString()] as ((List<Expression>,ScoreboardInitializer)->Pair<List<String>,String>))(expr.expr, sbi)
+        }
+        else -> Pair(emptyList() ,analyzer.expressionToString(expr))
+    }
 }

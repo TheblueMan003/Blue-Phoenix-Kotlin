@@ -9,30 +9,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="is keyword&#10;!">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Json.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/BuiltIn.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/mc/entity.bp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/NameAnalyser.kt" afterDir="false" />
+    <list default="true" id="16b07d8e-16b2-498c-aa37-f3c408754d81" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/Simplifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/analyzer/TypeChecker.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/DataType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/DataType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Expression.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Identifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/ResolvedStatement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/BlockGen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/BlockGen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/CodeGen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/Scoreboard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/Scoreboard.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/minecraft/VariableAssignment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/compiler/Compiler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStructModifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/DataStructModifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/data_struct/Function.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/data_struct/Function.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/TokenTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/compiler_test/Main.bp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -633,14 +612,20 @@
       <option name="project" value="LOCAL" />
       <updated>1637767383487</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="Base for buildIn">
+      <created>1638260588603</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1638260588603</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="UnknownFeatures">
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.bp" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Switch" />
     <MESSAGE value="Fixes" />
     <MESSAGE value="Refactor:&#10;- DataStruct now in data_struct package&#10;&#10;Enum, Lambda" />
     <MESSAGE value="Remove Cross Import" />
@@ -665,7 +650,8 @@
     <MESSAGE value="Forgenerate Improvement" />
     <MESSAGE value="Lazy Variable" />
     <MESSAGE value="is keyword&#10;!" />
-    <option name="LAST_COMMIT_MESSAGE" value="is keyword&#10;!" />
+    <MESSAGE value="Base for buildIn" />
+    <option name="LAST_COMMIT_MESSAGE" value="Base for buildIn" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
