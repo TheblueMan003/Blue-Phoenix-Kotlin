@@ -242,12 +242,15 @@ fun simplify(stm: Statement, context: IContext): Statement {
         }
         is RawCommandArg -> {
             var str = stm.cmd
-            val args = stm.args.map { simplifyExpression(it, context) }
+            stm.args.map { simplifyExpression(it, context) }
                 .mapIndexed{ id, it -> Pair(id, it) }
                 .reversed()
                 .map { str = str.replace("\$${it.first}", expressionToString(it.second)) }
 
             RawCommand(str)
+        }
+        is BuildInFunctionCall -> {
+            BuildInFunctionCall(stm.function, stm.expr.map { s -> simplifyExpression(s, context) })
         }
         else -> stm
     }
@@ -343,6 +346,13 @@ fun simplifyExpression(expr: Expression, context: IContext): Expression {
             else if (left is StringLitExpr){
                 applyOperation(expr.op, left.value, expressionToString(right))
             }
+            else if (right is TypeExpr){
+                if (right.type is VarType){
+                    BoolLitExpr(left is VariableExpr)
+                } else {
+                    BoolLitExpr(checkOwnership(checkExpression(left, context).second, right.type))
+                }
+            }
             else {
                 BinaryExpr(expr.op, left, right)
             }
@@ -377,6 +387,8 @@ fun simplifyExpression(expr: Expression, context: IContext): Expression {
 
 fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: IContext): Pair<Statement, Expression>{
     return if (stm is FunctionExpr && !stm.function.modifier.lazy && !stm.function.modifier.inline) {
+        if (stm.function.hasParams) throw Exception("None Lazy function cannot have params args")
+
         Pair(
             simplifySequence(
                 stm.function.input.zip(withDefault(args, stm.function.from.map { it.defaultValue }))
@@ -418,16 +430,38 @@ fun simplifyFunctionCall(stm: Expression, args: List<Expression>, context: ICont
     }
 }
 
+fun remapFunctionParamsArg(function: Function, args: List<Expression>):List<Expression>{
+    val argNb = if (function.hasLastLambda) { function.from.size - 2 } else { function.from.size - 1 }
+
+    val first = args.take(argNb)
+    val lambda = if (function.hasLastLambda){ args.last() } else { null }
+    val mid = if (function.hasLastLambda) { args.drop(argNb).dropLast(1) } else { args.drop(argNb) }
+
+    return first + ArrayExpr(mid) + if (function.hasLastLambda) { listOf(lambda!!) } else { emptyList() }
+}
 fun lazyFunctionAssignArg(function: Function, args: List<Expression>):List<Statement>{
+    val newArg = if (function.hasParams){
+        remapFunctionParamsArg(function, args)
+    } else {
+        args
+    }
+
     return function.input
-        .zip(withDefault(args, function.from.map { it.defaultValue }))
+        .zip(withDefault(newArg, function.from.map { it.defaultValue }))
         .filter { (v, _) -> !v.modifier.lazy }
         .map { (v, a) -> LinkedVariableAssignment(v, a, AssignmentType.SET) }
 }
 fun lazyFunctionMapLazyArg(function: Function, args: List<Expression>):Map<Identifier, Expression>{
+    val newArg = if (function.hasParams){
+        remapFunctionParamsArg(function, args)
+    } else {
+        args
+    }
+
     return function.input
-        .zip(withDefault(args, function.from.map { it.defaultValue }))
+        .zip(withDefault(newArg, function.from.map { it.defaultValue }))
         .filter { (v, _) -> v.modifier.lazy }
+        .map { (v, e) -> v.lazyValue = e;Pair(v, e)}
         .associate { (v, a) -> Pair(v.name.getLast(), a) }
         .toMap()
 }
@@ -511,10 +545,12 @@ fun expressionToString(expr: Expression): String{
         is IntLitExpr -> expr.value.toString()
         is FloatLitExpr -> expr.value.toString()
         is StringLitExpr -> expr.value
+        is SelectorExpr -> expr.selector
         is VariableExpr -> expr.variable.name.toString()
         is FunctionExpr -> expr.function.name.toString()
         is StatementThanExpression -> expressionToString(expr.expr)
         is EnumValueExpr -> expr.value.name.toString()
+        is JsonObject -> expr.toJsonString()
         else -> expr.toString()
     }
 }

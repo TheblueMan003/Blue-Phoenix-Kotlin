@@ -15,6 +15,9 @@ import utils.pmap
 class Compiler(private val files: List<Pair<String, String>>, private val filesGetter: IResourceGetter) {
     private var contexts = HashMap<String, IContext>()
     private var imported = ArrayList<Pair<String,Statement>>()
+    val builtInFunction = codegen.minecraft.builtInFunction
+
+
     var mainContext = Context("pbpc", this)
     var treeSize = 20
     var printImportDebug = false

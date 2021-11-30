@@ -4,11 +4,12 @@ import ast.*
 import data_struct.Enum
 import data_struct.DataStructModifier
 import data_struct.DataStructVisibility.*
+import java.nio.channels.Selector
 import java.rmi.UnexpectedException
 import kotlin.collections.ArrayList
 
 
-private val binaryOperationOrder = listOf("&&", "||", "in", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
+private val binaryOperationOrder = listOf("&&", "||", "in", "is", "==", "<", "<=", ">", ">=","?","+", "-", "*", "/", "%", "^")
 private val unaryOperationOrder = listOf("-", "!")
 private val assignTokens = listOf("+","*","-","/","%","=","^")
 
@@ -78,7 +79,6 @@ private fun parseBlock(tokens: TokenStream): Statement {
             tokens.restoreState(state)
         }
     }
-
 
     parseModifier(tokens, modifier)
 
@@ -468,9 +468,9 @@ private fun parseForgenerateSwitch(tokens: TokenStream): Statement {
     expectDelimiter(tokens, ")")
     expectDelimiter(tokens, "{")
 
-    val (cases, forgnerates) = parseCases(tokens)
+    val (cases, forgenerates) = parseCases(tokens)
 
-    return UnlinkedForgenerate(identifier, generator, Block(cases + forgnerates))
+    return UnlinkedForgenerate(identifier, generator, Block(cases + forgenerates))
 }
 
 
@@ -519,6 +519,11 @@ private fun parseModifier(tokens: TokenStream, modifier: DataStructModifier){
             modifier.abstract = true
             found = true
         }
+        else if (isKeyword(tokens, "params")) {
+            modifier.params = true
+            modifier.lazy = true
+            found = true
+        }
         else if (isKeyword(tokens, "static")) {
             modifier.static = true
             found = true
@@ -533,6 +538,10 @@ private fun parseModifier(tokens: TokenStream, modifier: DataStructModifier){
         }
         else if (isKeyword(tokens, "inline")) {
             modifier.inline = true
+            found = true
+        }
+        else if (isKeyword(tokens, "entity")) {
+            modifier.entity = true
             found = true
         }
     }while(found)
@@ -588,6 +597,14 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
     if (isStringLit(tokens)){
         return StringLitExpr(getStringLit(tokens))
     }
+    if (isSelector(tokens)){
+        val expr = SelectorExpr(getSelector(tokens))
+        return if (isDelimiter(tokens, ".")){
+            UnlinkedSelectorVariableExpr(expr, parseIdentifier(tokens))
+        } else {
+            expr
+        }
+    }
 
     // Parent or Parent
     if (isDelimiter(tokens, "(")){
@@ -604,6 +621,20 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
         val args = parseExpressionList(tokens)
         expectDelimiter(tokens,"]")
         return ArrayExpr(args)
+    }
+    if(isDelimiter(tokens, "{")){
+        val map = HashMap<String, JsonObject>()
+        if (!isDelimiter(tokens,"}")) {
+            do {
+                val key = getStringLit(tokens)
+                expectOperationToken(tokens, ":")
+                val value = parseExpression(tokens) as JsonObject
+                map[key] = value
+            }while(isDelimiter(tokens, ","))
+            expectDelimiter(tokens, "}")
+
+        }
+        return DictionaryExpr(map)
     }
 
     // Unary Operation
@@ -624,6 +655,11 @@ private fun parseSimpleExpression(tokens: TokenStream): Expression {
             IdentifierExpr(identifier)
         }
     }
+
+    if (isType(tokens)){
+        return TypeExpr(parseType(tokens))
+    }
+
     throw UnexpectedException("Unknown token: '"+tokens.peekString()+"' at pos: "+tokens.peekPos())
 }
 
@@ -687,11 +723,14 @@ private fun parseSimpleType(tokens: TokenStream): DataType {
     if (isPrimTypeToken(tokens,"string")){ return StringType() }
     if (isPrimTypeToken(tokens,"void")){ return VoidType() }
     if (isPrimTypeToken(tokens,"var")){ return VarType() }
+    if (isPrimTypeToken(tokens,"selector")){ return SelectorType() }
+    if (isPrimTypeToken(tokens,"any")){ return AnyType() }
     if (isPrimTypeToken(tokens,"range")){
         val generics = parseGenerics(tokens)
         if (generics == null || generics.size != 1) throw UnexpectedException("Range must have one and only one generics.")
         return RangeType(generics[0])
     }
+
     throw UnexpectedException("Unknown type: "+tokens.peekString()+" at pos: "+tokens.peekPos())
 }
 

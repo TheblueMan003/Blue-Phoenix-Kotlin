@@ -8,7 +8,7 @@ var floatScale: Int = 1000
 
 fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentType, sbi: ScoreboardInitializer,
                           callBack: (Statement)->List<String>): List<String>{
-    val s = variableToScoreboard(variable)
+    val s = variableToScoreboard(variable, sbi)
     var counter = -1
 
     fun getTMP(): ScoreboardEntry{
@@ -22,7 +22,7 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                     AssignmentType.SET -> listOf(sbe.set(expr.value))
                     AssignmentType.ADD -> listOf(sbe.add(expr.value))
                     AssignmentType.SUB -> listOf(sbe.remove(expr.value))
-                    else -> listOf(sbe.operation(sbi.get(expr.value), op.op))
+                    else -> listOf(sbe.operation(sbi.getConstant(expr.value), op.op))
                 }
             }
             is BoolLitExpr -> {
@@ -43,7 +43,10 @@ fun setVariableExpression(variable: Variable, expr: Expression, op: AssignmentTy
                 }
             }
             is VariableExpr -> {
-                listOf(sbe.operation(variableToScoreboard(expr.variable), op.op))
+                listOf(sbe.operation(variableToScoreboard(expr.variable, sbi), op.op))
+            }
+            is LinkedSelectorVariableExpr -> {
+                listOf(sbe.operation(variableToScoreboard(expr.selector, expr.variable, sbi), op.op))
             }
             is EnumValueExpr -> {
                 internal(sbe, IntLitExpr(expr.index), op)

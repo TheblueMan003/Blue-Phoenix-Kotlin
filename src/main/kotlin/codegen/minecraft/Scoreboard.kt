@@ -1,5 +1,6 @@
 package codegen.minecraft
 
+import ast.SelectorExpr
 import data_struct.Variable
 
 data class Scoreboard(val name: String, val type: String)
@@ -67,7 +68,7 @@ class ScoreboardInitializer{
     private val lst = HashMap<Int, ScoreboardEntry>()
     private val output = ArrayList<String>()
 
-    fun get(value: Int): ScoreboardEntry{
+    fun getConstant(value: Int): ScoreboardEntry{
         if (!lst.containsKey(value)){
             val sbe = ScoreboardEntry("$value", Scoreboard("bp.const","dummy"))
             output.add(sbe.set(value))
@@ -78,6 +79,17 @@ class ScoreboardInitializer{
 }
 
 
-fun variableToScoreboard(variable: Variable): ScoreboardEntry{
-    return ScoreboardEntry(variable.name.toString(), Scoreboard("bp.value", "dummy"))
+fun variableToScoreboard(variable: Variable, sbi: ScoreboardInitializer): ScoreboardEntry{
+    return if (variable.modifier.entity){
+        ScoreboardEntry("@s", Scoreboard(variable.name.toString(), "dummy"))
+    } else {
+        ScoreboardEntry(variable.name.toString(), Scoreboard("bp.value", "dummy"))
+    }
+}
+fun variableToScoreboard(selector: SelectorExpr, variable: Variable, sbi: ScoreboardInitializer): ScoreboardEntry{
+    return if (variable.modifier.entity){
+        ScoreboardEntry(selector.selector, Scoreboard(variable.name.toString(), "dummy"))
+    } else {
+        throw UnsupportedOperationException()
+    }
 }

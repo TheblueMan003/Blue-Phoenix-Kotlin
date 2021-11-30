@@ -3,6 +3,7 @@ package ast
 import data_struct.Class
 import data_struct.Enum
 import data_struct.Struct
+import javax.xml.crypto.Data
 
 abstract class DataType() {
     override fun hashCode(): Int {
@@ -101,5 +102,20 @@ data class FuncType(val from: List<DataType>, val to: DataType): DataType(){
 data class RangeType(val type: DataType): DataType(){
     override fun toString(): String {
         return "Range(${type})"
+    }
+}
+data class TypeType(val type: DataType):DataType(){
+    override fun toString(): String {
+        return "TypeType(${type})"
+    }
+}
+class SelectorType:DataType(){
+    override fun toString(): String {
+        return "SelectorType"
+    }
+}
+class AnyType:DataType(){
+    override fun toString(): String {
+        return "AnyType"
     }
 }

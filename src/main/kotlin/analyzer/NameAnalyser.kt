@@ -220,6 +220,23 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 if (context.getCurrentFunction() == null) throw Exception("Return must me inside of a function")
                 ReturnStatement(analyse(stm.expr, context) as Expression, context.getCurrentFunction()!!)
             }
+            is UnlinkedSelectorVariableExpr ->{
+                if (context.hasVariable(stm.variable)) {
+                    val variable = context.getVariable(stm.variable)
+
+                    if (variable.modifier.lazy){
+                        throw Exception("Cannot have Lazy Selector Variable")
+                    } else if (!variable.modifier.entity){
+                        throw Exception("Field is not marked as entity.")
+                    } else {
+                        LinkedSelectorVariableExpr(stm.selector,  variable)
+                    }
+                } else if (!context.areNameCrashAllowed()) {
+                    stm
+                } else {
+                    throw Exception("${stm.variable} identifier Not Found")
+                }
+            }
             is ReturnStatement -> {
                 ReturnStatement(analyse(stm.expr, context) as Expression, stm.function)
             }
@@ -297,9 +314,26 @@ fun analyse(stm: Statement, context: IContext): Statement {
                 TupleExpr(stm.value.map { analyse(it, context) as Expression })
             }
             is CallExpr -> {
-                CallExpr(analyse(stm.value, context) as Expression,
-                    stm.args.map { s -> analyse(s, context) as Expression },
-                    stm.operator)
+                if (stm.value is IdentifierExpr &&
+                    context.getCompiler().builtInFunction.containsKey(stm.value.value.toString())){
+                    BuildInFunctionCall(stm.value.value, stm.args.map { s -> analyse(s, context) as Expression })
+                } else {
+                    CallExpr(
+                        analyse(stm.value, context) as Expression,
+                        stm.args.map { s -> analyse(s, context) as Expression },
+                        stm.operator
+                    )
+                }
+            }
+            is BuildInFunctionCall -> {
+                BuildInFunctionCall(stm.function, stm.expr.map { s -> analyse(s, context) as Expression })
+            }
+            is TypeExpr -> {
+                try {
+                    TypeExpr(analyseType(stm.type, context))
+                } catch (_: Exception) {
+                    stm
+                }
             }
             else -> {
                 stm
@@ -343,7 +377,9 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
             // Add Fields
             stmList.addAll(
                 struct.fields.map{ it ->
-                    val ret = analyse(VariableDeclaration(it.modifier, it.identifier, it.type, variable ), dualContext)
+                    val mod = it.modifier.clone()
+                    mod.entity = mod.entity || variable.modifier.entity
+                    val ret = analyse(VariableDeclaration(mod, it.identifier, it.type, variable ), dualContext)
                     val vr = dualContext.getVariable(it.identifier)
                     dualContext.update(thiz.append(it.identifier), vr)
                     ret
@@ -391,6 +427,7 @@ private fun variableInstantiation(modifier: DataStructModifier, identifier: Iden
         is TupleType -> {
             val subModifier = DataStructModifier()
             modifier.visibility = DataStructVisibility.PUBLIC
+            modifier.entity = variable.modifier.entity
             Sequence(type.type.mapIndexed{ index, it ->
                 analyse(VariableDeclaration(subModifier, Identifier("_$index"), it, variable ), sub)})
         }
@@ -422,9 +459,12 @@ private fun instantiateArray(type: ArrayType, variable: Variable, sub: IContext)
     val stmList = ArrayList<Statement>()
     val casesGet = ArrayList<Case>()
     val casesSet = ArrayList<Case>()
+    val varModifier = DataStructModifier.newPrivate()
+    if (variable.modifier.entity) varModifier.entity = true
+
     stmList.addAll((0..type.length.reduce { x, y -> x * y }).map {
         val id = Identifier("_$it")
-        val ret = analyse(VariableDeclaration(DataStructModifier.newPrivate(), id, type.subtype, variable), sub)
+        val ret = analyse(VariableDeclaration(varModifier, id, type.subtype, variable), sub)
         val vr = sub.getVariable(id)
 
         casesGet.add(Case(IntLitExpr(it), UnlinkedReturnStatement(VariableExpr(vr))))

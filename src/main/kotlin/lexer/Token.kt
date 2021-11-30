@@ -16,7 +16,8 @@ enum class TokenTypes{
     SpaceTokenType,
     OperationToken,
     RawCommandToken,
-    DecoratorToken
+    DecoratorToken,
+    MCSelector
 }
 
 

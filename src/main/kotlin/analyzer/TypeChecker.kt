@@ -101,6 +101,9 @@ fun check(stm: Statement, context: IContext): Statement {
             is CallExpr -> {
                 checkExpression(stm, context).first
             }
+            is BuildInFunctionCall -> {
+                BuildInFunctionCall(stm.function, stm.expr.map { s -> checkExpression(s, context).first })
+            }
             is ReturnStatement -> {
                 val v = checkExpression(stm.expr, context)
                 if (!checkOwnership(v.second, stm.function.output.type))
@@ -154,6 +157,9 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
         is StringLitExpr -> {
             Pair(stm, StringType())
         }
+        is SelectorExpr -> {
+            Pair(stm, SelectorType())
+        }
         is VariableExpr -> {
             Pair(stm, stm.variable.type)
         }
@@ -167,6 +173,9 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
         }
         is UnresolvedExpr -> {
             Pair(stm, UnresolvedType())
+        }
+        is TypeExpr -> {
+            Pair(stm, TypeType(stm.type))
         }
         is TupleExpr -> {
             val lst = stm.value.map { checkExpression(it, context) }
@@ -255,6 +264,9 @@ fun checkExpression(stm: Expression, context: IContext): Pair<Expression, DataTy
             val second = checkExpression(stm.max, context)
             operationCombine("..", first, second, context)
         }
+        is LinkedSelectorVariableExpr -> {
+            Pair(stm, stm.variable.type)
+        }
         is ArrayExpr -> {
             val checked = stm.value.map { checkExpression(it, context) }
             val types = checked.map { it.second }
@@ -279,6 +291,8 @@ fun checkOwnership(t1: DataType, t2: DataType): Boolean{
         is IntType -> t1 is IntType
         is StringType -> true
         is BoolType -> t1 is BoolType
+        is SelectorType -> t1 is SelectorType
+        is AnyType -> true
         is TupleType -> t1 is TupleType && t1.type.zip(t2.type).map { (x,y) -> checkOwnership(x,y) }.all { it }
         is FuncType -> t1 is FuncType && t1.from.zip(t2.from).map { (x,y) -> checkOwnership(y,x) }.all { it }
                             && checkOwnership(t1.to, t2.to)
@@ -305,6 +319,8 @@ fun checkOwnershipCost(t1: DataType, t2: DataType): Int {
         is IntType -> 0
         is StringType -> 0
         is BoolType -> 0
+        is SelectorType -> 0
+        is AnyType -> 100
         is TupleType -> {
             val t = t1 as TupleType
             t.type.zip(t2.type).sumOf { (x, y) -> checkOwnershipCost(x, y) }
@@ -356,6 +372,10 @@ fun findFunction(from: List<DataType>, lst: List<Function>, isOperator: Boolean 
             .sortedBy { (c, _) -> c }.toList()
 
     return if (fit.isEmpty()){
+        val paramsFct = lst.filter { it.hasParams }
+        if (paramsFct.size == 1){
+            return paramsFct[0]
+        }
         throw Exception("Function not found with arguments: ${from.joinToString(", ")}")
     }
     else if (fit.size == 1){
@@ -376,7 +396,11 @@ fun operationCombine(op: String, p1: Pair<Expression, DataType>, p2: Pair<Expres
     val s2 = p2.first
     val t1 = p1.second
     val t2 = p2.second
-    if (isNumerical(t1) && isNumerical(t2)) {
+
+    if (op == "is"){
+        return Pair(BinaryExpr(op, s1, s2), BoolType())
+    }
+    else if (isNumerical(t1) && isNumerical(t2)) {
         return when (op) {
             in listOf("+","-","*","%","/") -> {
                 Pair(BinaryExpr(op, s1, s2), biggestType(t1, t2))

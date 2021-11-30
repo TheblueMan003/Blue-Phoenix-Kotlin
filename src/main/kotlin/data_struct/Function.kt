@@ -1,5 +1,6 @@
 package data_struct
 
+import ast.FuncType
 import ast.FunctionArgument
 import ast.Identifier
 import ast.Statement
@@ -9,8 +10,10 @@ class Function(val modifier: DataStructModifier, val name: Identifier, val from:
                val input: List<Variable>, val output: Variable,
                var body: Statement, val context: IContext, val parent: Variable? = null): DataStruct(modifier, parent){
     private var used = false
-    val called = ArrayList<Function>()
+    private val called = ArrayList<Function>()
     private var compiled = false
+    val hasParams = from.any { it.modifier.params }
+    val hasLastLambda = from.isNotEmpty() && from.last().type is FuncType
 
     fun use(){
         used = true

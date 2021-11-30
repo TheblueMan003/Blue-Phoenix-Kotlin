@@ -3,32 +3,32 @@ package codegen.minecraft
 import ast.*
 import kotlin.math.exp
 
-fun genIf(expr: If, callBack: (Statement)->List<String>):String{
+fun genIf(expr: If, sbi: ScoreboardInitializer, callBack: (Statement)->List<String>):String{
     fun ifUnpack(expr: If): Pair<List<MCCondition>, Statement> {
         fun inter(expr: Expression): MCCondition {
             return when (expr) {
                 is VariableExpr -> {
-                    variableToScoreboard(expr.variable).compare(1, ">=")
+                    variableToScoreboard(expr.variable, sbi).compare(1, ">=")
                 }
                 is BinaryExpr -> {
                     val left = expr.first
                     val right = expr.second
                     if (left is VariableExpr && right is VariableExpr) {
-                        val s1 = variableToScoreboard(left.variable)
-                        val s2 = variableToScoreboard(right.variable)
+                        val s1 = variableToScoreboard(left.variable, sbi)
+                        val s2 = variableToScoreboard(right.variable, sbi)
                         s1.compare(s2, expr.op)
                     }
                     // Range
                     else if (left is VariableExpr && right is RangeLitExpr) {
-                        val s1 = variableToScoreboard(left.variable)
+                        val s1 = variableToScoreboard(left.variable, sbi)
                         s1.isIn(litExprToInt(right.min as LitExpr), litExprToInt(right.max as LitExpr))
                     }
                     // Lit
                     else if (left is VariableExpr && right is LitExpr) {
-                        val s1 = variableToScoreboard(left.variable)
+                        val s1 = variableToScoreboard(left.variable, sbi)
                         s1.compare(litExprToInt(right), expr.op)
                     } else if (left is LitExpr && right is VariableExpr) {
-                        val s1 = variableToScoreboard(right.variable)
+                        val s1 = variableToScoreboard(right.variable, sbi)
                         s1.compare(litExprToInt(left), swapOperator(expr.op))
                     } else {
                         throw NotImplementedError()

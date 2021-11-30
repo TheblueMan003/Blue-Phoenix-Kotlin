@@ -14,7 +14,11 @@ abstract class LitExpr : Expression()
 /**
  *  Int Value in Expression
  */
-data class IntLitExpr(val value: Int) : LitExpr(){
+data class IntLitExpr(val value: Int) : LitExpr(), JsonLeaves{
+    override fun toJsonString(markStringKey: Boolean): String {
+        return value.toString()
+    }
+
     override fun toString(): String {
         return "IntLitExpr($value)"
     }
@@ -24,7 +28,11 @@ data class IntLitExpr(val value: Int) : LitExpr(){
 /**
  *  Float Value in Expression
  */
-data class FloatLitExpr(val value: Float) : LitExpr(){
+data class FloatLitExpr(val value: Float) : LitExpr(), JsonLeaves{
+    override fun toJsonString(markStringKey: Boolean): String {
+        return value.toString()
+    }
+
     override fun toString(): String {
         return "FloatLitExpr($value)"
     }
@@ -34,7 +42,11 @@ data class FloatLitExpr(val value: Float) : LitExpr(){
 /**
  *  Boolean Value in Expression
  */
-data class BoolLitExpr(val value: Boolean) : LitExpr(){
+data class BoolLitExpr(val value: Boolean) : LitExpr(), JsonLeaves{
+    override fun toJsonString(markStringKey: Boolean): String {
+        return value.toString()
+    }
+
     override fun toString(): String {
         return "BoolLitExpr($value)"
     }
@@ -43,7 +55,11 @@ data class BoolLitExpr(val value: Boolean) : LitExpr(){
 /**
  *  String Value in Expression
  */
-data class StringLitExpr(val value: String) : LitExpr(){
+data class StringLitExpr(val value: String) : LitExpr(), JsonLeaves{
+    override fun toJsonString(markStringKey: Boolean): String {
+        return "\"$value\""
+    }
+
     override fun toString(): String {
         return "StringLitExpr(\"$value\")"
     }
@@ -56,6 +72,15 @@ data class StringLitExpr(val value: String) : LitExpr(){
 data class IdentifierExpr(var value: Identifier) : Expression(){
     override fun toString(): String {
         return "IdentifierExpr($value)"
+    }
+}
+
+/**
+ *  Boolean Value in Expression
+ */
+data class SelectorExpr(val selector: String): Expression(){
+    override fun toString(): String {
+        return "SelectorType($selector)"
     }
 }
 
@@ -106,6 +131,15 @@ data class UnaryExpr(val op: String, val first: Expression): Expression(){
 }
 
 /**
+ *  Unary Expression
+ */
+data class TypeExpr(val type: DataType): Expression(){
+    override fun toString(): String {
+        return "TypeExpr($type)"
+    }
+}
+
+/**
  *  Tuple Value in Expression
  */
 data class TupleExpr(val value: List<Expression>) : Expression(), IGenerator{
@@ -121,13 +155,31 @@ data class TupleExpr(val value: List<Expression>) : Expression(), IGenerator{
 /**
  *  Tuple Value in Expression
  */
-data class ArrayExpr(val value: List<Expression>) : Expression(), IGenerator{
+data class ArrayExpr(val value: List<Expression>) : Expression(), IGenerator, JsonObject{
     override fun getIterator(): Iterator<Map<String, Expression>> {
         return ListIterator(value)
     }
 
     override fun toString(): String {
         return "ArrayExpr($value)"
+    }
+
+    override fun get(key: String): JsonObject {
+        return value[key.toInt()] as JsonObject
+    }
+
+    override fun get(key: Identifier): JsonObject {
+        return if (key.hasTail()) {
+            (value[key.getFirst().toString().toInt()] as JsonObject).get(key.getTail())
+        } else {
+            (value[key.getFirst().toString().toInt()] as JsonObject)
+        }
+    }
+
+    override fun toJsonString(markStringKey: Boolean): String {
+        return if (value.isNotEmpty())
+            "[${value.map { (it as JsonObject).toJsonString(markStringKey) }.reduce{ x, y -> "$x, $y" }}]"
+        else "[]"
     }
 }
 
@@ -215,3 +267,4 @@ data class EnumExpr(val enum: Enum) : AbstractIdentifierExpr(), IGenerator{
         }
     }
 }
+

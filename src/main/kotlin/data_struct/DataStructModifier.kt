@@ -7,6 +7,8 @@ class DataStructModifier{
     var operator:   Boolean = false
     var lazy:       Boolean = false
     var inline:     Boolean = false
+    var entity:     Boolean = false
+    var params:     Boolean = false
 
 
     companion object {
@@ -31,5 +33,17 @@ class DataStructModifier{
 
     override fun toString():String{
         return "($visibility${if(static){" static"}else{""}}${if(abstract){" abstract"}else{""}}${if(operator){" operator"}else{""}}${if(lazy){" lazy"}else{""}})"
+    }
+
+    fun clone(): DataStructModifier {
+        val modifier = DataStructModifier()
+        modifier.visibility = visibility
+        modifier.static = static
+        modifier.abstract = abstract
+        modifier.operator = operator
+        modifier.lazy = lazy
+        modifier.inline = inline
+        modifier.entity = entity
+        return modifier
     }
 }

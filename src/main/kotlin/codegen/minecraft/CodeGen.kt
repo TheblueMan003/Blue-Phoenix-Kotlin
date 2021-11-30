@@ -3,6 +3,10 @@ package codegen.minecraft
 import ast.*
 import utils.OutputFile
 
+val builtInFunction = mapOf<String, Any>(
+    Pair("__to_raw_json__", ::mcJavaToRawJson)
+)
+
 fun genCode(statement: Statement, name: String):List<OutputFile>{
     val sbi = ScoreboardInitializer()
     val outputFiles = ArrayList<OutputFile>()
@@ -35,7 +39,7 @@ fun genCode(stm: Statement, outputFiles: ArrayList<OutputFile>, sbi: ScoreboardI
             }
         }
         is If -> {
-            listOf(genIf(stm){genCode(it, outputFiles, sbi, true)})
+            listOf(genIf(stm, sbi){genCode(it, outputFiles, sbi, true)})
         }
         is RawFunctionCall -> {
             listOf("function ${stm.function.name}")

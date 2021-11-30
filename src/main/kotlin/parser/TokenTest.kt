@@ -148,6 +148,17 @@ fun getStringLit(tokens: TokenStream):String{
     tokens.next()
     return r
 }
+
+// Selector
+fun isSelector(tokens: TokenStream):Boolean{
+    return !tokens.isEmpty() && tokens.peek().tokenType == MCSelector
+}
+fun getSelector(tokens: TokenStream):String{
+    val r = tokens.peek().string
+    tokens.next()
+    return r
+}
+
 fun isType(tokens: TokenStream):Boolean{
     return try{
         parseType(tokens.copy())

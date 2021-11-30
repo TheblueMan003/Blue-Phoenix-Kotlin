@@ -95,6 +95,15 @@ data class RawFunctionCall(val function: Function): Statement(){
 /**
  *  Function Call without any arg or return Type
  */
+data class BuildInFunctionCall(val function: Identifier, val expr: List<Expression>): Expression(){
+    override fun toString(): String {
+        return "BuildInFunctionCall($function, $expr)"
+    }
+}
+
+/**
+ *  Function Call without any arg or return Type
+ */
 data class FunctionBody(val body: Statement, val function: Function): Statement(){
     override fun toString(): String {
         return "FunctionBody($body, $function)"
@@ -104,5 +113,43 @@ data class FunctionBody(val body: Statement, val function: Function): Statement(
 data class ReturnStatement(val expr: Expression, val function: Function): Statement(){
     override fun toString(): String {
         return "ReturnStatement($expr, $function)"
+    }
+}
+
+/**
+ *  Variable Expression after Name Analysis
+ */
+data class UnlinkedSelectorVariableExpr(val selector: SelectorExpr, var variable: Identifier) : Expression(){
+    override fun toString(): String {
+        return "UnresolvedSelectorVariableExpr(${selector.selector}.$variable)"
+    }
+}
+
+/**
+ *  Variable Expression after Name Analysis
+ */
+data class LinkedSelectorVariableExpr(val selector: SelectorExpr, var variable: Variable) : Expression(){
+    override fun toString(): String {
+        return "ResolvedSelectorVariableExpr(${selector.selector}.$variable)"
+    }
+}
+
+
+/**
+ *  Variable Before after Name Analysis
+ */
+data class UnlinkedSelectorVariableAssignment(val selector: SelectorExpr, var identifier: Identifier, val expr: Expression, val op: AssignmentType): Expression(){
+    override fun toString(): String {
+        return "UnlinkedSelectorVariableAssignment(${selector.selector}.$identifier $op $expr)"
+    }
+}
+
+
+/**
+ *  Variable Assigment after Name Analysis
+ */
+data class LinkedSelectorVariableAssignment(val selector: SelectorExpr, var variable: Variable, val expr: Expression, val op: AssignmentType): Expression(){
+    override fun toString(): String {
+        return "LinkedSelectorVariableAssignment(${selector.selector}.$variable $op $expr)"
     }
 }

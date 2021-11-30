@@ -1,5 +1,12 @@
 //import mc.color
+import mc.entity
 
-lazy int test = 0
+entity int x
 
-int a = test
+lazy void test(params any value){
+    forgenerate(v, value){
+        mcc(v):./say $0
+    }
+}
+
+test(0, 1, 2, 3)

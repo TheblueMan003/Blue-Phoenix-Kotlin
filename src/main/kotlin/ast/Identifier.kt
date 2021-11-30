@@ -33,7 +33,16 @@ class Identifier(val paths: List<String>) {
         return Identifier(paths.subList(0, paths.size-1)+(paths.last()+string))
     }
     fun getLast(): Identifier{
-        return Identifier(listOf( paths.last()))
+        return Identifier(listOf(paths.last()))
+    }
+    fun getFirst(): Identifier{
+        return Identifier(listOf(paths.first()))
+    }
+    fun getTail(): Identifier{
+        return Identifier(paths.drop(1))
+    }
+    fun hasTail(): Boolean {
+        return paths.size > 1
     }
     override fun toString():String{
         return paths.reduce { acc, s -> "$acc.$s" }

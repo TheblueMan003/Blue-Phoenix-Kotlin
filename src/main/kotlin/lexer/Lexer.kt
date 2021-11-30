@@ -7,26 +7,28 @@ val keyword = HashSet(listOf("if", "while","for","forgenerate", "else",
     "class", "abstract", "struct", "define",
     "return", "extends", "interface", "implements",
     "initer", "import", "from", "as", "blocktags", "enum", "enitytags",
-    "itemtags", "static", "private", "public", "protected", "operator",
-    "typedef", "lazy", "switch", "package", "in", "inline", "mcc"))
+    "itemtags", "static", "private", "public", "protected", "operator", "params",
+    "typedef", "lazy", "switch", "package", "in", "inline", "mcc", "entity", "is"))
 
-val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val", "range"))
+val primTypes = HashSet(listOf("int","float","string","bool", "void", "var", "val", "range", "selector", "any"))
 val boolLit = HashSet(listOf("true","false"))
 val delimiter = HashSet(listOf('(', ')', '{', '}', '[', ']', '.', ','))
-val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<', ':'))
-val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?","=", "==", "=>", "<=", "<", ">=", ">", "->", ":"))
-
+val operationChar = HashSet(listOf('+', '-', '*', '/', '%', '&', '|', '^', '?','=', '>', '<', ':', '!'))
+val operation = HashSet(listOf("+", "-", "*", "/", "%", "&&", "||", "^", "?", "!", "=", "==", "=>", "<=", "<", ">=", ">", "->", ":", "in", "is"))
+val selectors = HashSet(listOf("@e", "@a", "@r", "@p", "@s"))
 
 fun parse(input: String):List<Token>{
     var lst = ArrayList<Token>()
     val stream = StringStream(input, 0)
+    var prev: Token? = null
     while(stream.hasNext()){
-        lst.add(parseOne(stream))
+        prev = parseOne(stream, prev)
+        lst.add(prev)
     }
     return lst.filterNot { (it.tokenType == CommentTokenType) || (it.tokenType == SpaceTokenType)}
 }
 
-fun parseOne(stream: StringStream):Token{
+fun parseOne(stream: StringStream, previous: Token?):Token{
     stream.startSlice()
     val c = stream.next()
     return if (c.isDigit()){
@@ -46,12 +48,28 @@ fun parseOne(stream: StringStream):Token{
         while(stream.hasNext() && (stream.peek().isDigit() || stream.peek().isLetter() || stream.peek() == '_')){
             stream.next()
         }
-        when (val word = stream.slice()) {
-            "in" ->         { Token(OperationToken,      word, stream.getSliceStart()) }
-            in keyword ->   { Token(KeywordTokenType,    word, stream.getSliceStart()) }
-            in boolLit ->   { Token(BoolLitTokenType,    word, stream.getSliceStart()) }
-            in primTypes -> { Token(PrimTypeTokenType,   word, stream.getSliceStart()) }
-            else ->         { Token(IdentifierTokenType, word, stream.getSliceStart()) }
+        val word = stream.slice()
+        if (stream.hasNext() && stream.peek() == '.' || (previous!= null && previous.string == ".")){
+            Token(IdentifierTokenType, word, stream.getSliceStart())
+        }
+        else {
+            when (word) {
+                in operation -> {
+                    Token(OperationToken, word, stream.getSliceStart())
+                }
+                in keyword -> {
+                    Token(KeywordTokenType, word, stream.getSliceStart())
+                }
+                in boolLit -> {
+                    Token(BoolLitTokenType, word, stream.getSliceStart())
+                }
+                in primTypes -> {
+                    Token(PrimTypeTokenType, word, stream.getSliceStart())
+                }
+                else -> {
+                    Token(IdentifierTokenType, word, stream.getSliceStart())
+                }
+            }
         }
     } else if (c == '"'){
         var escaped = false
@@ -87,6 +105,37 @@ fun parseOne(stream: StringStream):Token{
             }
             Token(RawCommandToken, stream.slice(), stream.getSliceStart())
         } else {
+            Token(DelimiterTokenType, stream.slice(), stream.getSliceStart())
+        }
+    }
+    else if (c == '@'){
+        if (stream.hasNext() && stream.peek().isLetter()) {
+            stream.next()
+            if (stream.hasNext() && stream.peek().isLetterOrDigit()){
+                while (stream.hasNext() && stream.peek().isLetterOrDigit()) {
+                    stream.next()
+                }
+                Token(DecoratorToken, stream.slice(), stream.getSliceStart())
+            }else if (stream.peek() == '['){
+                stream.next()
+                var count = 0
+                while (stream.hasNext() && (stream.peek() != ']' && count == 0)) {
+                    val d = stream.next()
+                    if (d == '[') count++
+                    if (d == ']') count--
+                }
+                stream.next()
+                if (count > 0){
+                    throw Exception("Unclosed [")
+                }
+                Token(MCSelector, stream.slice(), stream.getSliceStart())
+            }else if (stream.slice() in selectors){
+                Token(MCSelector, stream.slice(), stream.getSliceStart())
+            }else{
+                Token(DecoratorToken, stream.slice(), stream.getSliceStart())
+            }
+        }
+        else{
             Token(DelimiterTokenType, stream.slice(), stream.getSliceStart())
         }
     }

@@ -1,0 +1,5 @@
+package entity
+
+public lazy void kill(lazy selector e){
+    mcc(e):./kill $0
+}
